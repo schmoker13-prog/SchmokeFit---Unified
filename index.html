@@ -895,6 +895,12 @@
     .nutrition-empty { font-size:.68rem; color:var(--text-muted); padding:6px 0; }
     .nutrition-note { font-size:.62rem; color:#64748b; margin-top:8px; line-height:1.35; }
 
+    /* PER-MEAL NUTRITION TOTALS */
+    .meal-nutrition-summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px 8px;margin:3px 0 8px;font-size:.62rem;color:var(--text-muted);line-height:1.25;}
+    .meal-nutrition-summary .meal-kcal{color:var(--text);font-size:.70rem;font-weight:900;}
+    .meal-nutrition-summary .meal-macro{font-weight:750;}
+    .meal-nutrition-summary .meal-sep{opacity:.45;}
+
     /* QUICK FOODS: RECENT / FREQUENT + FAVORITES */
     .quick-foods-wrap{margin-top:10px;border-top:1px solid var(--input-border);padding-top:10px;}
     .quick-food-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
@@ -912,6 +918,17 @@
     .quick-food-toggle-wrap{text-align:center;margin-top:8px;}
     .quick-food-toggle{border:1px solid var(--input-border);border-radius:8px;background:transparent;color:var(--text-muted);min-height:30px;padding:5px 12px;font-size:.56rem;font-weight:900;letter-spacing:.04em;cursor:pointer;}
     .quick-food-toggle:hover{border-color:var(--accent-blue);color:var(--accent-blue);}
+    /* FOCUSED FOOD LOGGING */
+    .food-logging-methods{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;}
+    .food-logging-methods .btn{margin:0;padding:9px 6px;font-size:.58rem;}
+    .food-lookup-panel{display:none;margin-top:10px;padding:10px;background:#0d1527;border:1px solid var(--input-border);border-radius:10px;}
+    .food-lookup-panel.open{display:block;}
+    .food-mode-back{display:none;width:100%;margin:0 0 8px 0;}
+    .nutrition-search-panel.food-mode-active .quick-foods-wrap,
+    .nutrition-search-panel.food-mode-active .food-logging-methods{display:none;}
+    .nutrition-search-panel.food-mode-active .food-mode-back{display:block;}
+    @media(max-width:390px){.food-logging-methods{grid-template-columns:1fr;}}
+
     /* BARCODE SCANNER + MANUAL FOOD FALLBACK */
     .nutrition-action-row {
       display:grid;
@@ -2410,20 +2427,26 @@
 <div id="mealSections"></div>
 <div class="nutrition-search-panel" id="nutritionSearchPanel">
 <div class="select-label" id="searchMealLabel">ADD FOOD</div>
-<div class="nutrition-search-row">
-<input class="custom-select" id="foodSearchInput" placeholder="Search USDA foods..." type="search"/>
-<button class="btn btn-orange" onclick="searchUsdaFoods()" style="flex:0 0 auto; padding:10px 12px;">SEARCH</button>
-</div>
-<div class="nutrition-action-row">
-<button class="btn btn-dark" onclick="startBarcodeScanner()" style="margin:0;">📷 SCAN BARCODE</button>
-<button class="btn btn-dark" onclick="showManualFoodForm()" style="margin:0;">✏️ MANUAL FOOD</button>
-</div>
 <div class="quick-foods-wrap">
 <div class="quick-food-tabs" role="group" aria-label="Quick foods">
 <button class="quick-food-tab active" id="quickFoodTab-recent" type="button" onclick="setQuickFoodTab('recent')">RECENT / FREQUENT</button>
 <button class="quick-food-tab" id="quickFoodTab-favorites" type="button" onclick="setQuickFoodTab('favorites')">★ FAVORITES</button>
 </div>
 <div class="quick-food-list" id="quickFoodList"></div>
+</div>
+<div class="food-logging-methods" id="foodLoggingMethods">
+<button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('lookup')">🔎 FOOD LOOKUP</button>
+<button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('barcode')">📷 SCAN BARCODE</button>
+<button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('manual')">✏️ MANUAL FOOD</button>
+</div>
+<button class="btn btn-dark food-mode-back" id="foodModeBack" type="button" onclick="exitFoodLoggingMode()">← BACK TO QUICK ADD</button>
+<div class="food-lookup-panel" id="foodLookupPanel">
+<div class="select-label" style="color:var(--accent-blue);">FOOD LOOKUP</div>
+<div class="nutrition-search-row">
+<input class="custom-select" id="foodSearchInput" placeholder="Search USDA foods..." type="search"/>
+<button class="btn btn-orange" onclick="searchUsdaFoods()" style="flex:0 0 auto; padding:10px 12px;">SEARCH</button>
+</div>
+<div class="search-results" id="foodSearchResults"></div>
 </div>
 <div class="barcode-panel" id="barcodePanel">
 <div class="select-label" style="color:var(--accent-blue);">BARCODE SCANNER</div>
@@ -2473,7 +2496,6 @@
 <button class="btn btn-blue" onclick="saveManualFood()">ADD TO MEAL</button>
 <button class="btn btn-dark" onclick="hideManualFoodForm()" style="width:100%; margin-top:6px;">CANCEL</button>
 </div>
-<div class="search-results" id="foodSearchResults"></div>
 <button class="btn btn-dark" onclick="closeFoodSearch()" style="width:100%; margin-top:8px;">CLOSE</button>
 <div class="nutrition-note">Search uses USDA FoodData Central. Barcode scans use Open Food Facts. If a barcode is not found, you can enter the food manually and save that barcode on this device for future scans.</div>
 </div>
@@ -3526,31 +3548,34 @@
         notice.style.cssText = [
           'position:fixed',
           'left:50%',
-          'top:18px',
-          'transform:translateX(-50%)',
+          'top:50%',
+          'transform:translate(-50%,-50%) scale(.94)',
           'z-index:99999',
-          'max-width:calc(100vw - 32px)',
-          'padding:14px 20px',
-          'border-radius:14px',
-          'background:#111820',
+          'width:min(360px,calc(100vw - 40px))',
+          'padding:24px 26px',
+          'border-radius:20px',
+          'background:linear-gradient(135deg,#0f766e,#0891b2)',
           'color:#fff',
-          'border:1px solid rgba(255,255,255,.18)',
-          'box-shadow:0 10px 30px rgba(0,0,0,.35)',
-          'font-weight:800',
-          'letter-spacing:.03em',
+          'border:2px solid rgba(255,255,255,.72)',
+          'box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 0 6px rgba(8,145,178,.18)',
+          'font-size:1.18rem',
+          'font-weight:900',
+          'letter-spacing:.055em',
           'text-align:center',
           'opacity:0',
-          'transition:opacity .18s ease'
+          'transition:opacity .18s ease,transform .18s ease'
         ].join(';');
         document.body.appendChild(notice);
       }
 
-      notice.textContent = 'REST TIME IS UP!';
+      notice.innerHTML = '<div style="font-size:2rem;line-height:1;margin-bottom:10px">⏱️</div><div>REST TIME IS UP!</div><div style="font-size:.76rem;font-weight:700;letter-spacing:.03em;margin-top:7px;opacity:.9">READY FOR YOUR NEXT SET</div>';
       notice.style.opacity = '1';
+      notice.style.transform = 'translate(-50%,-50%) scale(1)';
 
       clearTimeout(window.schmokeFitRestNoticeTimeout);
       window.schmokeFitRestNoticeTimeout = setTimeout(() => {
         notice.style.opacity = '0';
+        notice.style.transform = 'translate(-50%,-50%) scale(.94)';
       }, 4200);
     }
 
@@ -4134,6 +4159,14 @@
         const meal = mealDef.id;
         const mealLabel = mealDef.name;
         const items = log[meal] || [];
+        const mealTotals = items.reduce((totals, item) => {
+          totals.calories += Number(item.calories) || 0;
+          totals.protein += Number(item.protein) || 0;
+          totals.carbs += Number(item.carbs) || 0;
+          totals.fat += Number(item.fat) || 0;
+          return totals;
+        }, {calories:0, protein:0, carbs:0, fat:0});
+        const mealSummary = `<div class="meal-nutrition-summary"><span class="meal-kcal">${Math.round(mealTotals.calories)} kcal</span><span class="meal-sep">•</span><span class="meal-macro">${round1(mealTotals.protein)}g P</span><span class="meal-sep">•</span><span class="meal-macro">${round1(mealTotals.carbs)}g C</span><span class="meal-sep">•</span><span class="meal-macro">${round1(mealTotals.fat)}g F</span></div>`;
         const rows = items.length ? items.map((item, idx) => `
           <div class="food-row" onclick="openFoodEdit('${meal}', ${idx})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFoodEdit('${meal}', ${idx});}">
             <button class="food-remove" onclick="event.stopPropagation(); removeFoodItem('${meal}', ${idx})" aria-label="Remove ${escapeHtml(item.name)}">×</button>
@@ -4145,7 +4178,7 @@
             <div class="food-amount">${formatLoggedFoodAmount(item)}</div>
             <button class="food-favorite ${isFoodFavorite(item) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFoodFavoriteFromLog('${meal}', ${idx})" aria-label="Favorite ${escapeHtml(item.name)}">${isFoodFavorite(item) ? '★' : '☆'}</button>
           </div>`).join('') : '<div class="nutrition-empty">No foods logged.</div>';
-        return `<div class="meal-section" data-meal="${meal}"><div class="meal-header"><div class="meal-title-row"><div class="meal-title">${escapeHtml(mealLabel).toUpperCase()}</div>${mealDef.active === false ? '<span class="meal-archived-badge">REMOVED</span>' : ''}<button class="meal-name-edit" type="button" onclick="renameNutritionMeal('${meal}')" aria-label="Rename ${escapeHtml(mealLabel)}">✎</button>${mealDef.active !== false ? `<button class="meal-name-remove" type="button" onclick="removeNutritionMeal('${meal}')" aria-label="Remove ${escapeHtml(mealLabel)}">✕</button>` : ''}</div>${mealDef.active !== false ? `<button class="meal-add-btn" onclick="openFoodSearch('${meal}')">+ ADD</button>` : ''}</div><div class="nutrition-search-slot" id="nutritionSearchSlot-${meal}"></div>${rows}</div>`;
+        return `<div class="meal-section" data-meal="${meal}"><div class="meal-header"><div class="meal-title-row"><div class="meal-title">${escapeHtml(mealLabel).toUpperCase()}</div>${mealDef.active === false ? '<span class="meal-archived-badge">REMOVED</span>' : ''}<button class="meal-name-edit" type="button" onclick="renameNutritionMeal('${meal}')" aria-label="Rename ${escapeHtml(mealLabel)}">✎</button>${mealDef.active !== false ? `<button class="meal-name-remove" type="button" onclick="removeNutritionMeal('${meal}')" aria-label="Remove ${escapeHtml(mealLabel)}">✕</button>` : ''}</div>${mealDef.active !== false ? `<button class="meal-add-btn" onclick="openFoodSearch('${meal}')">+ ADD</button>` : ''}</div>${mealSummary}<div class="nutrition-search-slot" id="nutritionSearchSlot-${meal}"></div>${rows}</div>`;
       }).join('') + `<div class="add-custom-meal-wrap"><button class="add-custom-meal-btn" type="button" onclick="addNutritionMeal()">+ ADD ANOTHER MEAL</button></div>`;
 
       // If the user was searching when the meal list rerendered, put the
@@ -4173,19 +4206,63 @@
 
       if (slot && panel) slot.appendChild(panel);
       panel?.classList.add('open');
+      exitFoodLoggingMode(false);
 
-      const input = document.getElementById('foodSearchInput');
-      if (input) {
+      // Quick Add is the default view. Do not force the keyboard open;
+      // the user can choose Lookup, Barcode, or Manual when needed.
+      setTimeout(() => {
+        panel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 60);
+    }
+
+    async function enterFoodLoggingMode(mode) {
+      const panel = document.getElementById('nutritionSearchPanel');
+      const lookup = document.getElementById('foodLookupPanel');
+      const barcode = document.getElementById('barcodePanel');
+      const manual = document.getElementById('manualFoodPanel');
+      if (!panel) return;
+
+      panel.classList.add('food-mode-active');
+      lookup?.classList.remove('open');
+      barcode?.classList.remove('open');
+      manual?.classList.remove('open');
+
+      if (mode !== 'barcode') await stopBarcodeScanner(false);
+
+      if (mode === 'lookup') {
+        lookup?.classList.add('open');
         setTimeout(() => {
-          input.focus();
-          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 60);
+          const input = document.getElementById('foodSearchInput');
+          input?.focus();
+          lookup?.scrollIntoView({behavior:'smooth', block:'center'});
+        }, 80);
+      } else if (mode === 'barcode') {
+        await startBarcodeScanner();
+        setTimeout(() => barcode?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
+      } else if (mode === 'manual') {
+        showManualFoodForm();
+        setTimeout(() => manual?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
+      }
+    }
+
+    async function exitFoodLoggingMode(scrollBack = true) {
+      const panel = document.getElementById('nutritionSearchPanel');
+      await stopBarcodeScanner(false);
+      hideManualFoodForm();
+      document.getElementById('foodLookupPanel')?.classList.remove('open');
+      document.getElementById('barcodePanel')?.classList.remove('open');
+      document.getElementById('foodSearchResults').innerHTML = '';
+      panel?.classList.remove('food-mode-active');
+      if (scrollBack) {
+        setTimeout(() => panel?.scrollIntoView({behavior:'smooth', block:'center'}), 50);
       }
     }
 
     async function closeFoodSearch() {
       await stopBarcodeScanner();
       hideManualFoodForm();
+      document.getElementById('foodLookupPanel')?.classList.remove('open');
+      document.getElementById('nutritionSearchPanel').classList.remove('food-mode-active');
       document.getElementById('nutritionSearchPanel').classList.remove('open');
       document.getElementById('foodSearchResults').innerHTML = '';
       document.getElementById('foodSearchInput').value = '';
