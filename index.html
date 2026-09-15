@@ -1923,6 +1923,16 @@
 
 
     /* ===== UNIFIED SCHMOKEFIT PROGRAM SHELL ===== */
+    /* Greek Physique: marble, steel and Mediterranean blue.
+       Amber remains reserved for functional warning/skipped states only. */
+    body.program-greek {
+      --bg-color:#080d14; --card-bg:#101923; --card-border:#263746;
+      --input-bg:#0a1119; --input-border:#2a3d4d;
+      --accent-blue:#3aa7e8; --accent-blue-dark:#247bb3;
+      --accent-orange:#a9c7dc; --accent-orange-hover:#c7dce9;
+      --badge-key:#3a8fc4;
+      --text-main:#f2f5f7; --text-muted:#9eabb5;
+    }
     body.program-bahama {
       --bg-color:#071318; --card-bg:#0d1f26; --card-border:#17333b;
       --input-bg:#071318; --input-border:#1b3a42; --accent-blue:#00f0ff;
@@ -1939,7 +1949,7 @@
     .program-choice-option:hover{border-color:var(--accent-blue);background:rgba(56,189,248,.07);transform:translateY(-2px)}
     .program-choice-avatar-wrap{width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#05080e;border:1px solid rgba(255,255,255,.08)}
     .program-choice-avatar{display:block;width:100%;height:100%;object-fit:cover}
-    .program-choice-option.movie .program-choice-avatar{object-fit:cover}
+    .program-choice-option.greek .program-choice-avatar{object-fit:cover}
     .program-choice-option strong{font-size:.86rem;color:#fff;letter-spacing:.02em}
     .program-choice-option span{font-size:.67rem;color:var(--text-muted);line-height:1.5}
     .program-choice-option .program-choice-goal{color:#dbeafe;font-weight:800}
@@ -2030,11 +2040,11 @@
     <div class="program-choice-title">CHOOSE YOUR PROGRAM</div>
     <div class="program-choice-copy">Choose the physique goal that fits you best. You can switch programs later, and SchmokeFit will keep each program's workout progress separate.</div>
     <div class="program-choice-grid">
-      <button class="program-choice-option movie" onclick="selectUnifiedProgram('movie')">
-        <div class="program-choice-avatar-wrap"><img class="program-choice-avatar" src="avatar-movie-star.jpg" alt="Movie Star Protocol avatar"></div>
-        <strong>MOVIE STAR PROTOCOL</strong>
-        <span><span class="program-choice-goal">Geared toward men chasing that movie-star physique:</span> broad shoulders, a strong V-taper, muscular definition, and a leaner waist.</span>
-        <div class="program-choice-select">CHOOSE MOVIE STAR →</div>
+      <button class="program-choice-option greek" onclick="selectUnifiedProgram('greek')">
+        <div class="program-choice-avatar-wrap"><img class="program-choice-avatar" src="avatar-greek-physique.jpg" alt="Greek Physique avatar"></div>
+        <strong>GREEK PHYSIQUE</strong>
+        <span><span class="program-choice-goal">Built for men chasing the timeless proportions of an ancient Greek statue:</span> broad shoulders, a powerful chest and back, defined arms, athletic legs, and a lean waist — balanced for symmetry, proportion, and aesthetics.</span>
+        <div class="program-choice-select">CHOOSE GREEK PHYSIQUE →</div>
       </button>
       <button class="program-choice-option bahama" onclick="selectUnifiedProgram('bahama')">
         <div class="program-choice-avatar-wrap"><img class="program-choice-avatar" src="avatar-bahama-mama.jpg" alt="Bahama Mama Protocol avatar"></div>
@@ -2052,7 +2062,7 @@
 <!-- HEADER BRANDING -->
 <div class="header-card">
 <div class="avatar-wrapper">
-<img alt="SchmokeFit" class="sf-brand-mark" id="schmokefitHeaderIcon" src="schmokefit-icon.png" onerror="this.src='avatar-movie-star.jpg'"/>
+<img alt="SchmokeFit" class="sf-brand-mark" id="schmokefitHeaderIcon" src="schmokefit-icon.png" onerror="this.src='avatar-greek-physique.jpg'"/>
 </div>
 <div class="brand-title">SCHMOKE<span>FIT</span></div>
 <div class="sf-program-badge" id="programBrandSubtitle">SCHMOKEFIT</div>
@@ -2076,13 +2086,13 @@
 <div class="section-title-banner">00. SCHMOKEFIT PROGRAM</div>
 <!-- MINIMALIST GUIDE -->
 <div class="card info-card">
-<div class="info-subtitle">THE MINIMALIST GUIDE</div>
-<p>Built on absolute efficiency, this protocol prioritizes heavy key lifts, optimal recovery, and flexible nutrition so you build a dense, powerful physique without living in the gym.</p>
+<div class="info-subtitle">THE GREEK PHYSIQUE STANDARD</div>
+<p>Inspired by the balanced proportions of classical Greek sculpture, this program is built to develop a physique that looks carved from marble: broad shoulders, a strong chest and back, defined arms, athletic legs, and a lean waist. The goal is not size for size’s sake — it is symmetry, proportion, muscular definition, and timeless aesthetics.</p>
 </div>
 <!-- TRAINING BLUEPRINT -->
 <div class="card info-card">
 <div class="info-subtitle">01. TRAINING BLUEPRINT</div>
-<p style="margin-bottom: 8px;"><strong>PHILOSOPHY:</strong> 3 intense workouts per week, training to or near failure on every set. Follow each session with a full day of rest. Maximum effort followed by maximum recovery.</p>
+<p style="margin-bottom: 8px;"><strong>PHILOSOPHY:</strong> Build the body like a sculptor: prioritize the muscle groups that create classical proportions, train hard enough to force adaptation, and recover enough to grow. Three focused workouts per week keep the program efficient while emphasizing symmetry, shape, and definition.</p>
 <p style="margin-bottom: 6px;"><strong>REVERSE PYRAMID TRAINING (RPT):</strong></p>
 <ul style="margin-left: 16px; margin-bottom: 8px;">
 <li><strong>Set 1 (Heavy):</strong> Target 4–6 reps (Heaviest Weight).</li>
@@ -2092,23 +2102,23 @@
 </ul>
 <p style="margin-bottom:6px;"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1–2 weeks</strong>.</p>
 <p style="margin-bottom:8px;">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first—that is normal. Build them back up, then increase the load again.</p>
-<p style="font-size:.72rem; color:var(--text-muted); margin-bottom:8px;"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout—just keep giving your body a reason to adapt.</p>
+<p style="font-size:.72rem; color:var(--text-muted); margin-bottom:8px;"><strong>THE GOAL:</strong> Add muscle where it improves proportion, maintain a lean waist, and steadily sharpen the silhouette. Small, repeatable improvements are what turn the blueprint into a physique that looks carved rather than simply bigger.</p>
 <p>⏱️ <strong>TIME CRUNCH RULE:</strong> If time is short, perform only the Key Lifts for that day and skip supplemental work.</p>
 </div>
 <!-- TRAINING FOCUS OPTIONS -->
 <div class="card info-card">
 <div class="info-subtitle">02. CHOOSE YOUR FOCUS</div>
-<p style="margin-bottom:8px;">The Movie Star Protocol keeps the original 3-day workout intact and makes only small Monday and Friday adjustments based on the area you want to emphasize most.</p>
-<p style="margin-bottom:5px;"><strong>SHOULDERS:</strong> Broader delts and a stronger V-taper. This is the default program.</p>
-<p style="margin-bottom:5px;"><strong>ARMS:</strong> More direct biceps and triceps work for added size and definition.</p>
-<p style="margin-bottom:5px;"><strong>CHEST:</strong> More pressing and chest-focused volume for upper-body thickness.</p>
-<p style="margin-bottom:8px;"><strong>LEGS:</strong> More quad, hamstring, and lower-body volume while keeping the upper body balanced.</p>
+<p style="margin-bottom:8px;">Greek Physique keeps the core 3-day structure intact while allowing small Monday and Friday adjustments to refine the area that will most improve your overall proportions.</p>
+<p style="margin-bottom:5px;"><strong>SHOULDERS:</strong> Build the broad, capped delts and V-taper that anchor the classical statue silhouette. This is the default focus.</p>
+<p style="margin-bottom:5px;"><strong>ARMS:</strong> Add proportionate biceps and triceps development for defined, sculpted arms without overpowering the torso.</p>
+<p style="margin-bottom:5px;"><strong>CHEST:</strong> Emphasize a full, powerful chest — especially the upper torso — to strengthen the armor-like Greek aesthetic.</p>
+<p style="margin-bottom:8px;"><strong>LEGS:</strong> Build athletic quads and hamstrings so the lower body matches the upper body and the entire physique stays balanced.</p>
 <p style="font-size:0.72rem; color:var(--text-muted);">Wednesday stays essentially the same across every focus. Your key lifts and overall workout length stay intact; only a small amount of Monday and Friday accessory work changes. You can switch focus anytime from the Workout tab.</p>
 </div>
 <!-- 18-WEEK TRAINING CYCLE -->
 <div class="card info-card">
 <div class="info-subtitle">03. THE 18-WEEK RESET</div>
-<p style="margin-bottom:8px;"><strong>TRAIN IN BLOCKS:</strong> The Movie Star Protocol is designed as an 18-week training cycle rather than one workout plan you repeat forever.</p>
+<p style="margin-bottom:8px;"><strong>TRAIN IN BLOCKS:</strong> Greek Physique is designed as an 18-week sculpting cycle rather than one workout plan you repeat forever.</p>
 <p style="margin-bottom:8px;">After you complete <strong>Week 18</strong>, the app will prompt you to either keep your current training focus or choose a new focus: <strong>Shoulders, Arms, Chest, or Legs.</strong></p>
 <p style="margin-bottom:8px;">Once you make your selection, your program automatically resets to <strong>Week 1</strong> for a fresh 18-week block. The core program stays familiar, while the focus option makes small changes to Monday and Friday so you can emphasize a different area without completely changing what works.</p>
 <p style="font-size:0.72rem; color:var(--text-muted);"><strong>WHY RESET?</strong> It gives you a clear finish line, a chance to reassess your goals, and a simple way to refresh your training instead of running the exact same emphasis indefinitely.</p>
@@ -2174,7 +2184,7 @@
 <button class="focus-toggle-btn" id="focusBtn-chest" onclick="setTrainingFocus('chest', this)">CHEST</button>
 <button class="focus-toggle-btn" id="focusBtn-legs" onclick="setTrainingFocus('legs', this)">LEGS</button>
 </div>
-<div class="focus-active-text" id="focusActiveText"><strong>SHOULDERS FOCUS ACTIVE</strong> — extra weekly shoulder volume while preserving the core 3-day Movie Star structure.
+<div class="focus-active-text" id="focusActiveText"><strong>SHOULDERS FOCUS ACTIVE</strong> — extra weekly shoulder volume while preserving the core 3-day Greek Physique structure.
         </div>
 </div><div class="weekly-workout-list">
 <button class="weekly-workout-card" id="workoutCard-monday" onclick="openWorkoutDetail('monday')">
@@ -2468,7 +2478,7 @@
 <div class="program-reset-kicker" id="programResetKicker">18-WEEK BLOCK COMPLETE</div>
 <div class="program-reset-title" id="programResetTitle">START YOUR NEXT TRAINING CYCLE</div>
 <div class="program-reset-copy" id="programResetCopy">
-        You finished the full Movie Star training block. Keep your current focus or choose a new one before restarting at Week 1. Changing focus can help keep training fresh without changing the core program.
+        You finished the full Greek Physique training block. Keep your current focus or choose a new one before restarting at Week 1. Changing focus can help keep training fresh without changing the core program.
       </div>
 <div class="program-reset-copy" id="programResetCurrentFocus"></div>
 <button class="btn btn-blue" id="keepCurrentFocusBtn" onclick="startNewProgramCycle(currentTrainingFocus)">KEEP CURRENT FOCUS</button>
@@ -2486,19 +2496,19 @@
     // ===== UNIFIED SCHMOKEFIT PROGRAM + STORAGE ROUTER =====
     const rawLocalStorage = window.localStorage;
     const storedUnifiedProgram = rawLocalStorage.getItem('schmokefit_unified_program');
-    let currentProgram = storedUnifiedProgram === 'bahama' ? 'bahama' : 'movie';
+    let currentProgram = storedUnifiedProgram === 'bahama' ? 'bahama' : 'greek';
     const needsUnifiedProgramChoice = !storedUnifiedProgram;
 
     const PROGRAM_CONFIG = {
-      movie: {
-        id:'movie', brand:'MOVIE STAR PROTOCOL', avatar:'avatar-movie-star.jpg', defaultFocus:'shoulders',
+      greek: {
+        id:'greek', brand:'GREEK PHYSIQUE', avatar:'avatar-greek-physique.jpg', defaultFocus:'shoulders',
         focusOrder:['shoulders','arms','chest','legs'],
         focusDisplayNames:{shoulders:'Shoulders',arms:'Arms',chest:'Chest',legs:'Legs'},
         macro:{cut:13,maint:15,bulk:17}, proteinMultiplier:0.82,
         macroLabels:{cut:'CUTTING (×13)',maint:'MAINT. (×15)',bulk:'LEAN BULK (×17)'},
         phase1:'PHASE 1: FAT LOSS DEFICIT', phase2:'PHASE 2: RECOMP PHASE',
         resetTitle:'START YOUR NEXT SCHMOKEFIT CYCLE',
-        resetCopy:'You finished the full Movie Star training block. Keep your current focus or choose a new one before restarting at Week 1.',
+        resetCopy:'You finished the full Greek Physique training block. Keep your current focus or choose a new one before restarting at Week 1.',
         focusLabel:'TRAINING FOCUS'
       },
       bahama: {
@@ -2564,9 +2574,26 @@
       });
       rawLocalStorage.setItem(marker,'done');
     }
+    // One-time rename migration: preserve progress/settings from the former Greek Physique program.
+    function migrateMovieStarToGreekPhysique() {
+      const marker = 'schmokefit_unified_greek_brand_migration_v1';
+      if (rawLocalStorage.getItem(marker) === 'done') return;
+      const keys = [];
+      for (let i = 0; i < rawLocalStorage.length; i++) keys.push(rawLocalStorage.key(i));
+      keys.filter(Boolean).forEach(key => {
+        if (!key.startsWith('schmokefit_unified_movie_')) return;
+        const dest = key.replace('schmokefit_unified_movie_', 'schmokefit_unified_greek_');
+        if (rawLocalStorage.getItem(dest) === null) rawLocalStorage.setItem(dest, rawLocalStorage.getItem(key));
+      });
+      if (rawLocalStorage.getItem('schmokefit_unified_program') === 'movie') {
+        rawLocalStorage.setItem('schmokefit_unified_program', 'greek');
+      }
+      rawLocalStorage.setItem(marker, 'done');
+    }
+    migrateMovieStarToGreekPhysique();
     migrateLegacyUnifiedData(currentProgram);
 
-    const movieIntroHtml = "\n<div class=\"section-title-banner\">00. MOVIE STAR PROTOCOL</div>\n<!-- MINIMALIST GUIDE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">THE MINIMALIST GUIDE</div>\n<p>Built on absolute efficiency, this protocol prioritizes heavy key lifts, optimal recovery, and flexible nutrition so you build a dense, powerful physique without living in the gym.</p>\n</div>\n<!-- TRAINING BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">01. TRAINING BLUEPRINT</div>\n<p style=\"margin-bottom: 8px;\"><strong>PHILOSOPHY:</strong> 3 intense workouts per week, training to or near failure on every set. Follow each session with a full day of rest. Maximum effort followed by maximum recovery.</p>\n<p style=\"margin-bottom: 6px;\"><strong>REVERSE PYRAMID TRAINING (RPT):</strong></p>\n<ul style=\"margin-left: 16px; margin-bottom: 8px;\">\n<li><strong>Set 1 (Heavy):</strong> Target 4\u20136 reps (Heaviest Weight).</li>\n<li><strong>Set 2 (Medium):</strong> Drop weight ~10\u201320%, target 6\u20138 reps.</li>\n<li><strong>Set 3 (Light):</strong> Drop weight another ~10\u201320%, target 8\u201310 reps.</li>\n<li><strong>Rest Period:</strong> Rest 2.5 to 3 minutes between all sets.</li>\n</ul>\n<p style=\"margin-bottom:6px;\"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1\u20132 weeks</strong>.</p>\n<p style=\"margin-bottom:8px;\">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first\u2014that is normal. Build them back up, then increase the load again.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:8px;\"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout\u2014just keep giving your body a reason to adapt.</p>\n<p>\u23f1\ufe0f <strong>TIME CRUNCH RULE:</strong> If time is short, perform only the Key Lifts for that day and skip supplemental work.</p>\n</div>\n<!-- TRAINING FOCUS OPTIONS -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">02. CHOOSE YOUR FOCUS</div>\n<p style=\"margin-bottom:8px;\">The Movie Star Protocol keeps the original 3-day workout intact and makes only small Monday and Friday adjustments based on the area you want to emphasize most.</p>\n<p style=\"margin-bottom:5px;\"><strong>SHOULDERS:</strong> Broader delts and a stronger V-taper. This is the default program.</p>\n<p style=\"margin-bottom:5px;\"><strong>ARMS:</strong> More direct biceps and triceps work for added size and definition.</p>\n<p style=\"margin-bottom:5px;\"><strong>CHEST:</strong> More pressing and chest-focused volume for upper-body thickness.</p>\n<p style=\"margin-bottom:8px;\"><strong>LEGS:</strong> More quad, hamstring, and lower-body volume while keeping the upper body balanced.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\">Wednesday stays essentially the same across every focus. Your key lifts and overall workout length stay intact; only a small amount of Monday and Friday accessory work changes. You can switch focus anytime from the Workout tab.</p>\n</div>\n<!-- 18-WEEK TRAINING CYCLE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. THE 18-WEEK RESET</div>\n<p style=\"margin-bottom:8px;\"><strong>TRAIN IN BLOCKS:</strong> The Movie Star Protocol is designed as an 18-week training cycle rather than one workout plan you repeat forever.</p>\n<p style=\"margin-bottom:8px;\">After you complete <strong>Week 18</strong>, the app will prompt you to either keep your current training focus or choose a new focus: <strong>Shoulders, Arms, Chest, or Legs.</strong></p>\n<p style=\"margin-bottom:8px;\">Once you make your selection, your program automatically resets to <strong>Week 1</strong> for a fresh 18-week block. The core program stays familiar, while the focus option makes small changes to Monday and Friday so you can emphasize a different area without completely changing what works.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\"><strong>WHY RESET?</strong> It gives you a clear finish line, a chance to reassess your goals, and a simple way to refresh your training instead of running the exact same emphasis indefinitely.</p>\n</div>\n<!-- NUTRITION BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. NO-BS NUTRITION BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\">When the goal is to <strong>get lean while building or preserving muscle</strong>, keep the nutrition plan simple: create a modest calorie deficit while consistently eating enough protein to support training and recovery.</p>\n<p style=\"margin-bottom:8px;\">These bodyweight-based calculations give you an easy starting point. The same approach can also be adjusted when your goal changes from fat loss to maintaining your weight or moving into a slight calorie surplus.</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Fat Loss / Deficit:</strong> Bodyweight (lbs) \u00d7 13 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Maintenance:</strong> Bodyweight (lbs) \u00d7 15 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Slight Surplus:</strong> Bodyweight (lbs) \u00d7 17 calories</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Protein Target:</strong> Bodyweight (lbs) \u00d7 0.82g</p>\n<p style=\"font-size:0.72rem; color:#64748b; margin-bottom:10px;\">*These are simple starting estimates. Adjust based on your progress, activity level, and goal. Use your target bodyweight if you have significant weight to lose.</p>\n<p><strong>TRACKING &amp; FLEXIBLE EATING:</strong></p>\n<ul style=\"margin-left: 16px; margin-top: 4px;\">\n<li><strong>Tracking App:</strong> You can log and track your calories, protein, and food directly inside SchmokeFit from the <strong>Macros</strong> tab.</li>\n<li><strong>Food Scale:</strong> Recommended for weighing food precisely at home.</li>\n<li><strong>Flexible Nutrition:</strong> You don't need 100% \"clean\" meals. Fast food like McDonald's works as long as it fits your daily calorie and protein targets!</li>\n<li><strong>Strategic Refeed Day:</strong> After at least two weeks of consistent tracking in a calorie deficit, you may add one refeed day per week. Increase your target by <strong>600 calories</strong>, with most of those extra calories coming from carbohydrates. This can help replenish glycogen stores, support training performance, and make a long deficit easier to stick with. A great place for the refeed is the day before your third workout—for example, Thursday if you train Friday.</li>\n</ul>\n</div>\n<!-- PHASE PROGRESSION -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">05. PHASE PROGRESSION</div>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>Weeks 1\u201310 (The Fat Loss Deficit):</strong> Maintain a consistent caloric deficit while preserving dense muscle mass.</p>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>6\u20138 Weeks (The Recomp Phase):</strong> Add 200 calories to your daily intake every two weeks, slowly working into a slight surplus.</p>\n<p>\u2022 <strong>Reset &amp; Repeat:</strong> Recalculate using Bodyweight \u00d7 13 at your new lean weight and repeat as needed.</p>\n</div>\n<!-- RECOVERY NOTE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">OFF DAYS &amp; RECOVERY</div>\n<p>Muscle is built during recovery. Take advantage of off days and weekends to rest fully. Do as little physical activity as possible on rest days.</p>\n</div>\n\n<div style=\"margin:14px 0 6px;\">\n  <button class=\"btn btn-blue\" style=\"width:100%; min-height:48px; font-size:.78rem; font-weight:900;\"\n    onclick=\"continueFromIntro();\">\n    CONTINUE INTO THE APP \u2192\n  </button>\n</div>\n<div style=\"margin:6px 0 0; text-align:center;\">\n  <button class=\"app-tour-replay-small\" type=\"button\" onclick=\"startAppTour(true)\">REPLAY APP TOUR</button>\n</div>\n";
+    const greekIntroHtml = "\n<div class=\"section-title-banner\">00. GREEK PHYSIQUE</div>\n<!-- MINIMALIST GUIDE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">THE GREEK PHYSIQUE STANDARD</div>\n<p>Inspired by the balanced proportions of classical Greek sculpture, this program is built to develop a physique that looks carved from marble: broad shoulders, a strong chest and back, defined arms, athletic legs, and a lean waist. The goal is not size for size’s sake — it is symmetry, proportion, muscular definition, and timeless aesthetics.</p>\n</div>\n<!-- TRAINING BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">01. TRAINING BLUEPRINT</div>\n<p style=\"margin-bottom: 8px;\"><strong>PHILOSOPHY:</strong> Build the body like a sculptor: prioritize the muscle groups that create classical proportions, train hard enough to force adaptation, and recover enough to grow. Three focused workouts per week keep the program efficient while emphasizing symmetry, shape, and definition.</p>\n<p style=\"margin-bottom: 6px;\"><strong>REVERSE PYRAMID TRAINING (RPT):</strong></p>\n<ul style=\"margin-left: 16px; margin-bottom: 8px;\">\n<li><strong>Set 1 (Heavy):</strong> Target 4\u20136 reps (Heaviest Weight).</li>\n<li><strong>Set 2 (Medium):</strong> Drop weight ~10\u201320%, target 6\u20138 reps.</li>\n<li><strong>Set 3 (Light):</strong> Drop weight another ~10\u201320%, target 8\u201310 reps.</li>\n<li><strong>Rest Period:</strong> Rest 2.5 to 3 minutes between all sets.</li>\n</ul>\n<p style=\"margin-bottom:6px;\"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1\u20132 weeks</strong>.</p>\n<p style=\"margin-bottom:8px;\">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first\u2014that is normal. Build them back up, then increase the load again.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:8px;\"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout\u2014just keep giving your body a reason to adapt.</p>\n<p>\u23f1\ufe0f <strong>TIME CRUNCH RULE:</strong> If time is short, perform only the Key Lifts for that day and skip supplemental work.</p>\n</div>\n<!-- TRAINING FOCUS OPTIONS -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">02. CHOOSE YOUR FOCUS</div>\n<p style=\"margin-bottom:8px;\">Greek Physique keeps the core 3-day structure intact while allowing small Monday and Friday adjustments to refine the area that will most improve your overall proportions.</p>\n<p style=\"margin-bottom:5px;\"><strong>SHOULDERS:</strong> Build the broad, capped delts and V-taper that anchor the classical statue silhouette. This is the default focus.</p>\n<p style=\"margin-bottom:5px;\"><strong>ARMS:</strong> Add proportionate biceps and triceps development for defined, sculpted arms without overpowering the torso.</p>\n<p style=\"margin-bottom:5px;\"><strong>CHEST:</strong> Emphasize a full, powerful chest — especially the upper torso — to strengthen the armor-like Greek aesthetic.</p>\n<p style=\"margin-bottom:8px;\"><strong>LEGS:</strong> Build athletic quads and hamstrings so the lower body matches the upper body and the entire physique stays balanced.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\">Wednesday stays essentially the same across every focus. Your key lifts and overall workout length stay intact; only a small amount of Monday and Friday accessory work changes. You can switch focus anytime from the Workout tab.</p>\n</div>\n<!-- 18-WEEK TRAINING CYCLE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. THE 18-WEEK RESET</div>\n<p style=\"margin-bottom:8px;\"><strong>TRAIN IN BLOCKS:</strong> Greek Physique is designed as an 18-week sculpting cycle rather than one workout plan you repeat forever.</p>\n<p style=\"margin-bottom:8px;\">After you complete <strong>Week 18</strong>, the app will prompt you to either keep your current training focus or choose a new focus: <strong>Shoulders, Arms, Chest, or Legs.</strong></p>\n<p style=\"margin-bottom:8px;\">Once you make your selection, your program automatically resets to <strong>Week 1</strong> for a fresh 18-week block. The core program stays familiar, while the focus option makes small changes to Monday and Friday so you can emphasize a different area without completely changing what works.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\"><strong>WHY RESET?</strong> It gives you a clear finish line, a chance to reassess your goals, and a simple way to refresh your training instead of running the exact same emphasis indefinitely.</p>\n</div>\n<!-- NUTRITION BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. NO-BS NUTRITION BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\">When the goal is to <strong>get lean while building or preserving muscle</strong>, keep the nutrition plan simple: create a modest calorie deficit while consistently eating enough protein to support training and recovery.</p>\n<p style=\"margin-bottom:8px;\">These bodyweight-based calculations give you an easy starting point. The same approach can also be adjusted when your goal changes from fat loss to maintaining your weight or moving into a slight calorie surplus.</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Fat Loss / Deficit:</strong> Bodyweight (lbs) \u00d7 13 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Maintenance:</strong> Bodyweight (lbs) \u00d7 15 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Slight Surplus:</strong> Bodyweight (lbs) \u00d7 17 calories</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Protein Target:</strong> Bodyweight (lbs) \u00d7 0.82g</p>\n<p style=\"font-size:0.72rem; color:#64748b; margin-bottom:10px;\">*These are simple starting estimates. Adjust based on your progress, activity level, and goal. Use your target bodyweight if you have significant weight to lose.</p>\n<p><strong>TRACKING &amp; FLEXIBLE EATING:</strong></p>\n<ul style=\"margin-left: 16px; margin-top: 4px;\">\n<li><strong>Tracking App:</strong> You can log and track your calories, protein, and food directly inside SchmokeFit from the <strong>Macros</strong> tab.</li>\n<li><strong>Food Scale:</strong> Recommended for weighing food precisely at home.</li>\n<li><strong>Flexible Nutrition:</strong> You don't need 100% \"clean\" meals. Fast food like McDonald's works as long as it fits your daily calorie and protein targets!</li>\n<li><strong>Strategic Refeed Day:</strong> After at least two weeks of consistent tracking in a calorie deficit, you may add one refeed day per week. Increase your target by <strong>600 calories</strong>, with most of those extra calories coming from carbohydrates. This can help replenish glycogen stores, support training performance, and make a long deficit easier to stick with. A great place for the refeed is the day before your third workout—for example, Thursday if you train Friday.</li>\n</ul>\n</div>\n<!-- PHASE PROGRESSION -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">05. PHASE PROGRESSION</div>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>Weeks 1\u201310 (The Fat Loss Deficit):</strong> Maintain a consistent caloric deficit while preserving dense muscle mass.</p>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>6\u20138 Weeks (The Recomp Phase):</strong> Add 200 calories to your daily intake every two weeks, slowly working into a slight surplus.</p>\n<p>\u2022 <strong>Reset &amp; Repeat:</strong> Recalculate using Bodyweight \u00d7 13 at your new lean weight and repeat as needed.</p>\n</div>\n<!-- RECOVERY NOTE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">OFF DAYS &amp; RECOVERY</div>\n<p>Muscle is built during recovery. Take advantage of off days and weekends to rest fully. Do as little physical activity as possible on rest days.</p>\n</div>\n\n<div style=\"margin:14px 0 6px;\">\n  <button class=\"btn btn-blue\" style=\"width:100%; min-height:48px; font-size:.78rem; font-weight:900;\"\n    onclick=\"continueFromIntro();\">\n    CONTINUE INTO THE APP \u2192\n  </button>\n</div>\n<div style=\"margin:6px 0 0; text-align:center;\">\n  <button class=\"app-tour-replay-small\" type=\"button\" onclick=\"startAppTour(true)\">REPLAY APP TOUR</button>\n</div>\n";
     const bahamaIntroHtml = "\n<div class=\"section-title-banner\">00. BAHAMA MAMA PROTOCOL</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">THE FEMALE SCULPT GUIDE</div>\n<p>Built for efficient full-body training with an emphasis on glutes, legs, posture, core strength, and feeling athletic. The goal is a sustainable program that can adapt to how and where you want to train.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">01. TRAINING BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\"><strong>PHILOSOPHY:</strong> 3 full-body sessions per week with a full recovery day between workouts whenever possible.</p>\n<p style=\"margin-bottom:6px;\"><strong>REVERSE PYRAMID / PYRAMID TRAINING:</strong></p>\n<ul style=\"margin-left:16px; margin-bottom:8px;\">\n<li><strong>Set 1:</strong> Challenging weight for roughly 8\u201310 reps.</li>\n<li><strong>Set 2:</strong> Reduce the load slightly and target 10\u201312 reps.</li>\n<li><strong>Set 3:</strong> Reduce again and target 12\u201315 reps.</li>\n<li><strong>Rest:</strong> About 2 minutes for main lifts and 60\u201390 seconds for smaller movements.</li>\n</ul>\n<p style=\"margin-bottom:6px;\"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1\u20132 weeks</strong>.</p>\n<p style=\"margin-bottom:8px;\">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first\u2014that is normal. Build them back up, then increase the load again.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:8px;\"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout\u2014just keep giving your body a reason to adapt.</p>\n<p>\u23f1\ufe0f <strong>TIME CRUNCH:</strong> Prioritize the key lifts and skip optional isolation work when needed.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">02. CHOOSE YOUR TRAINING STYLE</div>\n<p style=\"margin-bottom:8px;\">The core Bahama Mama structure stays simple, but you can choose the version that best matches your goal and equipment.</p>\n<p style=\"margin-bottom:5px;\"><strong>TONE &amp; TIGHTEN:</strong> The original Bahama Mama workouts exactly as designed. This is the default.</p>\n<p style=\"margin-bottom:5px;\"><strong>BUILD MUSCLE:</strong> Keeps the original exercises and adds one extra volume movement each day.</p>\n<p style=\"margin-bottom:8px;\"><strong>HOME / BODYWEIGHT:</strong> Uses bodyweight, resistance bands, and light dumbbells so the entire program can be done at home.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted);\">You can switch styles anytime from the Workout tab.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. THE 18-WEEK RESET</div>\n<p style=\"margin-bottom:8px;\"><strong>TRAIN IN BLOCKS:</strong> Bahama Mama is designed as an 18-week cycle instead of one routine you repeat forever.</p>\n<p style=\"margin-bottom:8px;\">After you complete <strong>Week 18</strong>, the app asks whether you want to keep your current style or choose <strong>Tone &amp; Tighten, Build Muscle, or Home / Bodyweight.</strong></p>\n<p style=\"margin-bottom:8px;\">After your choice, the week counter resets to <strong>Week 1</strong> for a fresh 18-week block.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted);\"><strong>WHY RESET?</strong> It gives you a clear finish line and a natural time to reassess your goals, equipment, and training style.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">04. FEMALE NUTRITION BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\">When the goal is to <strong>get lean while building or preserving muscle</strong>, keep the nutrition plan simple: create a modest calorie deficit while consistently eating enough protein to support training and recovery.</p>\n<p style=\"margin-bottom:8px;\">These bodyweight-based calculations give you an easy starting point. The same approach can also be adjusted when your goal changes from fat loss to maintaining your weight or moving into a slight calorie surplus.</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Fat Loss / Deficit:</strong> Bodyweight (lbs) \u00d7 12 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Maintenance:</strong> Bodyweight (lbs) \u00d7 14 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Slight Surplus:</strong> Bodyweight (lbs) \u00d7 16 calories</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Protein Target:</strong> Bodyweight (lbs) \u00d7 0.8g</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:10px;\">*These are simple starting estimates. Adjust based on your progress, activity level, and goal. Use your target bodyweight if you have significant weight to lose.</p>\n<p><strong>TRACKING &amp; FLEXIBLE EATING:</strong></p>\n<ul style=\"margin-left:16px; margin-top:4px;\">\n<li><strong>Tracking App:</strong> You can log and track your calories, protein, and food directly inside SchmokeFit from the <strong>Macros</strong> tab.</li>\n<li><strong>Food Scale:</strong> Recommended for weighing food precisely at home.</li>\n<li><strong>Flexible Nutrition:</strong> Focus on consistency with your calorie and protein targets rather than trying to make every meal perfect.</li>\n<li><strong>Strategic Refeed Day:</strong> After at least two weeks of consistent tracking in a calorie deficit, you may add one refeed day per week. Increase your target by <strong>600 calories</strong>, with most of those extra calories coming from carbohydrates. This can help replenish glycogen stores, support training performance, and make a long deficit easier to stick with. A great place for the refeed is the day before your third workout—for example, Thursday if you train Friday.</li>\n</ul>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">05. PHASE PROGRESSION</div>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Weeks 1\u201310 \u2014 Tone &amp; Trim:</strong> Use the nutrition goal that matches your current objective while progressing the workouts.</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Weeks 11\u201318 \u2014 Body Recomp:</strong> Continue progressing while adjusting calories toward maintenance when appropriate.</p>\n<p>\u2022 <strong>Week 18 Reset:</strong> Choose your next training style, return to Week 1, and recalculate macros if your goal or bodyweight changed.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">OFF DAYS &amp; RECOVERY</div>\n<p>Use rest days for recovery, walking, mobility, or other light activity that leaves you ready for the next training session.</p>\n</div>\n\n<div style=\"margin:14px 0 6px;\">\n  <button class=\"btn btn-blue\" style=\"width:100%; min-height:48px; font-size:.78rem; font-weight:900;\"\n    onclick=\"continueFromIntro();\">\n    CONTINUE INTO THE APP \u2192\n  </button>\n</div>\n<div style=\"margin:6px 0 0; text-align:center;\">\n  <button class=\"app-tour-replay-small\" type=\"button\" onclick=\"startAppTour(true)\">REPLAY APP TOUR</button>\n</div>\n";
 
     function selectUnifiedProgram(program) {
@@ -2588,9 +2615,10 @@
 
     function applyUnifiedProgramUI() {
       const cfg = PROGRAM_CONFIG[currentProgram];
+      document.body.classList.toggle('program-greek', currentProgram === 'greek');
       document.body.classList.toggle('program-bahama', currentProgram === 'bahama');
       const brand=document.getElementById('programBrandSubtitle'); if(brand) brand.innerText=cfg.brand;
-      const intro=document.getElementById('introTab'); if(intro) intro.innerHTML = currentProgram === 'bahama' ? bahamaIntroHtml : movieIntroHtml;
+      const intro=document.getElementById('introTab'); if(intro) intro.innerHTML = currentProgram === 'bahama' ? bahamaIntroHtml : greekIntroHtml;
 
       const focusWrap=document.getElementById('focusToggleContainer') || document.querySelector('.focus-toggle-container');
       if(focusWrap){
@@ -2939,9 +2967,9 @@
       alert(`New 18-week ${cfg.brand.replace(' PROTOCOL','').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())} cycle started! ${currentProgram === 'bahama' ? 'Style' : 'Focus'}: ${focusDisplayNames[focus] || focus}. You're back to Week 1.`);
     }
 
-    // BASE ROUTINES DATA - ORIGINAL MOVIE STAR PROGRAM WITH SUBTLE FOCUS VARIATIONS
+    // BASE ROUTINES DATA - GREEK PHYSIQUE PROGRAM WITH SUBTLE FOCUS VARIATIONS
     const movieFocusRoutines = {
-      // DEFAULT: the original Movie Star workout exactly as it was before focus options were added.
+      // DEFAULT: the core Greek Physique workout exactly as it was before focus options were added.
       shoulders: {
         monday: [
           { name: "Incline Barbell Bench", badge: "KEY LIFT", badgeClass: "badge-key" },
@@ -3113,10 +3141,10 @@
     const focusRoutines = currentProgram === 'bahama' ? bahamaFocusRoutines : movieFocusRoutines;
 
     const movieFocusDescriptions = {
-      shoulders: 'the original Movie Star workout, with shoulder emphasis on Monday and Friday.',
-      arms: 'the original program with a small increase in direct arm work on Monday and Friday.',
-      chest: 'the original program with a small increase in chest work on Monday and Friday.',
-      legs: 'the original program with one added lower-body emphasis movement on Monday and Friday.'
+      shoulders: 'the core Greek Physique workout, emphasizing broad, capped shoulders and a stronger V-taper on Monday and Friday.',
+      arms: 'the Greek Physique structure with a small increase in direct arm work for more sculpted biceps and triceps.',
+      chest: 'the Greek Physique structure with extra chest work to build a fuller, more powerful upper torso.',
+      legs: 'the Greek Physique structure with added lower-body emphasis to improve total-body proportion and symmetry.'
     };
     const bahamaFocusDescriptions = {
       tone: "the original Bahama Mama workout exactly as designed.",
