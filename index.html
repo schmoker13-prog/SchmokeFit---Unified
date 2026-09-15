@@ -1995,6 +1995,25 @@
     .header-card .avatar-wrapper{border:1px solid #3b424a;background:#090b0e;box-shadow:0 0 0 1px rgba(255,255,255,.035),0 5px 16px rgba(0,0,0,.35)}
     .sf-login-tagline{font-size:.60rem;font-weight:900;letter-spacing:.18em;color:var(--sf-silver-muted);text-align:center;margin:-3px 0 10px}
 
+
+    /* FULL FRESH START */
+    .full-reset-btn {
+      margin-top:10px !important;
+      border-color:rgba(239,68,68,.48) !important;
+      color:#f87171 !important;
+      background:rgba(239,68,68,.035) !important;
+    }
+    .full-reset-btn:hover {
+      border-color:#ef4444 !important;
+      background:rgba(239,68,68,.10) !important;
+    }
+    .full-reset-note {
+      margin-top:7px;
+      color:var(--text-muted);
+      font-size:.61rem;
+      line-height:1.45;
+      text-align:center;
+    }
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -2223,6 +2242,8 @@
 </div><div class="workout-cycle-actions">
 <button class="btn btn-blue" id="startNextWeekBtn" onclick="advanceActiveWorkoutWeek()">START NEXT WEEK →</button>
 <button class="btn btn-outline" onclick="requestManualNewCycle()">↻ START NEW 18-WEEK CYCLE</button>
+<button class="btn btn-outline full-reset-btn" onclick="requestFullFreshStart()">WIPE ALL DATA &amp; START OVER</button>
+<div class="full-reset-note">Deletes workout and nutrition progress for both programs and returns SchmokeFit to Cycle 1 / Week 1. Your login is preserved.</div>
 <div class="workout-cycle-note" id="workoutCycleNote">Your previous workout history is always preserved.</div>
 </div></div><!-- /workoutDashboardView -->
 <div class="workout-detail-view" id="workoutDetailView">
@@ -5743,6 +5764,45 @@
       updateWeekTrackerDisplay();
       renderWorkoutDashboard();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function requestFullFreshStart() {
+      const firstConfirm = confirm(
+        'START COMPLETELY FRESH?\n\n' +
+        'This permanently deletes ALL SchmokeFit workout history, workout drafts, skipped workouts, nutrition logs, custom meals, bodyweight/macros settings, refeed days, and progress for BOTH Greek Physique and Bahama Mama.\n\n' +
+        'Your login will be preserved. This cannot be undone.'
+      );
+      if (!firstConfirm) return;
+
+      const typed = prompt('Final confirmation: type RESET to permanently wipe all progress and nutrition data.');
+      if (String(typed || '').trim().toUpperCase() !== 'RESET') {
+        alert('Reset cancelled. No data was deleted.');
+        return;
+      }
+
+      // Keep account credentials, the currently selected program, and migration markers.
+      // Migration markers are intentionally preserved so old legacy data cannot be imported again after the reset.
+      const preserveExact = new Set([
+        'schmokefit_unified_program',
+        'schmokefit_unified_master_unlocked',
+        'schmokefit_unified_user',
+        'schmokefit_unified_pass',
+        'schmokefit_unified_has_logged_in_before'
+      ]);
+
+      const keys = [];
+      for (let i = 0; i < rawLocalStorage.length; i++) keys.push(rawLocalStorage.key(i));
+      keys.filter(Boolean).forEach(key => {
+        if (!key.startsWith('schmokefit_unified_')) return;
+        if (preserveExact.has(key)) return;
+        if (key.includes('_migration_')) return;
+        rawLocalStorage.removeItem(key);
+      });
+
+      // Clear transient UI/session state as well, then reload into a true Cycle 1 / Week 1 state.
+      try { window.sessionStorage.clear(); } catch (e) {}
+      alert('Fresh start complete. SchmokeFit will restart at Cycle 1, Week 1 with empty workout and nutrition history.');
+      window.location.reload();
     }
 
     function requestManualNewCycle() {
