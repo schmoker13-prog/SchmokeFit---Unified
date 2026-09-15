@@ -263,6 +263,21 @@
       .user-greeting { font-size: .56rem; }
     }
 
+    /* MOBILE TOUCH RELIABILITY */
+    button, [role="button"], .weekly-workout-card, .food-row {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button { -webkit-user-select:none; user-select:none; }
+    .meal-add-btn { min-width:52px; min-height:40px; }
+    @media (max-width:520px) {
+      .tab-btn { min-height:44px; }
+      .meal-add-btn { min-height:44px; padding:8px 11px; }
+      .weekly-workout-card { min-height:72px; }
+      .quick-food-add, .quick-food-star { min-height:40px; }
+      .food-logging-methods .btn, .food-mode-back { min-height:44px; }
+    }
+
     /* NAVIGATION TABS */
     .nav-tabs {
       display: grid;
@@ -2277,7 +2292,7 @@
 <div class="focus-active-text" id="focusActiveText"><strong>SHOULDERS FOCUS ACTIVE</strong> — extra weekly shoulder volume while preserving the core 3-day Greek Physique structure.
         </div>
 </div><div class="weekly-workout-list">
-<button class="weekly-workout-card" id="workoutCard-monday" onclick="openWorkoutDetail('monday')">
+<button type="button" class="weekly-workout-card" id="workoutCard-monday" onclick="openWorkoutDetail('monday')">
 <div>
 <div class="weekly-workout-day-line"><div class="weekly-workout-day" id="workoutDayLabel-monday">Monday</div><span class="workout-day-edit" onclick="event.stopPropagation(); editWorkoutDayName('monday')" title="Edit workout day name">EDIT</span></div>
 <div class="weekly-workout-name" id="workoutProgramName-monday">Workout 1 • Chest &amp; Biceps</div>
@@ -2285,7 +2300,7 @@
 <div class="weekly-workout-status" id="workoutStatus-monday">NOT COMPLETED</div>
 <div class="weekly-workout-meta" id="workoutMeta-monday">Tap to start workout</div>
 </button>
-<button class="weekly-workout-card" id="workoutCard-wednesday" onclick="openWorkoutDetail('wednesday')">
+<button type="button" class="weekly-workout-card" id="workoutCard-wednesday" onclick="openWorkoutDetail('wednesday')">
 <div>
 <div class="weekly-workout-day-line"><div class="weekly-workout-day" id="workoutDayLabel-wednesday">Wednesday</div><span class="workout-day-edit" onclick="event.stopPropagation(); editWorkoutDayName('wednesday')" title="Edit workout day name">EDIT</span></div>
 <div class="weekly-workout-name" id="workoutProgramName-wednesday">Workout 2 • Lower Body</div>
@@ -2293,7 +2308,7 @@
 <div class="weekly-workout-status" id="workoutStatus-wednesday">NOT COMPLETED</div>
 <div class="weekly-workout-meta" id="workoutMeta-wednesday">Tap to start workout</div>
 </button>
-<button class="weekly-workout-card" id="workoutCard-friday" onclick="openWorkoutDetail('friday')">
+<button type="button" class="weekly-workout-card" id="workoutCard-friday" onclick="openWorkoutDetail('friday')">
 <div>
 <div class="weekly-workout-day-line"><div class="weekly-workout-day" id="workoutDayLabel-friday">Friday</div><span class="workout-day-edit" onclick="event.stopPropagation(); editWorkoutDayName('friday')" title="Edit workout day name">EDIT</span></div>
 <div class="weekly-workout-name" id="workoutProgramName-friday">Workout 3 • Shoulders, Back &amp; Arms</div>
@@ -3563,6 +3578,8 @@
           'letter-spacing:.055em',
           'text-align:center',
           'opacity:0',
+          'pointer-events:none',
+          'touch-action:none',
           'transition:opacity .18s ease,transform .18s ease'
         ].join(';');
         document.body.appendChild(notice);
@@ -4178,7 +4195,7 @@
             <div class="food-amount">${formatLoggedFoodAmount(item)}</div>
             <button class="food-favorite ${isFoodFavorite(item) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFoodFavoriteFromLog('${meal}', ${idx})" aria-label="Favorite ${escapeHtml(item.name)}">${isFoodFavorite(item) ? '★' : '☆'}</button>
           </div>`).join('') : '<div class="nutrition-empty">No foods logged.</div>';
-        return `<div class="meal-section" data-meal="${meal}"><div class="meal-header"><div class="meal-title-row"><div class="meal-title">${escapeHtml(mealLabel).toUpperCase()}</div>${mealDef.active === false ? '<span class="meal-archived-badge">REMOVED</span>' : ''}<button class="meal-name-edit" type="button" onclick="renameNutritionMeal('${meal}')" aria-label="Rename ${escapeHtml(mealLabel)}">✎</button>${mealDef.active !== false ? `<button class="meal-name-remove" type="button" onclick="removeNutritionMeal('${meal}')" aria-label="Remove ${escapeHtml(mealLabel)}">✕</button>` : ''}</div>${mealDef.active !== false ? `<button class="meal-add-btn" onclick="openFoodSearch('${meal}')">+ ADD</button>` : ''}</div>${mealSummary}<div class="nutrition-search-slot" id="nutritionSearchSlot-${meal}"></div>${rows}</div>`;
+        return `<div class="meal-section" data-meal="${meal}"><div class="meal-header"><div class="meal-title-row"><div class="meal-title">${escapeHtml(mealLabel).toUpperCase()}</div>${mealDef.active === false ? '<span class="meal-archived-badge">REMOVED</span>' : ''}<button class="meal-name-edit" type="button" onclick="renameNutritionMeal('${meal}')" aria-label="Rename ${escapeHtml(mealLabel)}">✎</button>${mealDef.active !== false ? `<button class="meal-name-remove" type="button" onclick="removeNutritionMeal('${meal}')" aria-label="Remove ${escapeHtml(mealLabel)}">✕</button>` : ''}</div>${mealDef.active !== false ? `<button type="button" class="meal-add-btn" onclick="openFoodSearch('${meal}')">+ ADD</button>` : ''}</div>${mealSummary}<div class="nutrition-search-slot" id="nutritionSearchSlot-${meal}"></div>${rows}</div>`;
       }).join('') + `<div class="add-custom-meal-wrap"><button class="add-custom-meal-btn" type="button" onclick="addNutritionMeal()">+ ADD ANOTHER MEAL</button></div>`;
 
       // If the user was searching when the meal list rerendered, put the
@@ -4577,6 +4594,14 @@
       return portions.slice(0, 6);
     }
 
+    function showBarcodeResultArea() {
+      const lookup = document.getElementById('foodLookupPanel');
+      const barcodePanel = document.getElementById('barcodePanel');
+      barcodePanel?.classList.remove('open');
+      lookup?.classList.add('open');
+      setTimeout(() => lookup?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
+    }
+
     async function lookupBarcode(barcode) {
       const results = document.getElementById('foodSearchResults');
       const saved = getSavedBarcodeFoods();
@@ -4585,7 +4610,7 @@
         const cached = saved[barcode];
         results.innerHTML = renderBarcodeFoodResult(cached, barcode, 'Saved on this device');
         document.getElementById('barcodeStatus').innerText = 'Found a saved food for this barcode.';
-        document.getElementById('barcodePanel').classList.remove('open');
+        showBarcodeResultArea();
         return;
       }
 
@@ -4603,7 +4628,9 @@
 
         if (!data || Number(data.status) !== 1 || !data.product) {
           showManualFoodForm(barcode);
-          results.innerHTML = '<div class="nutrition-empty">Barcode not found. Enter the nutrition below once, and SchmokeFit can remember this barcode on this device.</div>';
+          const manualStatus = document.getElementById('barcodeStatus');
+          if (manualStatus) manualStatus.innerText = 'Barcode not found. Add the nutrition manually once and SchmokeFit can remember it.';
+          setTimeout(() => document.getElementById('manualFoodPanel')?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
           return;
         }
 
@@ -4626,16 +4653,16 @@
           showManualFoodForm(barcode);
           document.getElementById('manualFoodName').value = food.name;
           document.getElementById('manualFoodServing').value = servingGrams;
-          results.innerHTML = '<div class="nutrition-empty">Product found, but nutrition data is incomplete. Please enter the label values manually.</div>';
+          setTimeout(() => document.getElementById('manualFoodPanel')?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
           return;
         }
 
         results.innerHTML = renderBarcodeFoodResult(food, barcode, 'Open Food Facts');
-        document.getElementById('barcodePanel').classList.remove('open');
+        showBarcodeResultArea();
       } catch (err) {
         console.error('Open Food Facts lookup error:', err);
         showManualFoodForm(barcode);
-        results.innerHTML = '<div class="nutrition-empty">Barcode lookup could not connect. You can still enter the food manually.</div>';
+        setTimeout(() => document.getElementById('manualFoodPanel')?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
       }
     }
 
