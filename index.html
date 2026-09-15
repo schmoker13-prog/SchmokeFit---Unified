@@ -3513,6 +3513,47 @@
       }
     }
 
+    function showRestTimerNotification() {
+      // Use an in-app notification instead of window.alert().
+      // Native alert() blocks the page's event loop on some phones, which can
+      // delay vibration until the user taps OK.
+      let notice = document.getElementById('restTimerNotice');
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'restTimerNotice';
+        notice.setAttribute('role', 'status');
+        notice.setAttribute('aria-live', 'assertive');
+        notice.style.cssText = [
+          'position:fixed',
+          'left:50%',
+          'top:18px',
+          'transform:translateX(-50%)',
+          'z-index:99999',
+          'max-width:calc(100vw - 32px)',
+          'padding:14px 20px',
+          'border-radius:14px',
+          'background:#111820',
+          'color:#fff',
+          'border:1px solid rgba(255,255,255,.18)',
+          'box-shadow:0 10px 30px rgba(0,0,0,.35)',
+          'font-weight:800',
+          'letter-spacing:.03em',
+          'text-align:center',
+          'opacity:0',
+          'transition:opacity .18s ease'
+        ].join(';');
+        document.body.appendChild(notice);
+      }
+
+      notice.textContent = 'REST TIME IS UP!';
+      notice.style.opacity = '1';
+
+      clearTimeout(window.schmokeFitRestNoticeTimeout);
+      window.schmokeFitRestNoticeTimeout = setTimeout(() => {
+        notice.style.opacity = '0';
+      }, 4200);
+    }
+
     function adjustTimer(seconds) {
       totalSeconds = Math.max(0, totalSeconds + seconds);
       updateTimerDisplay();
@@ -3529,7 +3570,7 @@
         } else {
           clearInterval(timerInterval);
           playTimerAlarm();
-          alert('Rest time is up!');
+          showRestTimerNotification();
         }
       }, 1000);
     }
