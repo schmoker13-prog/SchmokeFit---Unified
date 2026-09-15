@@ -263,6 +263,18 @@
       .user-greeting { font-size: .56rem; }
     }
 
+    /* QUICK FOOD ADD CONFIRMATION */
+    .quick-add-toast{
+      position:fixed;left:50%;bottom:92px;transform:translate(-50%,12px);
+      z-index:5000;max-width:min(88vw,360px);padding:10px 14px;
+      border-radius:12px;background:#11151b;border:1px solid rgba(255,255,255,.88);
+      box-shadow:0 12px 34px rgba(0,0,0,.55),0 0 18px rgba(255,255,255,.18);
+      color:#f8fafc;font-size:.72rem;font-weight:800;text-align:center;
+      opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;
+    }
+    .quick-add-toast.show{opacity:1;transform:translate(-50%,0);}
+    .quick-food-add.just-added{opacity:.72;}
+
     /* MOBILE TOUCH RELIABILITY */
     button, [role="button"], .weekly-workout-card, .food-row {
       touch-action: manipulation;
@@ -4381,10 +4393,30 @@
         <button class="quick-food-add" type="button" onclick='addQuickFood(${JSON.stringify(food.signature)})'>+ ADD</button>
       </div>`).join('') + (totalFoods > 6 ? `<div class="quick-food-toggle-wrap"><button class="quick-food-toggle" type="button" onclick="toggleQuickFoodExpanded()">${isExpanded ? 'SHOW LESS ↑' : `SHOW ALL (${totalFoods}) ↓`}</button></div>` : '');
     }
+    let quickAddToastTimer = null;
+    function showQuickAddConfirmation(foodName, mealName) {
+      let toast = document.getElementById('quickAddToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'quickAddToast';
+        toast.className = 'quick-add-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+      }
+      toast.textContent = `✓ ${foodName} added to ${mealName}`;
+      toast.classList.remove('show');
+      void toast.offsetWidth;
+      toast.classList.add('show');
+      clearTimeout(quickAddToastTimer);
+      quickAddToastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
     function addQuickFood(signature) {
       if (!activeNutritionMeal) return;
       const food = getQuickFoodLibrary().find(x=>x.signature===signature);
       if (!food) return;
+      const mealName = nutritionMealName(activeNutritionMeal);
       const item = {name:food.name, grams:Number(food.grams)||0, servingGrams:Number(food.servingGrams)||0, servingText:food.servingText||'', calories:Number(food.calories)||0, protein:Number(food.protein)||0, carbs:Number(food.carbs)||0, fat:Number(food.fat)||0};
       const log = getNutritionLog();
       if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal]=[];
@@ -4393,7 +4425,10 @@
       rememberQuickFood(item);
       updateNutritionDashboard();
       renderMealSections();
-      const slot=document.getElementById(`nutritionSearchSlot-${activeNutritionMeal}`); const panel=document.getElementById('nutritionSearchPanel'); if(slot&&panel){slot.appendChild(panel);panel.classList.add('open');renderQuickFoods();}
+      const slot=document.getElementById(`nutritionSearchSlot-${activeNutritionMeal}`);
+      const panel=document.getElementById('nutritionSearchPanel');
+      if(slot&&panel){slot.appendChild(panel);panel.classList.add('open');renderQuickFoods();}
+      showQuickAddConfirmation(food.name, mealName);
     }
 
     function getSavedBarcodeFoods() {
@@ -4666,6 +4701,35 @@
       }
     }
 
+    function updateBarcodeServingPreview() {
+      const preview = document.getElementById('barcodeFoodPreview');
+      const amountInput = document.getElementById('barcodeFoodAmount');
+      const unitSelect = document.getElementById('barcodeFoodUnit');
+      if (!preview || !amountInput || !unitSelect) return;
+
+      const amount = Math.max(0.01, Number(amountInput.value) || 1);
+      const unit = unitSelect.value || 'serving';
+      const servingGrams = Number(preview.dataset.servingGrams) || 100;
+      const grams = amountToGrams(amount, unit, servingGrams);
+      const scale = grams / 100;
+
+      const calories = numberOrZero(preview.dataset.caloriesPer100) * scale;
+      const protein = numberOrZero(preview.dataset.proteinPer100) * scale;
+      const carbs = numberOrZero(preview.dataset.carbsPer100) * scale;
+      const fat = numberOrZero(preview.dataset.fatPer100) * scale;
+
+      let amountLabel;
+      if (unit === 'serving') {
+        amountLabel = formatServingQuantity(amount, preview.dataset.servingText || 'serving');
+      } else if (unit === 'oz') {
+        amountLabel = `${round1(amount)} oz`;
+      } else {
+        amountLabel = `${round1(amount)} g`;
+      }
+
+      preview.innerHTML = `<strong>${escapeHtml(amountLabel)}:</strong> ${Math.round(calories)} kcal • ${round1(protein)}P • ${round1(carbs)}C • ${round1(fat)}F`;
+    }
+
     function renderBarcodeFoodResult(food, barcode, sourceLabel) {
       const serving = Math.max(1, Number(food.servingGrams) || 100);
       const scale = serving / 100;
@@ -4673,11 +4737,12 @@
       const pro = numberOrZero(food.proteinPer100) * scale;
       const carbs = numberOrZero(food.carbsPer100) * scale;
       const fat = numberOrZero(food.fatPer100) * scale;
+      const servingText = food.servingText || `${serving} g`;
 
       const payload = JSON.stringify(JSON.stringify({
         name: food.name,
         barcode,
-        servingText: food.servingText || `${serving} g`,
+        servingText,
         servingGrams: serving,
         calories: numberOrZero(food.caloriesPer100),
         protein: numberOrZero(food.proteinPer100),
@@ -4689,19 +4754,26 @@
         <div class="search-result-top">
           <div>
             <div class="search-result-name">${escapeHtml(food.name)} <span class="product-source-badge">${escapeHtml(sourceLabel)}</span></div>
-            <div class="search-result-meta">${escapeHtml(food.brand || '')}${food.brand ? ' • ' : ''}${escapeHtml(food.servingText || `${serving} g`)} • ${Math.round(cal)} kcal • ${round1(pro)}P • ${round1(carbs)}C • ${round1(fat)}F</div>
+            <div class="search-result-meta">${escapeHtml(food.brand || '')}${food.brand ? ' • ' : ''}${escapeHtml(servingText)} • ${Math.round(cal)} kcal • ${round1(pro)}P • ${round1(carbs)}C • ${round1(fat)}F</div>
             <div class="search-result-meta">Barcode: ${escapeHtml(barcode)}</div>
           </div>
         </div>
         <div class="search-result-controls">
-          <input type="number" min="0.01" step="0.01" value="1" id="barcodeFoodAmount" class="custom-select" aria-label="Amount">
-          <select id="barcodeFoodUnit" class="custom-select" aria-label="Unit">
-            <option value="serving" selected>${escapeHtml(portionUnitLabel(food.servingText || 'serving'))}</option>
+          <input type="number" min="0.01" step="0.01" value="1" id="barcodeFoodAmount" class="custom-select" aria-label="Amount" oninput="updateBarcodeServingPreview()" onchange="updateBarcodeServingPreview()">
+          <select id="barcodeFoodUnit" class="custom-select" aria-label="Unit" onchange="updateBarcodeServingPreview()">
+            <option value="serving" selected>${escapeHtml(portionUnitLabel(servingText))}</option>
             <option value="g">grams</option>
             <option value="oz">ounces</option>
           </select>
-          <button class="btn btn-blue" style="margin-top:0;" onclick='addBarcodeFood(${payload})'>ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
+          <button type="button" class="btn btn-blue" style="margin-top:0;" onclick='addBarcodeFood(${payload})'>ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
         </div>
+        <div id="barcodeFoodPreview" class="search-result-meta" style="margin-top:8px;font-size:.72rem;"
+          data-serving-grams="${serving}"
+          data-serving-text="${escapeHtml(servingText)}"
+          data-calories-per100="${numberOrZero(food.caloriesPer100)}"
+          data-protein-per100="${numberOrZero(food.proteinPer100)}"
+          data-carbs-per100="${numberOrZero(food.carbsPer100)}"
+          data-fat-per100="${numberOrZero(food.fatPer100)}"><strong>${escapeHtml(formatServingQuantity(1, servingText))}:</strong> ${Math.round(cal)} kcal • ${round1(pro)}P • ${round1(carbs)}C • ${round1(fat)}F</div>
       </div>`;
     }
 
@@ -4724,6 +4796,7 @@
       };
 
       const log = getNutritionLog();
+      if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
       log[activeNutritionMeal].push(item);
       saveNutritionLog(log);
       rememberQuickFood(item);
@@ -4780,6 +4853,7 @@
 
       const item = { name, grams, calories, protein, carbs, fat };
       const log = getNutritionLog();
+      if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
       log[activeNutritionMeal].push(item);
       saveNutritionLog(log);
       rememberQuickFood(item);
@@ -5011,6 +5085,7 @@
         fat: base.fat * scale
       };
       const log = getNutritionLog();
+      if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
       log[activeNutritionMeal].push(item);
       saveNutritionLog(log);
       rememberQuickFood(item);
