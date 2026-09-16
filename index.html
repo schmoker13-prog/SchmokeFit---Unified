@@ -2112,6 +2112,210 @@
 .program-intro-name{margin-top:10px;font-size:1.05rem;font-weight:950;letter-spacing:.08em;color:var(--text-main);}
 .program-intro-tagline{margin-top:3px;font-size:.68rem;font-weight:800;letter-spacing:.05em;color:var(--text-muted);text-transform:uppercase;}
 @media(max-width:520px){.program-intro-avatar{width:148px;height:148px;border-radius:22px}.program-intro-name{font-size:.96rem}}
+
+    /* AESTHETIC ATHLETE DEVELOPMENT THEME */
+    body.program-athlete{
+      --accent-blue:#39d353;
+      --accent-blue-dark:#168a34;
+      --accent-blue-soft:rgba(57,211,83,.14);
+      --accent-cyan:#75f08a;
+    }
+    .program-choice-option.athlete{border-color:rgba(57,211,83,.32);}
+    .program-choice-option.athlete:hover{border-color:#39d353;box-shadow:0 0 24px rgba(57,211,83,.16);}
+    .aa-choice-mark,.aa-intro-mark{
+      display:grid;place-items:center;margin:auto;border-radius:18px;
+      background:linear-gradient(145deg,#151a17,#080b09);
+      border:2px solid rgba(117,240,138,.85);
+      box-shadow:0 0 24px rgba(57,211,83,.22),inset 0 0 24px rgba(57,211,83,.05);
+      color:#f8fafc;font-weight:950;letter-spacing:.08em;
+    }
+    .aa-choice-mark{width:118px;height:118px;font-size:2rem;}
+    .aa-intro-mark{width:150px;height:150px;font-size:2.4rem;margin-bottom:10px;}
+
+    /* SCHMOKEFIT PARENT-BRAND LOGIN — program neutral */
+    #loginOverlay{
+      background:linear-gradient(145deg,#15181c,#0b0d10);
+      border-color:#3a4149;
+      box-shadow:0 22px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.025);
+    }
+    #loginOverlay .brand-title{color:#f8fafc;}
+    #loginOverlay .brand-title span{color:#d8dde3 !important;}
+    #loginOverlay .brand-subtitle,#loginOverlay .sf-login-tagline{color:#9aa4af !important;}
+    #loginOverlay .login-input{
+      background:#090b0e;border-color:#353c44;color:#f8fafc;
+    }
+    #loginOverlay .login-input:focus{
+      border-color:#eef2f6;box-shadow:0 0 0 2px rgba(216,221,227,.13);
+    }
+    #loginOverlay .btn-blue{
+      background:linear-gradient(145deg,#eef2f6,#aeb7c1) !important;
+      border-color:#f8fafc !important;color:#0b0d10 !important;
+      box-shadow:0 8px 22px rgba(0,0,0,.32);
+    }
+
+    /* AESTHETIC ATHLETE: shared nutrition logger remains fully available */
+    body.program-athlete #mealSections,
+    body.program-athlete .meal-section,
+    body.program-athlete .add-custom-meal-wrap{display:block;}
+    body.program-athlete .meal-add-btn{display:inline-flex;}
+
+    /* AESTHETIC ATHLETE — graphite + performance green; no inherited amber accents */
+    body.program-athlete{
+      --bg-color:#080d0a;
+      --card-bg:#101813;
+      --card-border:#263a2c;
+      --input-bg:#09110c;
+      --input-border:#294231;
+      --accent-blue:#39d353;
+      --accent-blue-dark:#1fa843;
+      --accent-orange:#7ee787;
+      --accent-orange-hover:#a7f3b0;
+      --badge-key:#39d353;
+      --text-main:#f2f7f3;
+      --text-muted:#9eafa3;
+    }
+    body.program-athlete .focus-active-text strong,
+    body.program-athlete .meal-title,
+    body.program-athlete .select-label,
+    body.program-athlete .brand-title span{
+      color:#7ee787;
+    }
+    body.program-athlete .btn-orange{
+      background:#39d353;
+      border-color:#39d353;
+      color:#071009;
+    }
+    body.program-athlete .btn-orange:hover{background:#55df6d;}
+
+    /* SMART REST TIMER v7 */
+    .smart-rest-context{margin:7px 0 10px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.55px;color:var(--text-muted);line-height:1.35}
+    .smart-rest-context strong{color:var(--accent-blue)}
+    .smart-rest-btn{border:1px solid var(--accent-blue);background:var(--accent-blue-soft,rgba(80,150,255,.12));color:var(--accent-blue);border-radius:8px;padding:6px 8px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+    .smart-rest-active{border-color:var(--accent-blue)!important;box-shadow:0 0 0 1px var(--accent-blue-soft,rgba(80,150,255,.12))}
+
+
+    /* v11: no partial-set card highlight; completion uses each program's identity */
+    .exercise-card.smart-rest-active:not(.completed){
+      border-color:var(--card-border) !important;
+      box-shadow:none !important;
+    }
+
+    /* Greek Physique — Mediterranean / steel blue */
+    body.program-greek .exercise-card.completed{
+      border-color:#5b9bd5 !important;
+      box-shadow:0 0 0 1px rgba(91,155,213,.18), 0 0 16px rgba(91,155,213,.10);
+    }
+
+    /* Bahama Mama — tropical teal */
+    body.program-bahama .exercise-card.completed{
+      border-color:#35d0ba !important;
+      box-shadow:0 0 0 1px rgba(53,208,186,.18), 0 0 16px rgba(53,208,186,.10);
+    }
+
+    /* Aesthetic Athlete — performance green */
+    body.program-athlete .exercise-card.completed{
+      border-color:#39d353 !important;
+      box-shadow:0 0 0 1px rgba(57,211,83,.18), 0 0 16px rgba(57,211,83,.10);
+    }
+
+
+    /* v14: Athlete macro meal ADD button alignment */
+    body.program-athlete .meal-add-btn,
+    body.program-athlete .add-meal-btn,
+    body.program-athlete button[onclick*="openAddFood"]{
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      text-align:center !important;
+      line-height:1 !important;
+      padding-top:0 !important;
+      padding-bottom:0 !important;
+    }
+
+
+    /* v15: Aesthetic Athlete production avatar */
+    .athlete-avatar{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      border-radius:inherit;
+    }
+
+
+    /* v18: INTRO-PAGE artwork only — header/program-switcher avatars remain untouched */
+    #introTab .intro-avatar-frame{
+      width:clamp(220px, 32vw, 300px) !important;
+      height:clamp(220px, 32vw, 300px) !important;
+      margin:18px auto 24px !important;
+      border-radius:22px !important;
+      overflow:hidden !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      flex:0 0 auto !important;
+    }
+    #introTab .intro-avatar-frame img{
+      width:100% !important;
+      height:100% !important;
+      max-width:none !important;
+      max-height:none !important;
+      object-fit:cover !important;
+      display:block !important;
+      margin:0 !important;
+      border-radius:inherit !important;
+    }
+    @media (max-width:480px){
+      #introTab .intro-avatar-frame{
+        width:min(72vw, 270px) !important;
+        height:min(72vw, 270px) !important;
+      }
+    }
+
+
+    #introTab .gp-intro-mark,
+    #introTab .bm-intro-mark,
+    #introTab .aa-intro-mark{
+      width:clamp(220px, 32vw, 300px) !important;
+      height:clamp(220px, 32vw, 300px) !important;
+      max-width:300px !important;
+      max-height:300px !important;
+      margin:18px auto 24px !important;
+      border-radius:22px !important;
+      overflow:hidden !important;
+    }
+    #introTab .gp-intro-mark img,
+    #introTab .bm-intro-mark img,
+    #introTab .aa-intro-mark img{
+      width:100% !important;
+      height:100% !important;
+      object-fit:cover !important;
+      max-width:none !important;
+      max-height:none !important;
+    }
+
+
+    #introTab img[src="avatar-greek-physique.jpg"],
+    #introTab img[src="avatar-bahama-mama.jpg"],
+    #introTab img[src="avatar-aesthetic-athlete.jpg"]{
+      width:clamp(220px, 32vw, 300px) !important;
+      height:clamp(220px, 32vw, 300px) !important;
+      max-width:300px !important;
+      max-height:300px !important;
+      object-fit:cover !important;
+      display:block !important;
+      margin:18px auto 24px !important;
+      border-radius:22px !important;
+    }
+    @media (max-width:480px){
+      #introTab img[src="avatar-greek-physique.jpg"],
+      #introTab img[src="avatar-bahama-mama.jpg"],
+      #introTab img[src="avatar-aesthetic-athlete.jpg"]{
+        width:min(72vw, 270px) !important;
+        height:min(72vw, 270px) !important;
+      }
+    }
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -2168,6 +2372,12 @@
         <strong>BAHAMA MAMA PROTOCOL</strong>
         <span><span class="program-choice-goal">Geared toward women building a toned, beach-ready body:</span> strong glutes and legs, athletic definition, a tighter core, and confident full-body strength.</span>
         <div class="program-choice-select">CHOOSE BAHAMA MAMA →</div>
+      </button>
+      <button class="program-choice-option athlete" onclick="selectUnifiedProgram('athlete')">
+        <div class="program-choice-avatar-wrap"><img class="program-avatar athlete-avatar" src="avatar-aesthetic-athlete.jpg" alt="Aesthetic Athlete"></div>
+        <strong>AESTHETIC ATHLETE</strong>
+        <span><span class="program-choice-goal">Built for a lean, muscular, athletic physique:</span> aesthetic upper-body development, strong functional legs, sprint speed, jumping ability, explosive power, and conditioning.</span>
+        <div class="program-choice-select">CHOOSE AESTHETIC ATHLETE →</div>
       </button>
     </div>
     <button class="program-choice-cancel" id="programChoiceCancel" onclick="closeProgramChooser()">CANCEL</button>
@@ -2291,7 +2501,7 @@
 <div class="workout-week-state" id="viewedWorkoutWeekTitle">ACTIVE WEEK</div>
 </div>
 <button aria-label="Previous week" class="week-row-nav-btn" id="workoutPrevWeekBtn" onclick="changeViewedWorkoutWeek(-1)">PREV WK</button><button aria-label="Next week" class="week-row-nav-btn" id="workoutNextWeekBtn" onclick="changeViewedWorkoutWeek(1)">NEXT WK</button><div class="phase-badge" id="phaseDisplayBadge"></div></div>
-<div class="week-progress-text" id="weekProgressSubtext">0 / 3 COMPLETE</div>
+<div class="week-progress-text" id="weekProgressSubtext">0 COMPLETE</div>
 <div class="workout-dashboard-progress"><div class="workout-dashboard-progress-fill" id="workoutDashboardProgressFill"></div></div>
 </div><div class="card focus-card">
 <div style="font-size:0.75rem; font-weight:900; color:var(--accent-blue);">TRAINING FOCUS</div>
@@ -2328,11 +2538,19 @@
 <div class="weekly-workout-status" id="workoutStatus-friday">NOT COMPLETED</div>
 <div class="weekly-workout-meta" id="workoutMeta-friday">Tap to start workout</div>
 </button>
+<button type="button" class="weekly-workout-card" id="workoutCard-saturday" onclick="openWorkoutDetail('saturday')" style="display:none;">
+<div>
+<div class="weekly-workout-day-line"><div class="weekly-workout-day" id="workoutDayLabel-saturday">Saturday</div><span class="workout-day-edit" onclick="event.stopPropagation(); editWorkoutDayName('saturday')">EDIT</span></div>
+<div class="weekly-workout-name" id="workoutProgramName-saturday">Speed & Power</div>
+</div>
+<div class="weekly-workout-status" id="workoutStatus-saturday">NOT COMPLETED</div>
+<div class="weekly-workout-meta" id="workoutMeta-saturday">Tap to start workout</div>
+</button>
 </div><div class="extra-workouts-section" id="extraWorkoutsSection">
 <div class="extra-workouts-heading-row">
 <div>
 <div class="extra-workouts-heading">EXTRA WORKOUTS</div>
-<div class="extra-workouts-sub">Optional workouts do not count toward the 3 program workouts.</div>
+<div class="extra-workouts-sub">Optional workouts do not count toward the required program workouts.</div>
 </div>
 </div>
 <div class="extra-workout-list" id="extraWorkoutList"></div>
@@ -2365,6 +2583,7 @@
 <div class="card timer-card" id="mainRestTimer">
 <div class="timer-title">⏱️ REST TIMER</div>
 <div class="timer-display" id="timerDisplay">02:30</div>
+<div id="smartRestContext" class="smart-rest-context">SELECT AN EXERCISE • SMART REST READY</div>
 <div class="timer-controls">
 <button class="btn btn-dark" onclick="adjustTimer(-30)" style="flex:0.6;">-30s</button>
 <button class="btn btn-orange" onclick="startTimer()">START REST</button>
@@ -2630,12 +2849,18 @@
 </div>
 </div>
 </div>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js">
+    function syncWeekDashboardAfterWorkoutSave() {
+      if (typeof syncCurrentWeekWorkoutCount === 'function') syncCurrentWeekWorkoutCount();
+      if (typeof renderWorkoutDashboard === 'function') renderWorkoutDashboard();
+    }
+
+</script>
 <script>
     // ===== UNIFIED SCHMOKEFIT PROGRAM + STORAGE ROUTER =====
     const rawLocalStorage = window.localStorage;
     const storedUnifiedProgram = rawLocalStorage.getItem('schmokefit_unified_program');
-    let currentProgram = storedUnifiedProgram === 'bahama' ? 'bahama' : 'greek';
+    let currentProgram = ['greek','bahama','athlete'].includes(storedUnifiedProgram) ? storedUnifiedProgram : 'greek';
     const needsUnifiedProgramChoice = !storedUnifiedProgram;
 
     const PROGRAM_CONFIG = {
@@ -2649,6 +2874,17 @@
         resetTitle:'START YOUR NEXT SCHMOKEFIT CYCLE',
         resetCopy:'You finished the full Greek Physique training block. Keep your current focus or choose a new one before restarting at Week 1.',
         focusLabel:'TRAINING FOCUS'
+      },
+      athlete: {
+        id:'athlete', brand:'AESTHETIC ATHLETE', avatar:'', defaultFocus:'performance',
+        focusOrder:['performance'],
+        focusDisplayNames:{performance:'Performance'},
+        macro:{cut:13,maint:15,bulk:17}, proteinMultiplier:0.82,
+        macroLabels:{cut:'LEAN ATHLETE (×13)',maint:'MAINT. (×15)',bulk:'PERFORMANCE BUILD (×17)'},
+        phase1:'PHASE 1: LEAN ATHLETE', phase2:'PHASE 2: BUILD & PERFORM',
+        resetTitle:'START YOUR NEXT AESTHETIC ATHLETE CYCLE',
+        resetCopy:'You finished the full Aesthetic Athlete training block. Restart at Week 1 and keep building the balance of physique, speed, power, and conditioning.',
+        focusLabel:'TRAINING EMPHASIS'
       },
       bahama: {
         id:'bahama', brand:'BAHAMA MAMA PROTOCOL', avatar:'avatar-bahama-mama.jpg', defaultFocus:'tone',
@@ -2689,7 +2925,7 @@
     function migrateLegacyUnifiedData(program) {
       const marker = `schmokefit_unified_${program}_migration_v1`;
       if (rawLocalStorage.getItem(marker) === 'done') return;
-      const legacyPrefix = program === 'bahama' ? 'schmokefit_bm_' : 'schmokefit_';
+      const legacyPrefix = program === 'bahama' ? 'schmokefit_bm_' : (program === 'athlete' ? 'schmokefit_aa_' : 'schmokefit_');
       const programSuffixes = ['week','wk_count','cycle_reset_pending','training_focus','history','workout_cycle','workout_day_names','workout_drafts','workout_skips'];
       const sharedSuffixes = ['master_unlocked','user','pass','has_logged_in_before','tour_completed','bodyweight','meal_definitions','barcode_foods'];
       programSuffixes.forEach(suffix => {
@@ -2733,14 +2969,66 @@
     migrateLegacyUnifiedData(currentProgram);
 
     const greekIntroHtml = "\n\n<div class=\"program-intro-hero\"><img class=\"program-intro-avatar\" src=\"avatar-greek-physique.jpg\" alt=\"Greek Physique program avatar\"><div class=\"program-intro-name\">GREEK PHYSIQUE</div><div class=\"program-intro-tagline\">Chiseled • Proportional • Aesthetic</div></div>\n<!-- MINIMALIST GUIDE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">THE GREEK PHYSIQUE STANDARD</div>\n<p>Inspired by the balanced proportions of classical Greek sculpture, this program is built to develop a physique that looks carved from marble: broad shoulders, a strong chest and back, defined arms, athletic legs, and a lean waist. The goal is not size for size’s sake — it is symmetry, proportion, muscular definition, and timeless aesthetics.</p>\n</div>\n<!-- TRAINING BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">01. TRAINING BLUEPRINT</div>\n<p style=\"margin-bottom: 8px;\"><strong>PHILOSOPHY:</strong> Build the body like a sculptor: prioritize the muscle groups that create classical proportions, train hard enough to force adaptation, and recover enough to grow. Three focused workouts per week keep the program efficient while emphasizing symmetry, shape, and definition.</p>\n<p style=\"margin-bottom: 6px;\"><strong>REVERSE PYRAMID TRAINING (RPT):</strong></p>\n<ul style=\"margin-left: 16px; margin-bottom: 8px;\">\n<li><strong>Set 1 (Heavy):</strong> Target 4\u20136 reps (Heaviest Weight).</li>\n<li><strong>Set 2 (Medium):</strong> Drop weight ~10\u201320%, target 6\u20138 reps.</li>\n<li><strong>Set 3 (Light):</strong> Drop weight another ~10\u201320%, target 8\u201310 reps.</li>\n<li><strong>Rest Period:</strong> Rest 2.5 to 3 minutes between all sets.</li>\n</ul>\n<p style=\"margin-bottom:6px;\"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1\u20132 weeks</strong>.</p>\n<p style=\"margin-bottom:8px;\">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first\u2014that is normal. Build them back up, then increase the load again.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:8px;\"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout\u2014just keep giving your body a reason to adapt.</p>\n<p>\u23f1\ufe0f <strong>TIME CRUNCH RULE:</strong> If time is short, perform only the Key Lifts for that day and skip supplemental work.</p>\n</div>\n<!-- TRAINING FOCUS OPTIONS -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">02. CHOOSE YOUR FOCUS</div>\n<p style=\"margin-bottom:8px;\">Greek Physique keeps the core 3-day structure intact while allowing small Monday and Friday adjustments to refine the area that will most improve your overall proportions.</p>\n<p style=\"margin-bottom:5px;\"><strong>SHOULDERS:</strong> Build the broad, capped delts and V-taper that anchor the classical statue silhouette. This is the default focus.</p>\n<p style=\"margin-bottom:5px;\"><strong>ARMS:</strong> Add proportionate biceps and triceps development for defined, sculpted arms without overpowering the torso.</p>\n<p style=\"margin-bottom:5px;\"><strong>CHEST:</strong> Emphasize a full, powerful chest — especially the upper torso — to strengthen the armor-like Greek aesthetic.</p>\n<p style=\"margin-bottom:8px;\"><strong>LEGS:</strong> Build athletic quads and hamstrings so the lower body matches the upper body and the entire physique stays balanced.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\">Wednesday stays essentially the same across every focus. Your key lifts and overall workout length stay intact; only a small amount of Monday and Friday accessory work changes. You can switch focus anytime from the Workout tab.</p>\n</div>\n<!-- 18-WEEK TRAINING CYCLE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. THE 18-WEEK RESET</div>\n<p style=\"margin-bottom:8px;\"><strong>TRAIN IN BLOCKS:</strong> Greek Physique is designed as an 18-week sculpting cycle rather than one workout plan you repeat forever.</p>\n<p style=\"margin-bottom:8px;\">After you complete <strong>Week 18</strong>, the app will prompt you to either keep your current training focus or choose a new focus: <strong>Shoulders, Arms, Chest, or Legs.</strong></p>\n<p style=\"margin-bottom:8px;\">Once you make your selection, your program automatically resets to <strong>Week 1</strong> for a fresh 18-week block. The core program stays familiar, while the focus option makes small changes to Monday and Friday so you can emphasize a different area without completely changing what works.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\"><strong>WHY RESET?</strong> It gives you a clear finish line, a chance to reassess your goals, and a simple way to refresh your training instead of running the exact same emphasis indefinitely.</p>\n</div>\n<!-- NUTRITION BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. NO-BS NUTRITION BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\">When the goal is to <strong>get lean while building or preserving muscle</strong>, keep the nutrition plan simple: create a modest calorie deficit while consistently eating enough protein to support training and recovery.</p>\n<p style=\"margin-bottom:8px;\">These bodyweight-based calculations give you an easy starting point. The same approach can also be adjusted when your goal changes from fat loss to maintaining your weight or moving into a slight calorie surplus.</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Fat Loss / Deficit:</strong> Bodyweight (lbs) \u00d7 13 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Maintenance:</strong> Bodyweight (lbs) \u00d7 15 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Slight Surplus:</strong> Bodyweight (lbs) \u00d7 17 calories</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Protein Target:</strong> Bodyweight (lbs) \u00d7 0.82g</p>\n<p style=\"font-size:0.72rem; color:#64748b; margin-bottom:10px;\">*These are simple starting estimates. Adjust based on your progress, activity level, and goal. Use your target bodyweight if you have significant weight to lose.</p>\n<p><strong>TRACKING &amp; FLEXIBLE EATING:</strong></p>\n<ul style=\"margin-left: 16px; margin-top: 4px;\">\n<li><strong>Tracking App:</strong> You can log and track your calories, protein, and food directly inside SchmokeFit from the <strong>Macros</strong> tab.</li>\n<li><strong>Food Scale:</strong> Recommended for weighing food precisely at home.</li>\n<li><strong>Flexible Nutrition:</strong> You don't need 100% \"clean\" meals. Fast food like McDonald's works as long as it fits your daily calorie and protein targets!</li>\n<li><strong>Strategic Refeed Day:</strong> After at least two weeks of consistent tracking in a calorie deficit, you may add one refeed day per week. Increase your target by <strong>600 calories</strong>, with most of those extra calories coming from carbohydrates. This can help replenish glycogen stores, support training performance, and make a long deficit easier to stick with. A great place for the refeed is the day before your third workout—for example, Thursday if you train Friday.</li>\n</ul>\n</div>\n<!-- PHASE PROGRESSION -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">05. PHASE PROGRESSION</div>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>Weeks 1\u201310 (The Fat Loss Deficit):</strong> Maintain a consistent caloric deficit while preserving dense muscle mass.</p>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>Weeks 11\u201318 (The Recomp Phase):</strong> SchmokeFit automatically raises your daily calorie target by <strong>200 calories every two weeks</strong>: +200 in Weeks 11\u201312, +400 in Weeks 13\u201314, +600 in Weeks 15\u201316, and +800 in Weeks 17\u201318. You do not need to adjust the target manually.</p>\n<p>\u2022 <strong>Reset &amp; Repeat:</strong> Recalculate using Bodyweight \u00d7 13 at your new lean weight and repeat as needed.</p>\n</div>\n<!-- RECOVERY NOTE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">OFF DAYS &amp; RECOVERY</div>\n<p>Recovery is an important part of the program, but an off day does not have to mean doing nothing. Walking, cardio, mobility work, recreational activity, or simply taking a full rest day can all be great options depending on how you feel and what fits your goals. The main idea is to give your muscles and nervous system a break from additional high-stress resistance training so you are ready to perform well in your next scheduled workout. Use these days in the way that works best for you—whether that means getting your steps in, enjoying some cardio, staying lightly active, or prioritizing complete rest.</p>\n</div>\n\n<div style=\"margin:14px 0 6px;\">\n  <button class=\"btn btn-blue\" style=\"width:100%; min-height:48px; font-size:.78rem; font-weight:900;\"\n    onclick=\"continueFromIntro();\">\n    CONTINUE INTO THE APP \u2192\n  </button>\n</div>\n<div style=\"margin:6px 0 0; text-align:center;\">\n  <button class=\"app-tour-replay-small\" type=\"button\" onclick=\"startAppTour(true)\">REPLAY APP TOUR</button>\n</div>\n";
+    const athleteIntroHtml = `
+<div class="program-intro-hero"><img class="program-avatar athlete-avatar" src="avatar-aesthetic-athlete.jpg" alt="Aesthetic Athlete"><div class="program-intro-name">AESTHETIC ATHLETE</div><div class="program-intro-tagline">Lean • Strong • Explosive</div></div>
+<div class="card info-card"><div class="info-subtitle">THE AESTHETIC ATHLETE STANDARD</div>
+<p>Build a physique that looks athletic and performs like one. The goal is lean, functional muscle: defined shoulders, chest, back and arms; strong athletic legs; a lean waist; and the ability to run, jump, sprint and move explosively.</p></div>
+<div class="card info-card"><div class="info-subtitle">01. TRAINING BLUEPRINT</div>
+<p style="margin-bottom:8px;"><strong>4-DAY STRUCTURE:</strong> Three resistance-training days build aesthetic, functional muscle. A fourth Speed & Power day develops sprinting, jumping, explosiveness and conditioning.</p>
+<p style="margin-bottom:6px;"><strong>THREE REST ZONES:</strong></p>
+<p style="margin-bottom:5px;">⚡ <strong>POWER — 90–180 sec:</strong> Sprints, jumps and explosive work. Recover enough to make the next effort fast and powerful.</p>
+<p style="margin-bottom:5px;">🏋️ <strong>BUILD — 60–90 sec:</strong> Primary resistance exercises. Maintain quality while keeping the workout moving.</p>
+<p style="margin-bottom:8px;">🔥 <strong>BURN — 30–60 sec:</strong> Accessories, supersets, core and conditioning. This is where training density increases.</p>
+<p><strong>PROGRESSION:</strong> Build exercises progress through weight and reps. Power exercises progress through speed, distance, height and movement quality. Conditioning progresses through work capacity—not by turning every power effort into fatigue.</p></div>
+<div class="card info-card"><div class="info-subtitle">02. WEEKLY SPLIT</div>
+<p>• <strong>Day 1 — Upper Athletic:</strong> Chest, back, shoulders and arms with efficient supersets.</p>
+<p>• <strong>Day 2 — Lower Athletic:</strong> Strong legs, unilateral strength, posterior chain and core.</p>
+<p>• <strong>Day 3 — Athletic Aesthetics:</strong> Higher-density upper-body work for muscular definition.</p>
+<p>• <strong>Day 4 — Speed & Power:</strong> Sprints, jumps, explosive movements and a short conditioning finisher.</p>
+<p style="font-size:.72rem;color:var(--text-muted);margin-top:8px;">Exercise substitutions are built in. Equipment-specific movements—especially medicine-ball work—include alternatives so the program does not depend on specialized equipment.</p></div>
+<div class="card info-card"><div class="info-subtitle">03. NUTRITION BLUEPRINT</div>
+<p style="margin-bottom:8px;">The nutrition goal stays simple: get lean while supporting muscle and performance. Start with <strong>Bodyweight × 13 calories</strong> and <strong>Bodyweight × 0.82g protein</strong> as starting estimates. Carbohydrates are especially useful around demanding lower-body, sprint and power sessions.</p>
+<p style="font-size:.72rem;color:var(--text-muted);">Adjust based on progress, activity level and goal. These formulas are starting estimates rather than individualized prescriptions.</p></div>
+<div class="card info-card"><div class="info-subtitle">04. PHASE PROGRESSION</div>
+<p style="margin-bottom:8px;">• <strong>Weeks 1–10 — Lean Athlete:</strong> Use the programmed deficit while developing muscle, movement quality and conditioning.</p>
+<p style="margin-bottom:8px;">• <strong>Weeks 11–18 — Build & Perform:</strong> SchmokeFit automatically raises your daily calorie target by <strong>200 calories every two weeks</strong>: +200 in Weeks 11–12, +400 in Weeks 13–14, +600 in Weeks 15–16, and +800 in Weeks 17–18.</p>
+<p>• <strong>Week 18 Reset:</strong> Return to Week 1 for a new 18-week block and reassess bodyweight, performance and goals.</p></div>
+<div class="card info-card"><div class="info-subtitle">OFF DAYS & RECOVERY</div>
+<p>Recovery matters, but off days do not have to mean doing nothing. Walking, easy cardio, mobility, recreational activity or complete rest can all fit. The main idea is to avoid stacking unnecessary high-stress resistance or maximal sprint/jump sessions between programmed workouts. Choose the recovery approach that leaves you ready to perform well in the next session.</p></div>
+<div style="margin:14px 0 6px;"><button class="btn btn-blue" style="width:100%;min-height:48px;font-size:.78rem;font-weight:900;" onclick="continueFromIntro();">CONTINUE INTO THE APP →</button></div>
+<div style="margin:6px 0 0;text-align:center;"><button class="app-tour-replay-small" type="button" onclick="startAppTour(true)">REPLAY APP TOUR</button></div>
+`;
     const bahamaIntroHtml = "\n\n<div class=\"program-intro-hero\"><img class=\"program-intro-avatar\" src=\"avatar-bahama-mama.jpg\" alt=\"Bahama Mama program avatar\"><div class=\"program-intro-name\">BAHAMA MAMA</div><div class=\"program-intro-tagline\">Toned • Strong • Beach Ready</div></div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">THE FEMALE SCULPT GUIDE</div>\n<p>Built for efficient full-body training with an emphasis on glutes, legs, posture, core strength, and feeling athletic. The goal is a sustainable program that can adapt to how and where you want to train.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">01. TRAINING BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\"><strong>PHILOSOPHY:</strong> 3 full-body sessions per week with a full recovery day between workouts whenever possible.</p>\n<p style=\"margin-bottom:6px;\"><strong>REVERSE PYRAMID / PYRAMID TRAINING:</strong></p>\n<ul style=\"margin-left:16px; margin-bottom:8px;\">\n<li><strong>Set 1:</strong> Challenging weight for roughly 8\u201310 reps.</li>\n<li><strong>Set 2:</strong> Reduce the load slightly and target 10\u201312 reps.</li>\n<li><strong>Set 3:</strong> Reduce again and target 12\u201315 reps.</li>\n<li><strong>Rest:</strong> About 2 minutes for main lifts and 60\u201390 seconds for smaller movements.</li>\n</ul>\n<p style=\"margin-bottom:6px;\"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1\u20132 weeks</strong>.</p>\n<p style=\"margin-bottom:8px;\">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first\u2014that is normal. Build them back up, then increase the load again.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:8px;\"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout\u2014just keep giving your body a reason to adapt.</p>\n<p>\u23f1\ufe0f <strong>TIME CRUNCH:</strong> Prioritize the key lifts and skip optional isolation work when needed.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">02. CHOOSE YOUR TRAINING STYLE</div>\n<p style=\"margin-bottom:8px;\">The core Bahama Mama structure stays simple, but you can choose the version that best matches your goal and equipment.</p>\n<p style=\"margin-bottom:5px;\"><strong>TONE &amp; TIGHTEN:</strong> The original Bahama Mama workouts exactly as designed. This is the default.</p>\n<p style=\"margin-bottom:5px;\"><strong>BUILD MUSCLE:</strong> Keeps the original exercises and adds one extra volume movement each day.</p>\n<p style=\"margin-bottom:8px;\"><strong>HOME / BODYWEIGHT:</strong> Uses bodyweight, resistance bands, and light dumbbells so the entire program can be done at home.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted);\">You can switch styles anytime from the Workout tab.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. THE 18-WEEK RESET</div>\n<p style=\"margin-bottom:8px;\"><strong>TRAIN IN BLOCKS:</strong> Bahama Mama is designed as an 18-week cycle instead of one routine you repeat forever.</p>\n<p style=\"margin-bottom:8px;\">After you complete <strong>Week 18</strong>, the app asks whether you want to keep your current style or choose <strong>Tone &amp; Tighten, Build Muscle, or Home / Bodyweight.</strong></p>\n<p style=\"margin-bottom:8px;\">After your choice, the week counter resets to <strong>Week 1</strong> for a fresh 18-week block.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted);\"><strong>WHY RESET?</strong> It gives you a clear finish line and a natural time to reassess your goals, equipment, and training style.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">04. FEMALE NUTRITION BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\">When the goal is to <strong>get lean while building or preserving muscle</strong>, keep the nutrition plan simple: create a modest calorie deficit while consistently eating enough protein to support training and recovery.</p>\n<p style=\"margin-bottom:8px;\">These bodyweight-based calculations give you an easy starting point. The same approach can also be adjusted when your goal changes from fat loss to maintaining your weight or moving into a slight calorie surplus.</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Fat Loss / Deficit:</strong> Bodyweight (lbs) \u00d7 12 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Maintenance:</strong> Bodyweight (lbs) \u00d7 14 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Slight Surplus:</strong> Bodyweight (lbs) \u00d7 16 calories</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Protein Target:</strong> Bodyweight (lbs) \u00d7 0.8g</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:10px;\">*These are simple starting estimates. Adjust based on your progress, activity level, and goal. Use your target bodyweight if you have significant weight to lose.</p>\n<p><strong>TRACKING &amp; FLEXIBLE EATING:</strong></p>\n<ul style=\"margin-left:16px; margin-top:4px;\">\n<li><strong>Tracking App:</strong> You can log and track your calories, protein, and food directly inside SchmokeFit from the <strong>Macros</strong> tab.</li>\n<li><strong>Food Scale:</strong> Recommended for weighing food precisely at home.</li>\n<li><strong>Flexible Nutrition:</strong> Focus on consistency with your calorie and protein targets rather than trying to make every meal perfect.</li>\n<li><strong>Strategic Refeed Day:</strong> After at least two weeks of consistent tracking in a calorie deficit, you may add one refeed day per week. Increase your target by <strong>600 calories</strong>, with most of those extra calories coming from carbohydrates. This can help replenish glycogen stores, support training performance, and make a long deficit easier to stick with. A great place for the refeed is the day before your third workout—for example, Thursday if you train Friday.</li>\n</ul>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">05. PHASE PROGRESSION</div>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Weeks 1\u201310 \u2014 Tone &amp; Trim:</strong> Use the nutrition goal that matches your current objective while progressing the workouts.</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Weeks 11\u201318 \u2014 Body Recomp:</strong> SchmokeFit automatically raises your daily calorie target by <strong>200 calories every two weeks</strong>: +200 in Weeks 11\u201312, +400 in Weeks 13\u201314, +600 in Weeks 15\u201316, and +800 in Weeks 17\u201318. You do not need to adjust the target manually.</p>\n<p>\u2022 <strong>Week 18 Reset:</strong> Choose your next training style, return to Week 1, and recalculate macros if your goal or bodyweight changed.</p>\n</div>\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">OFF DAYS &amp; RECOVERY</div>\n<p>Recovery is an important part of the program, but an off day does not have to mean doing nothing. Walking, cardio, mobility work, recreational activity, or simply taking a full rest day can all be great options depending on how you feel and what fits your goals. The main idea is to avoid stacking additional high-stress resistance training between your scheduled workouts so you can recover and perform well in the next session. Choose the kind of recovery day that works best for you.</p>\n</div>\n\n<div style=\"margin:14px 0 6px;\">\n  <button class=\"btn btn-blue\" style=\"width:100%; min-height:48px; font-size:.78rem; font-weight:900;\"\n    onclick=\"continueFromIntro();\">\n    CONTINUE INTO THE APP \u2192\n  </button>\n</div>\n<div style=\"margin:6px 0 0; text-align:center;\">\n  <button class=\"app-tour-replay-small\" type=\"button\" onclick=\"startAppTour(true)\">REPLAY APP TOUR</button>\n</div>\n";
 
     function selectUnifiedProgram(program) {
       if (!PROGRAM_CONFIG[program]) return;
+
       rawLocalStorage.setItem('schmokefit_unified_program', program);
-      rawLocalStorage.setItem('schmokefit_unified_show_intro', 'true');
+      rawLocalStorage.setItem('schmokefit_unified_master_unlocked', 'true');
+      rawLocalStorage.setItem('schmokefit_master_unlocked', 'true');
       migrateLegacyUnifiedData(program);
-      location.reload();
+
+      // Switch programs IN PLACE. A reload is unnecessary and was the source
+      // of the Athlete-only access-code loop in the prototype.
+      currentProgram = program;
+      rebindProgramRuntime(program);
+      document.getElementById('programChoiceOverlay')?.classList.remove('open');
+      applyUnifiedProgramUI();
+      restoreTrainingFocus();
+      renderWorkoutDashboard();
+      updateNutritionDashboard();
+      switchTab('introTab', null);
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function rebindProgramRuntime(program) {
+      const cfg = PROGRAM_CONFIG[program];
+      currentTrainingFocus = appStorage.getItem('schmokefit_training_focus') || cfg.defaultFocus;
+      if (program === 'athlete') currentTrainingFocus = 'performance';
+      currentWeek = Number(appStorage.getItem('schmokefit_week') || 1);
+      viewedWorkoutWeek = currentWeek;
+      currentWorkoutCycle = Number(appStorage.getItem('schmokefit_workout_cycle') || 1);
+      weeklyWorkoutCount = workoutCompletionCount(currentWeek, currentWorkoutCycle);
     }
     function openProgramChooser() {
       document.getElementById('programChoiceOverlay')?.classList.add('open');
@@ -2756,15 +3044,32 @@
       const cfg = PROGRAM_CONFIG[currentProgram];
       document.body.classList.toggle('program-greek', currentProgram === 'greek');
       document.body.classList.toggle('program-bahama', currentProgram === 'bahama');
+      document.body.classList.toggle('program-athlete', currentProgram === 'athlete');
       const brand=document.getElementById('programBrandSubtitle'); if(brand) brand.innerText=cfg.brand;
-      const intro=document.getElementById('introTab'); if(intro) intro.innerHTML = currentProgram === 'bahama' ? bahamaIntroHtml : greekIntroHtml;
+      const intro=document.getElementById('introTab'); if(intro) intro.innerHTML = currentProgram === 'bahama' ? bahamaIntroHtml : (currentProgram === 'athlete' ? athleteIntroHtml : greekIntroHtml);
 
-      const focusWrap=document.getElementById('focusToggleContainer') || document.querySelector('.focus-toggle-container');
+      const satCard=document.getElementById('workoutCard-saturday');
+      if(satCard) satCard.style.display = currentProgram === 'athlete' ? '' : 'none';
+      if (currentProgram === 'athlete') {
+        requiredWorkoutDays().forEach(day => {
+          const card = document.getElementById(`workoutCard-${day}`);
+          if (card) card.style.display = '';
+        });
+      }
+            const focusWrap=document.getElementById('focusToggleContainer') || document.querySelector('.focus-toggle-container');
       if(focusWrap){
         focusWrap.style.gridTemplateColumns=`repeat(${cfg.focusOrder.length},1fr)`;
         focusWrap.innerHTML=cfg.focusOrder.map(f=>`<button class="focus-toggle-btn" id="focusBtn-${f}" onclick="setTrainingFocus('${f}', this)">${cfg.focusDisplayNames[f].toUpperCase()}</button>`).join('');
       }
-      const focusHeading=document.querySelector('.focus-card > div:first-child'); if(focusHeading) focusHeading.innerText=cfg.focusLabel;
+      const focusHeading=document.querySelector('.focus-card > div:first-child');
+      if(focusHeading) focusHeading.innerText = currentProgram === 'athlete' ? 'AESTHETIC ATHLETE TRAINING' : cfg.focusLabel;
+      const focusText=document.getElementById('focusActiveText');
+      if (currentProgram === 'athlete') {
+        if (focusWrap) focusWrap.style.display='none';
+        if (focusText) focusText.innerHTML='<strong>LEAN • STRONG • EXPLOSIVE</strong> — Three aesthetic resistance-training days plus one dedicated Speed & Power day build lean functional muscle, strong legs, sprint speed, jumping ability and conditioning.';
+      } else {
+        if (focusWrap) focusWrap.style.display='grid';
+      }
 
       const phaseCut=document.getElementById('phaseBtn-cut'), phaseMaint=document.getElementById('phaseBtn-maint'), phaseBulk=document.getElementById('phaseBtn-bulk');
       if(phaseCut){ phaseCut.innerText=cfg.macroLabels.cut; phaseCut.setAttribute('onclick',`setMacroPhase('cut', ${cfg.macro.cut}, this)`); }
@@ -2772,7 +3077,7 @@
       if(phaseBulk){ phaseBulk.innerText=cfg.macroLabels.bulk; phaseBulk.setAttribute('onclick',`setMacroPhase('bulk', ${cfg.macro.bulk}, this)`); }
 
       const daySelect=document.getElementById('workoutDaySelect');
-      if(daySelect) daySelect.innerHTML=['monday','wednesday','friday'].map(day=>`<option value="${day}">${workoutDayLabels[day]}</option>`).join('');
+      if(daySelect) daySelect.innerHTML=requiredWorkoutDays().map(day=>`<option value="${day}">${getWorkoutDayLabels()[day] || day}</option>`).join('');
 
       const resetTitle=document.getElementById('programResetTitle'); if(resetTitle) resetTitle.innerText=cfg.resetTitle;
       const resetCopy=document.getElementById('programResetCopy'); if(resetCopy) resetCopy.innerText=cfg.resetCopy;
@@ -2812,7 +3117,8 @@
       const errorMsg = document.getElementById('masterError');
 
       if (input === "schmokefit") {
-        appStorage.setItem('schmokefit_master_unlocked', 'true');
+        rawLocalStorage.setItem('schmokefit_unified_master_unlocked', 'true');
+        rawLocalStorage.setItem('schmokefit_master_unlocked', 'true');
         errorMsg.style.display = 'none';
         initAuthScreen();
       } else {
@@ -2828,7 +3134,16 @@
 
     // SETUP INITIAL AUTH SCREEN
     function initAuthScreen() {
-      const masterUnlocked = appStorage.getItem('schmokefit_master_unlocked');
+      const existingAccount =
+        rawLocalStorage.getItem('schmokefit_unified_user') ||
+        rawLocalStorage.getItem('schmokefit_user');
+      const masterUnlocked =
+        rawLocalStorage.getItem('schmokefit_unified_master_unlocked') ||
+        rawLocalStorage.getItem('schmokefit_master_unlocked') ||
+        existingAccount;
+      if (existingAccount && !rawLocalStorage.getItem('schmokefit_unified_master_unlocked')) {
+        rawLocalStorage.setItem('schmokefit_unified_master_unlocked', 'true');
+      }
       const initialMasterForm = document.getElementById('initialMasterForm');
       const authForm = document.getElementById('authForm');
       const sub = document.getElementById('loginSubheading');
@@ -2837,7 +3152,7 @@
       const usernameInput = document.getElementById('usernameInput');
 
       // Check if user has passed the initial master password screen
-      if (!masterUnlocked) {
+      if (!masterUnlocked && sessionStorage.getItem('schmokefit_authenticated') !== 'true') {
         sub.innerText = "ACCESS CODE REQUIRED";
         initialMasterForm.style.display = 'block';
         authForm.style.display = 'none';
@@ -3043,12 +3358,23 @@
       "Light DB Bicep Curls":["Light DB Bicep Curls","Band Bicep Curls","Hammer Curls","Alternating DB Curls"],
       "Band Tricep Extensions":["Band Tricep Extensions","Bench Tricep Dips","Light DB Overhead Extensions","Close-Grip Push-Ups"]
     };
-    const exerciseSubstitutions = currentProgram === 'bahama' ? bahamaExerciseSubstitutions : movieExerciseSubstitutions;
+    function getExerciseSubstitutions() {
+      return currentProgram === 'bahama'
+        ? bahamaExerciseSubstitutions
+        : (currentProgram === 'athlete' ? athleteExerciseSubstitutions : movieExerciseSubstitutions);
+    }
+
+    function requiredWorkoutDays() {
+      return currentProgram === 'athlete'
+        ? ['monday','wednesday','friday','saturday']
+        : ['monday','wednesday','friday'];
+    }
+    function requiredWorkoutCount() { return requiredWorkoutDays().length; }
 
     function updateWeekTrackerDisplay() {
       currentWeek = Math.min(18, Math.max(1, currentWeek));
       document.getElementById('weekDisplayTitle').innerText = `WEEK ${currentWeek}`;
-      document.getElementById('weekProgressSubtext').innerText = `Workouts Logged This Week: ${weeklyWorkoutCount} / 3`;
+      document.getElementById('weekProgressSubtext').innerText = `Workouts Logged This Week: ${weeklyWorkoutCount} / ${requiredWorkoutCount()}`;
 
       const badge = document.getElementById('phaseDisplayBadge');
       if (currentWeek <= 10) {
@@ -3084,10 +3410,10 @@
       const overlay = document.getElementById('programResetOverlay');
       if (!overlay) return;
       const cfg = PROGRAM_CONFIG[currentProgram];
-      const focusName = focusDisplayNames[currentTrainingFocus] || currentTrainingFocus;
+      const focusName = getFocusDisplayNames()[currentTrainingFocus] || currentTrainingFocus;
       const currentText = document.getElementById('programResetCurrentFocus');
       const keepBtn = document.getElementById('keepCurrentFocusBtn');
-      if (currentText) currentText.innerHTML = `Current ${currentProgram === 'bahama' ? 'style' : 'focus'}: <strong style="color:var(--accent-blue);">${focusName}</strong>`;
+      if (currentText) currentText.innerHTML = `Current ${currentProgram === 'bahama' ? 'style' : (currentProgram === 'athlete' ? 'emphasis' : 'focus')}: <strong style="color:var(--accent-blue);">${focusName}</strong>`;
       if (keepBtn) keepBtn.innerText = `KEEP ${focusName.toUpperCase()}`;
       document.querySelectorAll('.program-reset-focus-btn').forEach(btn => btn.classList.remove('current'));
       document.getElementById(`resetFocus-${currentTrainingFocus}`)?.classList.add('current');
@@ -3096,7 +3422,7 @@
 
     function startNewProgramCycle(focus) {
       const cfg = PROGRAM_CONFIG[currentProgram];
-      if (!focusRoutines[focus]) focus = currentTrainingFocus || cfg.defaultFocus;
+      if (!getFocusRoutines()[focus]) focus = currentTrainingFocus || cfg.defaultFocus;
       currentWeek = 1;
       weeklyWorkoutCount = 0;
       programResetPending = false;
@@ -3106,7 +3432,7 @@
       setTrainingFocus(focus);
       updateWeekTrackerDisplay();
       document.getElementById('programResetOverlay')?.classList.remove('open');
-      alert(`New 18-week ${cfg.brand.replace(' PROTOCOL','').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())} cycle started! ${currentProgram === 'bahama' ? 'Style' : 'Focus'}: ${focusDisplayNames[focus] || focus}. You're back to Week 1.`);
+      alert(`New 18-week ${cfg.brand.replace(' PROTOCOL','').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase())} cycle started! ${currentProgram === 'bahama' ? 'Style' : (currentProgram === 'athlete' ? 'Emphasis' : 'Focus')}: ${getFocusDisplayNames()[focus] || focus}. You're back to Week 1.`);
     }
 
     // BASE ROUTINES DATA - GREEK PHYSIQUE PROGRAM WITH SUBTLE FOCUS VARIATIONS
@@ -3211,6 +3537,73 @@
         ]
       }
     };
+
+    const athleteFocusRoutines = {
+      performance: {
+        monday: [
+          {name:"Incline Dumbbell Bench Press",badge:"BUILD • 6–10",badgeClass:"badge-key"},
+          {name:"Pull-Ups",badge:"BUILD • 6–10",badgeClass:"badge-key"},
+          {name:"Dumbbell Shoulder Press",badge:"SUPERSET • 8–12",badgeClass:"badge-superset"},
+          {name:"Chest-Supported Dumbbell Row",badge:"SUPERSET • 8–12",badgeClass:"badge-superset"},
+          {name:"Lateral Raises",badge:"BURN • 12–15",badgeClass:"badge-supp"},
+          {name:"Dumbbell Curls",badge:"BURN • 10–15",badgeClass:"badge-supp"}
+        ],
+        wednesday: [
+          {name:"Trap-Bar Deadlift or Squat",badge:"BUILD • 5–8",badgeClass:"badge-key"},
+          {name:"Bulgarian Split Squats",badge:"BUILD • 8–10",badgeClass:"badge-key"},
+          {name:"Romanian Deadlifts",badge:"BUILD • 8–12",badgeClass:"badge-standard"},
+          {name:"Walking Lunges",badge:"BURN • 10/LEG",badgeClass:"badge-superset"},
+          {name:"Standing Calf Raises",badge:"BURN • 12–20",badgeClass:"badge-superset"},
+          {name:"Hanging Leg Raises",badge:"CORE • 10–15",badgeClass:"badge-supp"}
+        ],
+        friday: [
+          {name:"Dips",badge:"SUPERSET • 8–12",badgeClass:"badge-key"},
+          {name:"Chin-Ups",badge:"SUPERSET • 6–10",badgeClass:"badge-key"},
+          {name:"Incline Dumbbell Press",badge:"SUPERSET • 8–12",badgeClass:"badge-superset"},
+          {name:"Seated Cable Rows",badge:"SUPERSET • 8–12",badgeClass:"badge-superset"},
+          {name:"Lateral Raises",badge:"BURN • 12–15",badgeClass:"badge-supp"},
+          {name:"Hammer Curls",badge:"BURN • 10–15",badgeClass:"badge-supp"},
+          {name:"Rope Tricep Pushdowns",badge:"BURN • 10–15",badgeClass:"badge-supp"},
+          {name:"Face Pulls",badge:"BURN • 12–15",badgeClass:"badge-supp"}
+        ],
+        saturday: [
+          {name:"Broad Jumps",badge:"POWER • 4×3",badgeClass:"badge-key"},
+          {name:"Box Jumps",badge:"POWER • 3×3–5",badgeClass:"badge-key"},
+          {name:"Acceleration Sprints (20–30 yd)",badge:"SPEED • 6 REPS",badgeClass:"badge-key"},
+          {name:"Medicine Ball Slams",badge:"POWER • 4×6",badgeClass:"badge-supp"},
+          {name:"Medicine Ball Rotational Throws",badge:"POWER • 4×5/SIDE",badgeClass:"badge-supp"},
+          {name:"Athlete Conditioning Intervals",badge:"5×20s / 40s",badgeClass:"badge-optional"}
+        ]
+      }
+    };
+    const athleteExerciseSubstitutions = {
+      "Incline Dumbbell Bench Press":["Incline Dumbbell Bench Press","Incline Barbell Bench Press","Incline Machine Press","Feet-Elevated Push-Ups"],
+      "Pull-Ups":["Pull-Ups","Assisted Pull-Ups","Lat Pulldowns","Band-Assisted Pull-Ups"],
+      "Dumbbell Shoulder Press":["Dumbbell Shoulder Press","Landmine Press","Machine Shoulder Press","Push-Ups"],
+      "Chest-Supported Dumbbell Row":["Chest-Supported Dumbbell Row","Seated Cable Row","Single-Arm DB Row","Inverted Row"],
+      "Lateral Raises":["Lateral Raises","Cable Lateral Raises","Band Lateral Raises"],
+      "Dumbbell Curls":["Dumbbell Curls","Hammer Curls","Cable Curls","Band Curls"],
+      "Trap-Bar Deadlift or Squat":["Trap-Bar Deadlift or Squat","Back Squat","Front Squat","Goblet Squat"],
+      "Bulgarian Split Squats":["Bulgarian Split Squats","Reverse Lunges","Step-Ups","Walking Lunges"],
+      "Romanian Deadlifts":["Romanian Deadlifts","Dumbbell RDLs","Single-Leg RDLs","Hip Thrusts"],
+      "Walking Lunges":["Walking Lunges","Reverse Lunges","Step-Ups","Split Squats"],
+      "Standing Calf Raises":["Standing Calf Raises","Single-Leg Calf Raises","Seated Calf Raises"],
+      "Hanging Leg Raises":["Hanging Leg Raises","Lying Leg Raises","Reverse Crunches","Dead Bugs"],
+      "Dips":["Dips","Assisted Dips","Push-Ups","Dumbbell Bench Press"],
+      "Chin-Ups":["Chin-Ups","Assisted Chin-Ups","Neutral-Grip Pulldowns","Inverted Rows"],
+      "Incline Dumbbell Press":["Incline Dumbbell Press","Incline Barbell Bench","Push-Ups","Machine Chest Press"],
+      "Seated Cable Rows":["Seated Cable Rows","Chest-Supported DB Row","Single-Arm DB Row","Inverted Row"],
+      "Hammer Curls":["Hammer Curls","Alternating DB Curls","Cable Rope Curls","Band Curls"],
+      "Rope Tricep Pushdowns":["Rope Tricep Pushdowns","Band Tricep Pressdowns","Close-Grip Push-Ups","DB Overhead Extensions"],
+      "Face Pulls":["Face Pulls","Band Pull-Aparts","Rear-Delt Flyes","Band Face Pulls"],
+      "Broad Jumps":["Broad Jumps","Standing Vertical Jumps","Squat Jumps","Low-Impact Pogo Jumps"],
+      "Box Jumps":["Box Jumps","Tuck Jumps","Vertical Jumps","Explosive Step-Ups"],
+      "Acceleration Sprints (20–30 yd)":["Acceleration Sprints (20–30 yd)","Hill Sprints","Bike Sprints","Rower Sprints"],
+      "Medicine Ball Slams":["Medicine Ball Slams","Dumbbell High Pulls","Kettlebell Swings","Explosive Band Pulldowns"],
+      "Medicine Ball Rotational Throws":["Medicine Ball Rotational Throws","Cable Rotational Chops","Band Rotational Punches","Landmine Rotations"],
+      "Athlete Conditioning Intervals":["Athlete Conditioning Intervals","Bike Intervals","Rower Intervals","Hill Sprints","Shuttle Runs"]
+    };
+
     const bahamaDefaultRoutines = {
       monday: [
         { name: "Barbell Hip Thrusts", badge: "KEY LIFT", badgeClass: "badge-key" },
@@ -3280,7 +3673,11 @@
         ]
       }
     };
-    const focusRoutines = currentProgram === 'bahama' ? bahamaFocusRoutines : movieFocusRoutines;
+    function getFocusRoutines() {
+      return currentProgram === 'bahama'
+        ? bahamaFocusRoutines
+        : (currentProgram === 'athlete' ? athleteFocusRoutines : movieFocusRoutines);
+    }
 
     const movieFocusDescriptions = {
       shoulders: 'the core Greek Physique workout, emphasizing broad, capped shoulders and a stronger V-taper on Monday and Friday.',
@@ -3293,31 +3690,43 @@
       muscle: "the original routine with one extra volume movement each day.",
       home: "a home-friendly version using bodyweight, resistance bands, and light dumbbells."
     };
-    const focusDescriptions = currentProgram === 'bahama' ? bahamaFocusDescriptions : movieFocusDescriptions;
+    const athleteFocusDescriptions = {performance:'a four-day blend of aesthetic resistance training, athletic lower-body strength, sprinting, jumping, explosive power and conditioning.'};
+    function getFocusDescriptions() {
+      return currentProgram === 'bahama' ? bahamaFocusDescriptions : (currentProgram === 'athlete' ? athleteFocusDescriptions : movieFocusDescriptions);
+    }
     const movieFocusDisplayNames = {shoulders:'Shoulders',arms:'Arms',chest:'Chest',legs:'Legs'};
     const bahamaFocusDisplayNames = {
       tone: "Tone & Tighten",
       muscle: "Build Muscle",
       home: "Home / Bodyweight"
     };
-    const focusDisplayNames = currentProgram === 'bahama' ? bahamaFocusDisplayNames : movieFocusDisplayNames;
+    const athleteFocusDisplayNames = {performance:'Performance'};
+    function getFocusDisplayNames() {
+      return currentProgram === 'bahama' ? bahamaFocusDisplayNames : (currentProgram === 'athlete' ? athleteFocusDisplayNames : movieFocusDisplayNames);
+    }
 
     function setTrainingFocus(focus, btn = null) {
       const cfg = PROGRAM_CONFIG[currentProgram];
-      if (!focusRoutines[focus]) focus = cfg.defaultFocus;
+      if (!getFocusRoutines()[focus]) focus = cfg.defaultFocus;
       currentTrainingFocus = focus;
       appStorage.setItem('schmokefit_training_focus', focus);
       document.querySelectorAll('.focus-toggle-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = btn || document.getElementById(`focusBtn-${focus}`);
       if (activeBtn) activeBtn.classList.add('active');
       const label = document.getElementById('focusActiveText');
-      if (label) label.innerHTML = `<strong>${(focusDisplayNames[focus] || focus).toUpperCase()} ACTIVE</strong> — ${focusDescriptions[focus] || ''}`;
-      loadWorkoutDay();
+      if (label && currentProgram !== 'athlete') {
+        label.innerHTML = `<strong>${(getFocusDisplayNames()[focus] || focus).toUpperCase()} ACTIVE</strong> — ${getFocusDescriptions()[focus] || ''}`;
+      } else if (label && currentProgram === 'athlete') {
+        label.innerHTML = '<strong>LEAN • STRONG • EXPLOSIVE</strong> — Three aesthetic resistance-training days plus one dedicated Speed & Power day build lean functional muscle, strong legs, sprint speed, jumping ability and conditioning.';
+      }
+      // Do not force-load a workout while restoring focus on the dashboard.
+      const detailView = document.getElementById('workoutDetailView');
+      if (detailView && getComputedStyle(detailView).display !== 'none') loadWorkoutDay();
     }
 
     function restoreTrainingFocus() {
       const fallback = PROGRAM_CONFIG[currentProgram].defaultFocus;
-      if (!focusRoutines[currentTrainingFocus]) currentTrainingFocus = fallback;
+      if (!getFocusRoutines()[currentTrainingFocus]) currentTrainingFocus = fallback;
       setTrainingFocus(currentTrainingFocus, document.getElementById(`focusBtn-${currentTrainingFocus}`));
     }
 
@@ -3346,6 +3755,7 @@
       if(tabId === 'macrosTab') {
         checkNutritionDateRollover();
         updateNutritionDashboard();
+        renderMealSections();
       }
       if(tabId === 'nutritionHistoryTab') {
         checkNutritionDateRollover();
@@ -3354,31 +3764,180 @@
     }
 
     function resetTimerPosition() {
-      const timerCard = document.getElementById('mainRestTimer');
+      const timer = document.getElementById('mainRestTimer');
       const anchor = document.getElementById('topTimerAnchor');
-      if (timerCard && anchor) {
-        anchor.appendChild(timerCard);
-      }
+      if (!timer || !anchor) return;
+      // The anchor already contains the timer in the base markup. If a completed
+      // exercise moved it elsewhere, put it back at the top of the workout.
+      if (timer.parentElement !== anchor) anchor.appendChild(timer);
+      timer.style.display = '';
     }
 
     function loadWorkoutDay() {
-      const selectedDay = document.getElementById('workoutDaySelect').value;
-      const routineSet = focusRoutines[currentTrainingFocus] || focusRoutines[PROGRAM_CONFIG[currentProgram].defaultFocus];
-      activeExercises = JSON.parse(JSON.stringify(routineSet[selectedDay]));
+      const select = document.getElementById('workoutDaySelect');
+      const selectedDay = editingWorkoutDay || select?.value || requiredWorkoutDays()[0];
+      if (select) select.value = selectedDay;
+
+      const cfg = PROGRAM_CONFIG[currentProgram];
+      let routineSet = null;
+
+      if (currentProgram === 'athlete') {
+        currentTrainingFocus = 'performance';
+        routineSet = athleteFocusRoutines.performance;
+      } else if (currentProgram === 'bahama') {
+        const style = bahamaFocusRoutines[currentTrainingFocus] ? currentTrainingFocus : cfg.defaultFocus;
+        currentTrainingFocus = style;
+        routineSet = bahamaFocusRoutines[style];
+      } else {
+        const focus = movieFocusRoutines[currentTrainingFocus] ? currentTrainingFocus : cfg.defaultFocus;
+        currentTrainingFocus = focus;
+        routineSet = movieFocusRoutines[focus];
+      }
+
+      const routine = routineSet && routineSet[selectedDay];
+      activeExercises = Array.isArray(routine)
+        ? routine.map(ex => ({...ex}))
+        : [];
+
       resetTimerPosition();
       renderWorkoutExercises();
+
+      if (!activeExercises.length) {
+        const container = document.getElementById('exerciseContainer');
+        if (container) {
+          container.innerHTML = '<div class="card info-card"><strong>WORKOUT UNAVAILABLE</strong><br>This workout did not load correctly. Return to the week view and try again.</div>';
+        }
+      }
+    }
+    
+    // SMART REST TIMER v7 — exercise-aware, shared across all programs.
+    const SMART_REST_RULES = {
+      greek:{default:90,heavy:150,moderate:90,accessory:60},
+      bahama:{default:75,heavy:120,moderate:75,accessory:60},
+      athlete:{default:75,build:90,superset:60,burn:45,core:60,power:90,speed:120,conditioning:40}
+    };
+
+    const SMART_REST_EXERCISE_OVERRIDES = {
+      greek:{
+        'Incline Barbell Bench':150,'Flat Barbell Bench Press':150,
+        'Leg Press or Barbell Squat':150,'Standing Overhead Press':150,
+        'Weighted Pull-Ups':150,'Bulgarian Split Squats':120,'Nordic Curls':120
+      },
+      bahama:{
+        'Barbell Hip Thrusts':120,'Bulgarian Split Squats':90,
+        'Goblet Squats':90,'Romanian Deadlifts':120,'Dumbbell Romanian Deadlifts':90
+      },
+      athlete:{
+        'Trap-Bar Deadlift or Squat':120,'Bulgarian Split Squats':90,
+        'Romanian Deadlifts':90,'Broad Jumps':90,'Box Jumps':90,
+        'Acceleration Sprints (20–30 yd)':120,'Medicine Ball Slams':60,
+        'Medicine Ball Rotational Throws':60,'Athlete Conditioning Intervals':40
+      }
+    };
+
+    function smartRestCategory(exercise){
+      const badge=String(exercise?.badge||'').toUpperCase();
+      if(currentProgram==='athlete'){
+        if(badge.includes('SPEED')) return 'speed';
+        if(badge.includes('POWER')) return 'power';
+        if(badge.includes('SUPERSET')) return 'superset';
+        if(badge.includes('BURN')) return 'burn';
+        if(badge.includes('CORE')) return 'core';
+        if(badge.includes('BUILD')) return 'build';
+        if(badge.includes('CONDITION')) return 'conditioning';
+        return 'default';
+      }
+      const name=String(exercise?.name||'');
+      if(/bench|squat|deadlift|hip thrust|overhead press|weighted pull|bulgarian|nordic/i.test(name)) return 'heavy';
+      if(/curl|lateral|face pull|kickback|tricep|calf|extension|abduction|leg raise|bird dog/i.test(name)) return 'accessory';
+      return 'moderate';
     }
 
-    function renderWorkoutExercises() {
+    function getSmartRestSeconds(exercise){
+      if(!exercise) return 150;
+      const overrides=SMART_REST_EXERCISE_OVERRIDES[currentProgram]||{};
+      if(Number.isFinite(overrides[exercise.name])) return overrides[exercise.name];
+      const rules=SMART_REST_RULES[currentProgram]||SMART_REST_RULES.greek;
+      return rules[smartRestCategory(exercise)]||rules.default||90;
+    }
+
+    function formatSmartRest(seconds){
+      return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;
+    }
+
+    let smartRestExerciseIndex=null;
+
+    function setSmartRestForExercise(index,startNow=false){
+      const ex=Array.isArray(activeExercises)?activeExercises[index]:null;
+      if(!ex) return;
+      smartRestExerciseIndex=index;
+      totalSeconds=getSmartRestSeconds(ex);
+      updateTimerDisplay();
+      const context=document.getElementById('smartRestContext');
+      if(context) context.innerHTML=`<strong>${ex.name}</strong> • ${smartRestCategory(ex).toUpperCase()} RECOVERY • ${formatSmartRest(totalSeconds)}`;
+      // Smart Rest tracks the active exercise internally without adding a
+      // partial-completion outline to the exercise card.
+      document.querySelectorAll('.exercise-card').forEach(card=>card.classList.remove('smart-rest-active'));
+      if(startNow) startTimer();
+    }
+
+
+    // AESTHETIC ATHLETE — exercise-specific set/rep presentation.
+    function athleteExercisePrescription(ex){
+      const name=String(ex?.name||'');
+      const badge=String(ex?.badge||'').toUpperCase();
+
+      // Day 4 / athletic prescriptions
+      if(name==='Broad Jumps') return {sets:4, labels:['Jump 1','Jump 2','Jump 3','Jump 4'], reps:['3','3','3','3'], unit:'Reps'};
+      if(name==='Box Jumps') return {sets:3, labels:['Set 1','Set 2','Set 3'], reps:['3–5','3–5','3–5'], unit:'Reps'};
+      if(name==='Acceleration Sprints (20–30 yd)') return {sets:6, labels:['Sprint 1','Sprint 2','Sprint 3','Sprint 4','Sprint 5','Sprint 6'], reps:['20–30 yd','20–30 yd','20–30 yd','20–30 yd','20–30 yd','20–30 yd'], unit:'Distance'};
+      if(name==='Medicine Ball Slams') return {sets:4, labels:['Set 1','Set 2','Set 3','Set 4'], reps:['6','6','6','6'], unit:'Reps'};
+      if(name==='Medicine Ball Rotational Throws') return {sets:4, labels:['Set 1','Set 2','Set 3','Set 4'], reps:['5/side','5/side','5/side','5/side'], unit:'Reps'};
+      if(name==='Athlete Conditioning Intervals') return {sets:5, labels:['Round 1','Round 2','Round 3','Round 4','Round 5'], reps:['20s hard','20s hard','20s hard','20s hard','20s hard'], unit:'Work'};
+
+      // Resistance-training prescriptions use straight working sets, not Greek RPT.
+      const repText=(badge.match(/(\d+(?:\/LEG)?(?:–|-)\d+(?:\/LEG)?|\d+\/LEG|\d+–\d+|\d+-\d+)/)||[])[1] || '8–12';
+      return {sets:3, labels:['Set 1','Set 2','Set 3'], reps:[repText,repText,repText], unit:'Reps'};
+    }
+
+    function renderAthleteSetRows(ex,idx){
+      const p=athleteExercisePrescription(ex);
+      let html='';
+      for(let n=1;n<=p.sets;n++){
+        const label=p.labels[n-1]||`Set ${n}`;
+        const target=p.reps[n-1]||'';
+        const isSprint=ex.name==='Acceleration Sprints (20–30 yd)';
+        const isConditioning=ex.name==='Athlete Conditioning Intervals';
+        const weightPlaceholder=(isSprint||isConditioning)?'—':'Wt';
+        const repPlaceholder=target ? `${p.unit}: ${target}` : p.unit;
+        const prev=getPreviousExerciseSet(ex.name,n);
+        html+=`
+          <div class="set-row athlete-set-row">
+            <div class="set-label">${label}</div>
+            <div class="prev-val-box" title="Previous Session">${prev}</div>
+            <div class="set-input-group">
+              <input type="number" class="set-input ex-${idx}-w${n}" placeholder="${weightPlaceholder}" ${isSprint||isConditioning?'disabled':''}>
+              <input type="${isSprint||isConditioning?'text':'number'}" inputmode="${isSprint||isConditioning?'text':'numeric'}" class="set-input ex-${idx}-r${n}" placeholder="${repPlaceholder}" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
+            </div>
+          </div>`;
+      }
+      return html;
+    }
+
+function renderWorkoutExercises() {
+      // v21: always restore the shared timer when a workout screen renders.
+      resetTimerPosition();
+
       const container = document.getElementById('exerciseContainer');
       container.innerHTML = '';
 
-      activeExercises.forEach((ex, idx) => {
+      (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
         const prev1 = getPreviousExerciseSet(ex.name, 1);
         const prev2 = getPreviousExerciseSet(ex.name, 2);
         const prev3 = getPreviousExerciseSet(ex.name, 3);
 
-        let options = exerciseSubstitutions[ex.name] || [ex.name];
+        const substitutions = getExerciseSubstitutions();
+        let options = substitutions?.[ex.name] || [ex.name];
         if (!options.includes(ex.name)) {
           options = [ex.name, ...options];
         }
@@ -3390,6 +3949,7 @@
         const card = document.createElement('div');
         card.className = 'card exercise-card';
         card.id = `exerciseCard-${idx}`;
+        const athleteRows = currentProgram === 'athlete' ? renderAthleteSetRows(ex, idx) : '';
         card.innerHTML = `
           <div class="exercise-header">
             <select class="exercise-select-dropdown" onchange="changeExerciseSubstitution(${idx}, this.value)">
@@ -3397,39 +3957,36 @@
             </select>
             <div class="exercise-header-controls">
               <span class="badge ${ex.badgeClass}">${ex.badge}</span>
+              <button class="smart-rest-btn" onclick="setSmartRestForExercise(${idx}, false)" title="Load recommended rest">⏱ ${formatSmartRest(getSmartRestSeconds(ex))}</button>
               <button class="btn-danger-sm" onclick="removeExercise(${idx})" title="Remove Exercise">🗑️</button>
             </div>
           </div>
-          
+          ${currentProgram === 'athlete' ? athleteRows : `
           <!-- SET 1 -->
           <div class="set-row">
             <div class="set-label">Set 1 (Heavy)</div>
             <div class="prev-val-box" title="Previous Session Weight × Reps">${prev1}</div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w1" placeholder="Wt" oninput="autoCalcRPT(${idx})">
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r1" placeholder="Reps (4-6)" onchange="onRepsEntered(${idx})">
+              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r1" placeholder="Reps (4-6)" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
           </div>
-
-          <!-- SET 2 -->
           <div class="set-row">
             <div class="set-label">Set 2 (-10%)</div>
             <div class="prev-val-box" title="Previous Session Weight × Reps">${prev2}</div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w2" placeholder="Wt">
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r2" placeholder="Reps (6-8)" onchange="onRepsEntered(${idx})">
+              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r2" placeholder="Reps (6-8)" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
           </div>
-
-          <!-- SET 3 -->
           <div class="set-row">
             <div class="set-label">Set 3 (-20%)</div>
             <div class="prev-val-box" title="Previous Session Weight × Reps">${prev3}</div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w3" placeholder="Wt" oninput="checkExerciseCompletion(${idx})">
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r3" placeholder="Reps (8-10)" onchange="onRepsEntered(${idx})">
+              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r3" placeholder="Reps (8-10)" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
-          </div>
+          </div>`}
         `;
         container.appendChild(card);
       });
@@ -3454,40 +4011,100 @@
       }
     }
 
-    function removeExercise(index) {
-      if (confirm(`Remove ${activeExercises[index].name} from this workout?`)) {
-        activeExercises.splice(index, 1);
-        resetTimerPosition();
-        renderWorkoutExercises();
-      }
+    function removeExercise(idx) {
+      if (!Array.isArray(activeExercises) || idx < 0 || idx >= activeExercises.length) return;
+
+      const ex = activeExercises[idx];
+      const confirmed = confirm(`Remove ${ex?.name || 'this exercise'} from this workout? Your other workout progress will be kept.`);
+      if (!confirmed) return;
+
+      // Snapshot current entries before indexes change.
+      const snapshots = activeExercises.map((item, exerciseIndex) => ({
+        name: item.name,
+        sets: collectExerciseSetData(exerciseIndex)
+      }));
+
+      // Remove ONLY the selected exercise.
+      activeExercises.splice(idx, 1);
+
+      // Re-render this same workout rather than creating/resetting one.
+      renderWorkoutExercises();
+
+      // Restore all surviving progress by exercise identity.
+      activeExercises.forEach((item, newIndex) => {
+        const snap = snapshots.find(s => s.name === item.name);
+        if (!snap) return;
+        Object.entries(snap.sets || {}).forEach(([setKey, vals]) => {
+          const n = Number(String(setKey).replace('set',''));
+          if (!n) return;
+          const wEl = document.querySelector(`.ex-${newIndex}-w${n}`);
+          const rEl = document.querySelector(`.ex-${newIndex}-r${n}`);
+          if (wEl && !wEl.disabled && vals?.w !== '-') wEl.value = vals?.w ?? '';
+          if (rEl && vals?.r !== '-') rEl.value = vals?.r ?? '';
+        });
+        checkExerciseCompletion(newIndex);
+      });
+
+      // Structural edits should not leave stale Smart Rest context.
+      smartRestExerciseIndex = null;
+      const timerContext = document.getElementById('smartRestContext');
+      if (timerContext) timerContext.innerHTML = 'SELECT AN EXERCISE • SMART REST READY';
+
+      // Save the edited workout as an in-progress draft.
+      if (typeof saveWorkoutDraft === 'function') saveWorkoutDraft();
     }
 
-    function checkExerciseCompletion(idx) {
-      const w3Input = document.querySelector(`.ex-${idx}-w3`);
-      const r3Input = document.querySelector(`.ex-${idx}-r3`);
-      if (!w3Input || !r3Input) return;
-
-      const w3 = w3Input.value.trim();
-      const r3 = r3Input.value.trim();
-      const card = document.getElementById(`exerciseCard-${idx}`);
+    function checkExerciseCompletion(exerciseIndex) {
+      const ex = Array.isArray(activeExercises) ? activeExercises[exerciseIndex] : null;
+      const card = document.getElementById(`exerciseCard-${exerciseIndex}`);
       const timerCard = document.getElementById('mainRestTimer');
+      if (!ex || !card) return false;
 
-      if (card) {
-        if (w3 !== '' && r3 !== '') {
-          card.classList.add('completed');
-          if (timerCard) {
-            card.after(timerCard);
-          }
-        } else {
-          card.classList.remove('completed');
-        }
+      const rows = Array.from(card.querySelectorAll('.set-row'));
+      if (!rows.length) return false;
+
+      // An exercise is complete only when EVERY prescribed row is complete.
+      // Disabled fields (e.g. weight for sprints/conditioning) are intentionally ignored.
+      const complete = rows.every(row => {
+        const required = Array.from(row.querySelectorAll('.set-input:not(:disabled)'));
+        return required.length > 0 &&
+          required.every(input => String(input.value || '').trim() !== '');
+      });
+
+      card.classList.toggle('completed', complete);
+      card.classList.toggle('exercise-complete', complete);
+
+      // Preserve the original SchmokeFit behavior: once the whole exercise is
+      // complete, move the rest timer directly below that completed exercise.
+      if (complete && timerCard) {
+        card.after(timerCard);
+      }
+
+      return complete;
+    }
+
+    
+    function autoZeroWeightForRepEntry(exerciseIndex, repInput) {
+      if (!repInput || String(repInput.value || '').trim() === '') return;
+      const row = repInput.closest('.set-row');
+      if (!row) return;
+      const weightInput = row.querySelector(`.ex-${exerciseIndex}-w1, .ex-${exerciseIndex}-w2, .ex-${exerciseIndex}-w3, .ex-${exerciseIndex}-w4, .ex-${exerciseIndex}-w5, .ex-${exerciseIndex}-w6`);
+      if (weightInput && !weightInput.disabled && String(weightInput.value || '').trim() === '') {
+        weightInput.value = '0';
+        // Make sure draft/autosave listeners see the programmatic value.
+        weightInput.dispatchEvent(new Event('input', {bubbles:true}));
+        weightInput.dispatchEvent(new Event('change', {bubbles:true}));
       }
     }
 
-    function onRepsEntered(idx) {
-      checkExerciseCompletion(idx);
-      resetTimer();
-      startTimer();
+function onRepsEntered(exerciseIndex, repInput) {
+      // If reps are logged with no external load, store the set as 0 × reps.
+      // This supports bodyweight/unweighted work without requiring an extra tap.
+      autoZeroWeightForRepEntry(exerciseIndex, repInput);
+
+      // Re-evaluate the entire prescription. The timer moves only when the
+      // exercise becomes fully complete.
+      checkExerciseCompletion(exerciseIndex);
     }
 
     function autoCalcRPT(index) {
@@ -3631,7 +4248,10 @@
 
     function resetTimer() {
       clearInterval(timerInterval);
-      totalSeconds = 150;
+      const ex = Number.isInteger(smartRestExerciseIndex) && Array.isArray(activeExercises)
+        ? activeExercises[smartRestExerciseIndex]
+        : null;
+      totalSeconds = ex ? getSmartRestSeconds(ex) : 150;
       updateTimerDisplay();
     }
 
@@ -3759,7 +4379,7 @@
       let summary = '';
       let structuredData = {};
 
-      activeExercises.forEach((ex, idx) => {
+      (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
         const w1 = document.querySelector(`.ex-${idx}-w1`)?.value || '-';
         const r1 = document.querySelector(`.ex-${idx}-r1`)?.value || '-';
         const w2 = document.querySelector(`.ex-${idx}-w2`)?.value || '-';
@@ -5676,7 +6296,10 @@
     // ===== WEEKLY WORKOUT DASHBOARD + EDITABLE PAST WORKOUTS =====
     const movieWorkoutDayLabels = {"monday": "Monday: Chest & Biceps", "wednesday": "Wednesday: Lower Body", "friday": "Friday: Shoulders, Back & Arms"};
     const bahamaWorkoutDayLabels = {"monday": "Monday: Glutes, Legs & Shoulders", "wednesday": "Wednesday: Quads, Core & Back", "friday": "Friday: Hamstrings, Glutes & Arms"};
-    const workoutDayLabels = currentProgram === 'bahama' ? bahamaWorkoutDayLabels : movieWorkoutDayLabels;
+    const athleteWorkoutDayLabels = {"monday":"Day 1: Upper Athletic","wednesday":"Day 2: Lower Athletic","friday":"Day 3: Athletic Aesthetics","saturday":"Day 4: Speed & Power"};
+    function getWorkoutDayLabels() {
+      return currentProgram === 'bahama' ? bahamaWorkoutDayLabels : (currentProgram === 'athlete' ? athleteWorkoutDayLabels : movieWorkoutDayLabels);
+    }
     let viewedWorkoutWeek = currentWeek;
     let editingWorkoutWeek = null;
     let editingWorkoutDay = null;
@@ -5714,7 +6337,7 @@
     }
 
     function workoutCompletionCount(week) {
-      return ['monday','wednesday','friday'].filter(day => !!getWorkoutEntry(week, day)).length;
+      return requiredWorkoutDays().filter(day => !!getWorkoutEntry(week, day)).length;
     }
 
     function syncCurrentWeekWorkoutCount() {
@@ -5735,11 +6358,11 @@
 
       if (weekTitle) weekTitle.innerText = `WEEK ${viewedWorkoutWeek}`;
       if (phaseBadge) phaseBadge.innerText = viewedWorkoutWeek <= 10 ? PROGRAM_CONFIG[currentProgram].phase1 : PROGRAM_CONFIG[currentProgram].phase2;
-      if (progressText) progressText.innerText = `${completed} / 3 COMPLETE`;
+      if (progressText) progressText.innerText = `${completed} / ${requiredWorkoutCount()} COMPLETE`;
       if (viewedTitle) viewedTitle.innerText = isActive ? 'ACTIVE WEEK' : `WEEK ${viewedWorkoutWeek} HISTORY`;
-      if (progressFill) progressFill.style.width = `${(completed / 3) * 100}%`;
+      if (progressFill) progressFill.style.width = `${(completed / requiredWorkoutCount()) * 100}%`;
 
-      ['monday','wednesday','friday'].forEach(day => {
+      requiredWorkoutDays().forEach(day => {
         const entry = getWorkoutEntry(viewedWorkoutWeek, day);
         const card = document.getElementById(`workoutCard-${day}`);
         const status = document.getElementById(`workoutStatus-${day}`);
@@ -5790,7 +6413,7 @@
       if (dashboard) dashboard.style.display = 'none';
       if (detail) detail.style.display = 'block';
 
-      const label = workoutDayLabels[day] || day;
+      const label = getWorkoutDayLabels()[day] || day;
       const parts = label.split(':');
       document.getElementById('workoutDetailTitle').innerText = parts[0] || label;
       document.getElementById('workoutDetailSubtitle').innerText = `Week ${editingWorkoutWeek} • ${parts.slice(1).join(':').trim()}`;
@@ -5807,13 +6430,21 @@
         saveBtn.innerText = '✓ LOG WORKOUT COMPLETE';
       }
 
-      loadWorkoutDay();
+      // Populate the exercise list only after the detail view is visible.
+      try {
+        loadWorkoutDay();
+      } catch (err) {
+        console.error('Workout render error:', err);
+        const exerciseContainer = document.getElementById('exerciseContainer');
+        if (exerciseContainer) exerciseContainer.innerHTML =
+          '<div class="card info-card"><strong>WORKOUT LOAD ERROR</strong><br>Please return to the week view and reopen this workout.</div>';
+      }
 
       if (existing?.structuredData) {
-        activeExercises.forEach((ex, idx) => {
+        (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
           const saved = existing.structuredData[ex.name];
           if (!saved) return;
-          ['1','2','3'].forEach(n => {
+          ['1','2','3','4','5','6'].forEach(n => {
             const w = document.querySelector(`.ex-${idx}-w${n}`);
             const r = document.querySelector(`.ex-${idx}-r${n}`);
             if (w && saved[`set${n}`]) w.value = saved[`set${n}`].w === '-' ? '' : saved[`set${n}`].w;
@@ -5862,7 +6493,7 @@
     function saveWorkoutLog() {
       const day = editingWorkoutDay || document.getElementById('workoutDaySelect')?.value || 'monday';
       const week = editingWorkoutWeek || currentWeek;
-      const dayTitle = workoutDayLabels[day] || day;
+      const dayTitle = getWorkoutDayLabels()[day] || day;
       const history = workoutHistoryItems();
       const existingIndex = history.findIndex(item =>
         item.type === 'WORKOUT' &&
@@ -5874,7 +6505,7 @@
       let summary = '';
       let structuredData = {};
 
-      activeExercises.forEach((ex, idx) => {
+      (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
         const w1 = document.querySelector(`.ex-${idx}-w1`)?.value || '-';
         const r1 = document.querySelector(`.ex-${idx}-r1`)?.value || '-';
         const w2 = document.querySelector(`.ex-${idx}-w2`)?.value || '-';
@@ -5980,13 +6611,13 @@
       }
 
       if (progressText) {
-        progressText.innerText = isFuture ? 'PROGRAM PREVIEW' : `${completed} / 3 COMPLETE`;
+        progressText.innerText = isFuture ? 'PROGRAM PREVIEW' : `${completed} / ${requiredWorkoutCount()} COMPLETE`;
       }
       if (progressFill) {
-        progressFill.style.width = isFuture ? '0%' : `${(completed / 3) * 100}%`;
+        progressFill.style.width = isFuture ? '0%' : `${(completed / requiredWorkoutCount()) * 100}%`;
       }
 
-      ['monday','wednesday','friday'].forEach(day => {
+      requiredWorkoutDays().forEach(day => {
         const entry = getWorkoutEntry(viewedWorkoutWeek, day);
         const card = document.getElementById(`workoutCard-${day}`);
         const status = document.getElementById(`workoutStatus-${day}`);
@@ -6023,13 +6654,43 @@
     }
 
     function loadSelectedWorkoutRoutine(day, existing) {
+      // A new workout starts with a clean Smart Rest context.
+      smartRestExerciseIndex = null;
+      const timerContext = document.getElementById('smartRestContext');
+      if (timerContext) timerContext.innerHTML = 'SELECT AN EXERCISE • SMART REST READY';
+      document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('smart-rest-active'));
+
+      const cfg = PROGRAM_CONFIG[currentProgram];
+      const allRoutines = getFocusRoutines();
       const savedFocus = existing?.trainingFocus;
-      const focusKey = savedFocus && focusRoutines?.[savedFocus] ? savedFocus : currentTrainingFocus;
-      const routineSet = focusRoutines?.[focusKey] || focusRoutines?.[currentTrainingFocus];
-      const selectedRoutine = routineSet?.[day] || [];
-      activeExercises = JSON.parse(JSON.stringify(selectedRoutine));
+
+      let focusKey;
+      if (currentProgram === 'athlete') {
+        focusKey = 'performance';
+      } else if (savedFocus && allRoutines?.[savedFocus]) {
+        focusKey = savedFocus;
+      } else if (allRoutines?.[currentTrainingFocus]) {
+        focusKey = currentTrainingFocus;
+      } else {
+        focusKey = cfg.defaultFocus;
+      }
+
+      currentTrainingFocus = focusKey;
+      const routineSet = allRoutines?.[focusKey];
+      const selectedRoutine = routineSet?.[day];
+
+      activeExercises = Array.isArray(selectedRoutine)
+        ? selectedRoutine.map(ex => ({...ex}))
+        : [];
+
       resetTimerPosition();
       renderWorkoutExercises();
+
+      if (!activeExercises.length) {
+        const container = document.getElementById('exerciseContainer');
+        if (container) container.innerHTML =
+          '<div class="card info-card"><strong>WORKOUT UNAVAILABLE</strong><br>No exercises were found for this workout.</div>';
+      }
     }
 
     function openWorkoutDetail(day) {
@@ -6048,7 +6709,7 @@
       if (dashboard) dashboard.style.display = 'none';
       if (detail) detail.style.display = 'block';
 
-      const label = workoutDayLabels[day] || day;
+      const label = getWorkoutDayLabels()[day] || day;
       const parts = label.split(':');
       const titleEl = document.getElementById('workoutDetailTitle');
       const subtitleEl = document.getElementById('workoutDetailSubtitle');
@@ -6089,10 +6750,10 @@
       loadSelectedWorkoutRoutine(day, existing);
 
       if (existing?.structuredData) {
-        activeExercises.forEach((ex, idx) => {
+        (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
           const saved = existing.structuredData[ex.name];
           if (!saved) return;
-          ['1','2','3'].forEach(n => {
+          ['1','2','3','4','5','6'].forEach(n => {
             const w = document.querySelector(`.ex-${idx}-w${n}`);
             const r = document.querySelector(`.ex-${idx}-r${n}`);
             if (w && saved[`set${n}`]) w.value = saved[`set${n}`].w === '-' ? '' : saved[`set${n}`].w;
@@ -6152,7 +6813,7 @@
     }
 
     function workoutCompletionCount(week, cycle = currentWorkoutCycle) {
-      return ['monday','wednesday','friday'].filter(day => !!getWorkoutEntry(week, day, cycle)).length;
+      return requiredWorkoutDays().filter(day => !!getWorkoutEntry(week, day, cycle)).length;
     }
 
     function syncCurrentWeekWorkoutCount() {
@@ -6176,10 +6837,10 @@
       if (weekTitle) weekTitle.innerText = `WEEK ${viewedWorkoutWeek}`;
       if (phaseBadge) phaseBadge.innerText = viewedWorkoutWeek <= 10 ? PROGRAM_CONFIG[currentProgram].phase1 : PROGRAM_CONFIG[currentProgram].phase2;
       if (viewedTitle) viewedTitle.innerText = isActive ? `ACTIVE WEEK • CYCLE ${currentWorkoutCycle}` : (isPast ? `PAST WEEK • CYCLE ${currentWorkoutCycle}` : `UPCOMING WEEK • CYCLE ${currentWorkoutCycle}`);
-      if (progressText) progressText.innerText = isFuture ? 'PROGRAM PREVIEW' : `${completed} / 3 COMPLETE`;
-      if (progressFill) progressFill.style.width = isFuture ? '0%' : `${(completed / 3) * 100}%`;
+      if (progressText) progressText.innerText = isFuture ? 'PROGRAM PREVIEW' : `${completed} / ${requiredWorkoutCount()} COMPLETE`;
+      if (progressFill) progressFill.style.width = isFuture ? '0%' : `${(completed / requiredWorkoutCount()) * 100}%`;
 
-      ['monday','wednesday','friday'].forEach(day => {
+      requiredWorkoutDays().forEach(day => {
         const entry = getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle);
         const skipped = isWorkoutSkipped(viewedWorkoutWeek, day, currentWorkoutCycle) && !entry;
         const card = document.getElementById(`workoutCard-${day}`);
@@ -6221,9 +6882,9 @@
         advanceBtn.innerText = currentWeek >= 18 ? 'FINISH WEEK 18 →' : `START WEEK ${currentWeek + 1} →`;
       }
       if (cycleNote) {
-        const skippedCount = ['monday','wednesday','friday'].filter(day => isWorkoutSkipped(viewedWorkoutWeek, day, currentWorkoutCycle) && !getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle)).length;
+        const skippedCount = requiredWorkoutDays().filter(day => isWorkoutSkipped(viewedWorkoutWeek, day, currentWorkoutCycle) && !getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle)).length;
         cycleNote.innerText = isActive
-          ? (completed === 3 ? 'All 3 workouts complete. Advance whenever you are ready.' : `${completed} of 3 complete. You can still advance; missed workouts will be marked skipped.`)
+          ? (completed === requiredWorkoutCount() ? `All ${requiredWorkoutCount()} workouts complete. Advance whenever you are ready.` : `${completed} of 3 complete. You can still advance; missed workouts will be marked skipped.`)
           : (skippedCount ? `${skippedCount} workout${skippedCount === 1 ? '' : 's'} skipped in this week. You can still open and log them later.` : 'Your previous workout history is preserved.');
       }
     }
@@ -6240,11 +6901,11 @@
         return;
       }
 
-      const days = ['monday','wednesday','friday'];
+      const days = requiredWorkoutDays();
       const missing = days.filter(day => !getWorkoutEntry(currentWeek, day, currentWorkoutCycle));
       if (missing.length) {
         const names = missing.map(day => day.charAt(0).toUpperCase() + day.slice(1)).join(', ');
-        const ok = confirm(`You completed ${3 - missing.length} of 3 workouts in Week ${currentWeek}.\n\nMissing: ${names}\n\nAdvance anyway? Missing workouts will be marked SKIPPED, but you can go back and log them later.`);
+        const ok = confirm(`You completed ${requiredWorkoutCount() - missing.length} of ${requiredWorkoutCount()} workouts in Week ${currentWeek}.\n\nMissing: ${names}\n\nAdvance anyway? Missing workouts will be marked SKIPPED, but you can go back and log them later.`);
         if (!ok) return;
         missing.forEach(day => setWorkoutSkipped(currentWeek, day, true, currentWorkoutCycle));
       }
@@ -6322,7 +6983,7 @@
       const overlay = document.getElementById('programResetOverlay');
       if (!overlay) return;
       const cfg = PROGRAM_CONFIG[currentProgram];
-      const kind = currentProgram === 'bahama' ? 'style' : 'focus';
+      const kind = currentProgram === 'bahama' ? 'style' : (currentProgram === 'athlete' ? 'emphasis' : 'focus');
 
       const kicker = document.getElementById('programResetKicker');
       const title = document.getElementById('programResetTitle');
@@ -6333,7 +6994,7 @@
         ? `Start over at Week 1 while keeping all previous workout history. Keep your current ${kind} or choose a new one for the fresh 18-week block.`
         : cfg.resetCopy;
 
-      const focusName = focusDisplayNames[currentTrainingFocus] || currentTrainingFocus;
+      const focusName = getFocusDisplayNames()[currentTrainingFocus] || currentTrainingFocus;
       const currentText = document.getElementById('programResetCurrentFocus');
       const keepBtn = document.getElementById('keepCurrentFocusBtn');
       if (currentText) currentText.innerHTML = `Current ${kind}: <strong style="color:var(--accent-blue);">${focusName}</strong>`;
@@ -6346,7 +7007,7 @@
 
     function startNewProgramCycle(focus) {
       const cfg = PROGRAM_CONFIG[currentProgram];
-      if (!focusRoutines[focus]) focus = currentTrainingFocus || cfg.defaultFocus;
+      if (!getFocusRoutines()[focus]) focus = currentTrainingFocus || cfg.defaultFocus;
 
       currentWorkoutCycle += 1;
       appStorage.setItem('schmokefit_workout_cycle', String(currentWorkoutCycle));
@@ -6371,8 +7032,8 @@
       const overlay = document.getElementById('programResetOverlay');
       if (overlay) overlay.classList.remove('open');
 
-      const displayFocus = focusDisplayNames[focus] || focus;
-      alert(`New 18-week ${cfg.brand.replace(' PROTOCOL','')} cycle started! ${currentProgram === 'bahama' ? 'Style' : 'Focus'}: ${displayFocus} • Cycle ${currentWorkoutCycle} • Week 1`);
+      const displayFocus = getFocusDisplayNames()[focus] || focus;
+      alert(`New 18-week ${cfg.brand.replace(' PROTOCOL','')} cycle started! ${currentProgram === 'bahama' ? 'Style' : (currentProgram === 'athlete' ? 'Emphasis' : 'Focus')}: ${displayFocus} • Cycle ${currentWorkoutCycle} • Week 1`);
     }
 
     function openWorkoutDetail(day) {
@@ -6391,7 +7052,7 @@
       if (dashboard) dashboard.style.display = 'none';
       if (detail) detail.style.display = 'block';
 
-      const label = workoutDayLabels[day] || day;
+      const label = getWorkoutDayLabels()[day] || day;
       const parts = label.split(':');
       document.getElementById('workoutDetailTitle').innerText = parts[0] || label;
       document.getElementById('workoutDetailSubtitle').innerText = `Cycle ${currentWorkoutCycle} • Week ${editingWorkoutWeek} • ${parts.slice(1).join(':').trim()}`;
@@ -6430,10 +7091,10 @@
       loadSelectedWorkoutRoutine(day, existing);
 
       if (existing?.structuredData) {
-        activeExercises.forEach((ex, idx) => {
+        (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
           const saved = existing.structuredData[ex.name];
           if (!saved) return;
-          ['1','2','3'].forEach(n => {
+          ['1','2','3','4','5','6'].forEach(n => {
             const w = document.querySelector(`.ex-${idx}-w${n}`);
             const r = document.querySelector(`.ex-${idx}-r${n}`);
             if (w && saved[`set${n}`]) w.value = saved[`set${n}`].w === '-' ? '' : saved[`set${n}`].w;
@@ -6453,7 +7114,7 @@
         return;
       }
 
-      const dayTitle = workoutDayLabels[day] || day;
+      const dayTitle = getWorkoutDayLabels()[day] || day;
       const history = workoutHistoryItems();
       const existingIndex = history.findIndex(item =>
         item.type === 'WORKOUT' &&
@@ -6466,7 +7127,7 @@
       let summary = '';
       let structuredData = {};
 
-      activeExercises.forEach((ex, idx) => {
+      (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
         const w1 = document.querySelector(`.ex-${idx}-w1`)?.value || '-';
         const r1 = document.querySelector(`.ex-${idx}-r1`)?.value || '-';
         const w2 = document.querySelector(`.ex-${idx}-w2`)?.value || '-';
@@ -6529,9 +7190,12 @@
     // ===== EDITABLE WORKOUT DAYS + OPTIONAL EXTRA WORKOUTS =====
     const movieWorkoutProgramNames = {"monday": "Chest & Biceps", "wednesday": "Lower Body", "friday": "Shoulders, Back & Arms"};
     const bahamaWorkoutProgramNames = {"monday": "Glutes, Legs & Shoulders", "wednesday": "Quads, Core & Back", "friday": "Hamstrings, Glutes & Arms"};
-    const workoutProgramNames = currentProgram === 'bahama' ? bahamaWorkoutProgramNames : movieWorkoutProgramNames;
-    const workoutSlotNumbers = { monday: 1, wednesday: 2, friday: 3 };
-    const defaultWorkoutDayNames = { monday: 'Monday', wednesday: 'Wednesday', friday: 'Friday' };
+    const athleteWorkoutProgramNames = {"monday":"Upper Athletic","wednesday":"Lower Athletic","friday":"Athletic Aesthetics","saturday":"Speed & Power"};
+    function getWorkoutProgramNames() {
+      return currentProgram === 'bahama' ? bahamaWorkoutProgramNames : (currentProgram === 'athlete' ? athleteWorkoutProgramNames : movieWorkoutProgramNames);
+    }
+    const workoutSlotNumbers = { monday: 1, wednesday: 2, friday: 3, saturday: 4 };
+    const defaultWorkoutDayNames = { monday: 'Monday', wednesday: 'Wednesday', friday: 'Friday', saturday:'Saturday' };
     let editingExtraWorkoutId = null;
     let editingExtraWorkoutName = '';
 
@@ -6702,10 +7366,10 @@
       renderWorkoutExercises();
 
       if (item.structuredData) {
-        activeExercises.forEach((ex, idx) => {
+        (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
           const saved = item.structuredData[ex.name];
           if (!saved) return;
-          ['1','2','3'].forEach(n => {
+          ['1','2','3','4','5','6'].forEach(n => {
             const w = document.querySelector(`.ex-${idx}-w${n}`);
             const r = document.querySelector(`.ex-${idx}-r${n}`);
             if (w && saved[`set${n}`]) w.value = saved[`set${n}`].w === '-' ? '' : saved[`set${n}`].w;
@@ -6727,7 +7391,7 @@
       let summary = '';
       const structuredData = {};
 
-      activeExercises.forEach((ex, idx) => {
+      (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
         const w1 = document.querySelector(`.ex-${idx}-w1`)?.value || '-';
         const r1 = document.querySelector(`.ex-${idx}-r1`)?.value || '-';
         const w2 = document.querySelector(`.ex-${idx}-w2`)?.value || '-';
@@ -6784,10 +7448,10 @@
       if (weekTitle) weekTitle.innerText = `WEEK ${viewedWorkoutWeek}`;
       if (phaseBadge) phaseBadge.innerText = viewedWorkoutWeek <= 10 ? PROGRAM_CONFIG[currentProgram].phase1 : PROGRAM_CONFIG[currentProgram].phase2;
       if (viewedTitle) viewedTitle.innerText = isActive ? `ACTIVE WEEK • CYCLE ${currentWorkoutCycle}` : (isPast ? `PAST WEEK • CYCLE ${currentWorkoutCycle}` : `UPCOMING WEEK • CYCLE ${currentWorkoutCycle}`);
-      if (progressText) progressText.innerText = isFuture ? 'PROGRAM PREVIEW' : `${completed} / 3 PROGRAM WORKOUTS COMPLETE`;
-      if (progressFill) progressFill.style.width = isFuture ? '0%' : `${(completed / 3) * 100}%`;
+      if (progressText) progressText.innerText = isFuture ? 'PROGRAM PREVIEW' : `${completed} / ${requiredWorkoutCount()} PROGRAM WORKOUTS COMPLETE`;
+      if (progressFill) progressFill.style.width = isFuture ? '0%' : `${(completed / requiredWorkoutCount()) * 100}%`;
 
-      ['monday','wednesday','friday'].forEach(day => {
+      requiredWorkoutDays().forEach(day => {
         const entry = getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle);
         const skipped = isWorkoutSkipped(viewedWorkoutWeek, day, currentWorkoutCycle) && !entry;
         const card = document.getElementById(`workoutCard-${day}`);
@@ -6798,7 +7462,7 @@
         if (!card || !status || !meta) return;
 
         if (dayLabel) dayLabel.childNodes[0].nodeValue = getWorkoutDayName(viewedWorkoutWeek, day, currentWorkoutCycle);
-        if (programName) programName.innerText = `Workout ${workoutSlotNumbers[day]} • ${workoutProgramNames[day]}`;
+        if (programName) programName.innerText = `Workout ${workoutSlotNumbers[day]} • ${getWorkoutProgramNames()[day]}`;
 
         card.classList.toggle('completed', !!entry);
         card.classList.toggle('skipped', skipped);
@@ -6834,9 +7498,9 @@
         advanceBtn.innerText = currentWeek >= 18 ? 'FINISH WEEK 18 →' : `START WEEK ${currentWeek + 1} →`;
       }
       if (cycleNote) {
-        const skippedCount = ['monday','wednesday','friday'].filter(day => isWorkoutSkipped(viewedWorkoutWeek, day, currentWorkoutCycle) && !getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle)).length;
+        const skippedCount = requiredWorkoutDays().filter(day => isWorkoutSkipped(viewedWorkoutWeek, day, currentWorkoutCycle) && !getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle)).length;
         cycleNote.innerText = isActive
-          ? (completed === 3 ? 'All 3 program workouts complete. Advance whenever you are ready.' : `${completed} of 3 program workouts complete. You can still advance; missed workouts will be marked skipped.`)
+          ? (completed === requiredWorkoutCount() ? 'All 3 program workouts complete. Advance whenever you are ready.' : `${completed} of 3 program workouts complete. You can still advance; missed workouts will be marked skipped.`)
           : (skippedCount ? `${skippedCount} workout${skippedCount === 1 ? '' : 's'} skipped in this week. You can still open and log them later.` : 'Your previous workout history is preserved.');
       }
 
@@ -6868,7 +7532,7 @@
       const title = document.getElementById('workoutDetailTitle');
       const subtitle = document.getElementById('workoutDetailSubtitle');
       if (title) title.innerText = customDay;
-      if (subtitle) subtitle.innerText = `Cycle ${currentWorkoutCycle} • Week ${editingWorkoutWeek} • Workout ${workoutSlotNumbers[day]} • ${workoutProgramNames[day]}`;
+      if (subtitle) subtitle.innerText = `Cycle ${currentWorkoutCycle} • Week ${editingWorkoutWeek} • Workout ${workoutSlotNumbers[day]} • ${getWorkoutProgramNames()[day]}`;
 
       const note = document.getElementById('workoutEditNote');
       const saveBtn = document.getElementById('saveWorkoutButton');
@@ -6904,10 +7568,10 @@
       loadSelectedWorkoutRoutine(day, existing);
 
       if (existing?.structuredData) {
-        activeExercises.forEach((ex, idx) => {
+        (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
           const saved = existing.structuredData[ex.name];
           if (!saved) return;
-          ['1','2','3'].forEach(n => {
+          ['1','2','3','4','5','6'].forEach(n => {
             const w = document.querySelector(`.ex-${idx}-w${n}`);
             const r = document.querySelector(`.ex-${idx}-r${n}`);
             if (w && saved[`set${n}`]) w.value = saved[`set${n}`].w === '-' ? '' : saved[`set${n}`].w;
@@ -6945,20 +7609,14 @@
 
       let summary = '';
       const structuredData = {};
-      activeExercises.forEach((ex, idx) => {
-        const w1 = document.querySelector(`.ex-${idx}-w1`)?.value || '-';
-        const r1 = document.querySelector(`.ex-${idx}-r1`)?.value || '-';
-        const w2 = document.querySelector(`.ex-${idx}-w2`)?.value || '-';
-        const r2 = document.querySelector(`.ex-${idx}-r2`)?.value || '-';
-        const w3 = document.querySelector(`.ex-${idx}-w3`)?.value || '-';
-        const r3 = document.querySelector(`.ex-${idx}-r3`)?.value || '-';
-
-        summary += `• ${ex.name}:\n  ${w1} lbs × ${r1} | ${w2} lbs × ${r2} | ${w3} lbs × ${r3}\n`;
-        structuredData[ex.name] = {
-          set1: { w: w1, r: r1 },
-          set2: { w: w2, r: r2 },
-          set3: { w: w3, r: r3 }
-        };
+      (Array.isArray(activeExercises) ? activeExercises : []).forEach((ex, idx) => {
+        const sets = collectExerciseSetData(idx);
+        structuredData[ex.name] = sets;
+        const parts = Object.keys(sets).map(key => {
+          const s = sets[key];
+          return s.w === '-' ? `${s.r}` : `${s.w} lbs × ${s.r}`;
+        });
+        summary += `• ${ex.name}:\n  ${parts.join(' | ')}\n`;
       });
 
       const customDayName = getWorkoutDayName(week, day, currentWorkoutCycle);
@@ -6972,7 +7630,7 @@
         trainingFocus: existing?.trainingFocus || currentTrainingFocus,
         date: existing?.date || new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
         type: 'WORKOUT',
-        title: `Cycle ${currentWorkoutCycle} • Week ${week} - ${customDayName}: ${workoutProgramNames[day]}`,
+        title: `Cycle ${currentWorkoutCycle} • Week ${week} - ${customDayName}: ${getWorkoutProgramNames()[day]}`,
         details: summary,
         structuredData
       };
@@ -6985,7 +7643,7 @@
       if (Number(week) === Number(currentWeek)) syncCurrentWeekWorkoutCount();
 
       const completed = workoutCompletionCount(week, currentWorkoutCycle);
-      if (!existing && Number(week) === Number(currentWeek) && currentWeek === 18 && completed >= 3) {
+      if (!existing && Number(week) === Number(currentWeek) && currentWeek === 18 && completed >= requiredWorkoutCount()) {
         markProgramResetPending();
         stopAndResetRestTimer();
         updateWeekTrackerDisplay();
@@ -6999,7 +7657,7 @@
       alert(existing
         ? 'Saved workout updated! ✓'
         : (Number(week) === Number(currentWeek)
-            ? `Workout saved! ${completed} of 3 program workouts complete for Week ${currentWeek}.`
+            ? `Workout saved! ${completed} of ${requiredWorkoutCount()} program workouts complete for Week ${currentWeek}.`
             : 'Past workout saved! ✓'));
 
       stopAndResetRestTimer();
@@ -7009,19 +7667,36 @@
 
     // Clear custom-detail state whenever returning to the dashboard.
     function closeWorkoutDetail() {
-      // Any time we leave a workout screen, fully stop and reset the rest timer.
-      stopAndResetRestTimer();
+      // Preserve any in-progress entries before returning to the week.
+      if (typeof saveWorkoutDraft === 'function' &&
+          Array.isArray(activeExercises) &&
+          activeExercises.length) {
+        saveWorkoutDraft();
+      }
+
+      // These are the ACTUAL workout view container IDs used by the app.
+      const dashboard = document.getElementById('workoutDashboardView');
+      const detail = document.getElementById('workoutDetailView');
+
+      if (detail) detail.style.display = 'none';
+      if (dashboard) dashboard.style.display = 'block';
+
+      // Clear edit-only state after the draft is safely captured.
       editingExtraWorkoutId = null;
       editingExtraWorkoutName = '';
       editingWorkoutWeek = null;
       editingWorkoutDay = null;
       editingWorkoutEntryId = null;
-      const dashboard = document.getElementById('workoutDashboardView');
-      const detail = document.getElementById('workoutDetailView');
-      if (dashboard) dashboard.style.display = 'block';
-      if (detail) detail.style.display = 'none';
-      resetTimerPosition();
-      renderWorkoutDashboard();
+
+      // Stop/reset the active rest timer just like the original working back flow.
+      if (typeof stopAndResetRestTimer === 'function') stopAndResetRestTimer();
+      if (typeof resetTimerPosition === 'function') resetTimerPosition();
+
+      smartRestExerciseIndex = null;
+      const timerContext = document.getElementById('smartRestContext');
+      if (timerContext) timerContext.innerHTML = 'SELECT AN EXERCISE • SMART REST READY';
+
+      if (typeof renderWorkoutDashboard === 'function') renderWorkoutDashboard();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
@@ -7036,15 +7711,40 @@
       updateTimerDisplay();
     }
 
+
+    function workoutSetNumbersForExercise(idx) {
+      const card = document.getElementById(`exerciseCard-${idx}`);
+      if (!card) return [];
+      return Array.from(card.querySelectorAll('.set-row')).map((row, i) => i + 1);
+    }
+
+    function collectExerciseSetData(idx) {
+      const data = {};
+      workoutSetNumbersForExercise(idx).forEach(n => {
+        const wEl = document.querySelector(`.ex-${idx}-w${n}`);
+        const rEl = document.querySelector(`.ex-${idx}-r${n}`);
+        data[`set${n}`] = {
+          // Disabled weight fields are intentionally represented as "-" rather than required.
+          w: wEl && !wEl.disabled ? (String(wEl.value).trim() || '-') : '-',
+          r: rEl ? (String(rEl.value).trim() || '-') : '-'
+        };
+      });
+      return data;
+    }
+
     function allWorkoutSetsLogged() {
       if (!Array.isArray(activeExercises) || activeExercises.length === 0) return false;
 
       for (let idx = 0; idx < activeExercises.length; idx++) {
-        for (let setNum = 1; setNum <= 3; setNum++) {
-          const weight = document.querySelector(`.ex-${idx}-w${setNum}`);
-          const reps = document.querySelector(`.ex-${idx}-r${setNum}`);
-          if (!weight || !reps) return false;
-          if (String(weight.value).trim() === '' || String(reps.value).trim() === '') return false;
+        const card = document.getElementById(`exerciseCard-${idx}`);
+        if (!card) return false;
+        const rows = Array.from(card.querySelectorAll('.set-row'));
+        if (!rows.length) return false;
+
+        for (const row of rows) {
+          const required = Array.from(row.querySelectorAll('.set-input:not(:disabled)'));
+          if (!required.length) return false;
+          if (required.some(input => String(input.value || '').trim() === '')) return false;
         }
       }
       return true;
@@ -7142,12 +7842,14 @@
 
       (activeExercises || []).forEach((ex, idx) => {
         structuredData[ex.name] = {};
-        for (let n = 1; n <= 3; n++) {
-          const w = document.querySelector(`.ex-${idx}-w${n}`)?.value ?? '';
-          const r = document.querySelector(`.ex-${idx}-r${n}`)?.value ?? '';
+        workoutSetNumbersForExercise(idx).forEach(n => {
+          const wEl = document.querySelector(`.ex-${idx}-w${n}`);
+          const rEl = document.querySelector(`.ex-${idx}-r${n}`);
+          const w = wEl && !wEl.disabled ? (wEl.value ?? '') : '';
+          const r = rEl?.value ?? '';
           if (String(w).trim() !== '' || String(r).trim() !== '') hasAnyValue = true;
           structuredData[ex.name][`set${n}`] = { w, r };
-        }
+        });
       });
 
       return { structuredData, hasAnyValue };
@@ -7201,7 +7903,7 @@
       (activeExercises || []).forEach((ex, idx) => {
         const saved = draft.structuredData?.[ex.name];
         if (!saved) return;
-        for (let n = 1; n <= 3; n++) {
+        for (let n = 1; n <= 6; n++) {
           const w = document.querySelector(`.ex-${idx}-w${n}`);
           const r = document.querySelector(`.ex-${idx}-r${n}`);
           const set = saved[`set${n}`];
@@ -7315,7 +8017,7 @@
     renderWorkoutDashboard = function() {
       renderWorkoutDashboardBeforeDrafts();
 
-      ['monday','wednesday','friday'].forEach(day => {
+      requiredWorkoutDays().forEach(day => {
         const entry = getWorkoutEntry(viewedWorkoutWeek, day, currentWorkoutCycle);
         if (entry) {
           const completedCard = document.getElementById(`workoutCard-${day}`);
@@ -7560,7 +8262,7 @@ function renderNextWeekStartBanner() {
   if (title) title.innerText = `WEEK ${viewedWorkoutWeek} IS UPCOMING`;
   if (copy) {
     const completed = workoutCompletionCount(currentWeek, currentWorkoutCycle);
-    copy.innerText = completed === 3
+    copy.innerText = completed === requiredWorkoutCount()
       ? `Week ${currentWeek} is complete. Ready to make Week ${viewedWorkoutWeek} your active week?`
       : `${completed} of 3 workouts are complete in Week ${currentWeek}. You can still move on; unfinished workouts will be marked skipped.`;
   }
@@ -7746,6 +8448,107 @@ function finishAppTour() {
   switchTab('workoutTab', appTourTabButton('workoutTab'));
   window.scrollTo({top:0, behavior:'smooth'});
 }
+
+
+    // v21: keep the weekly overview in sync immediately after a workout save.
+    const saveWorkoutLogBeforeImmediateWeekSync = saveWorkoutLog;
+    saveWorkoutLog = function(...args) {
+      const result = saveWorkoutLogBeforeImmediateWeekSync.apply(this, args);
+      syncWeekDashboardAfterWorkoutSave();
+      return result;
+    };
+
+
+    // v22: macros are program-specific and always follow the selected program's active week.
+    function syncNutritionWeekToSelectedProgram() {
+      const programWeek = Math.min(18, Math.max(1, Number(currentWeek) || 1));
+      weeklyNutritionWeek = programWeek;
+      nutritionWeek = programWeek;
+      currentNutritionWeek = programWeek;
+
+      // Keep any legacy week keys synchronized inside the selected program's
+      // namespaced storage rather than allowing another program's week to leak in.
+      try {
+        appStorage.setItem('schmokefit_nutrition_week', String(programWeek));
+        appStorage.setItem('schmokefit_macro_week', String(programWeek));
+      } catch (e) {}
+
+      return programWeek;
+    }
+
+
+    // v22: after switching programs/rebinding runtime, bind macros to that program's week.
+    const rebindProgramRuntimeBeforeMacroWeekSync = rebindProgramRuntime;
+    rebindProgramRuntime = function(program) {
+      const result = rebindProgramRuntimeBeforeMacroWeekSync.apply(this, arguments);
+      syncNutritionWeekToSelectedProgram();
+      if (typeof updateProgramNutritionPhaseUI === 'function') updateProgramNutritionPhaseUI();
+      return result;
+    };
+
+    // Also synchronize immediately before rendering the nutrition dashboard.
+    const updateNutritionDashboardBeforeProgramWeekSync = updateNutritionDashboard;
+    updateNutritionDashboard = function() {
+      syncNutritionWeekToSelectedProgram();
+      return updateNutritionDashboardBeforeProgramWeekSync.apply(this, arguments);
+    };
+
+
+    // v23: keep the visible nutrition phase + goal selector bound to THIS program's week.
+    function syncProgramNutritionPhaseUI() {
+      const week = Math.min(18, Math.max(1, Number(currentWeek) || 1));
+
+      // Re-render the ACTUAL phase card from this program's active week.
+      // This updates Week 1–10 vs Week 11–18 title/copy/progression steps.
+      if (typeof updateProgramNutritionPhaseUI === 'function') {
+        updateProgramNutritionPhaseUI();
+      }
+
+      // The nutrition progression is automatic only after Week 10.
+      // Weeks 1–10 retain the user's selectable x13/x15/x17 goal phase.
+      const autoPhase = week >= 11;
+      const phaseBox = document.getElementById('programNutritionPhase');
+      const phaseWeek = document.getElementById('programNutritionPhaseWeek');
+      const goalSelect = document.getElementById('goalPhaseSelect');
+
+      if (phaseWeek) phaseWeek.textContent = `WEEK ${week}`;
+
+      if (phaseBox) {
+        phaseBox.dataset.programWeek = String(week);
+      }
+
+      if (goalSelect) {
+        goalSelect.disabled = autoPhase;
+        goalSelect.removeAttribute('aria-disabled');
+        if (autoPhase) goalSelect.setAttribute('aria-disabled', 'true');
+      }
+
+      // Also support the current markup if these controls are class-based.
+      document.querySelectorAll('[data-nutrition-phase-week], .nutrition-phase-week').forEach(el => {
+        el.textContent = `WEEK ${week}`;
+      });
+      document.querySelectorAll('.goal-phase-select, select[data-goal-phase]').forEach(el => {
+        el.disabled = autoPhase;
+        if (autoPhase) el.setAttribute('aria-disabled','true');
+        else el.removeAttribute('aria-disabled');
+      });
+    }
+
+
+    const updateNutritionDashboardBeforePhaseUISync = updateNutritionDashboard;
+    updateNutritionDashboard = function() {
+      const result = updateNutritionDashboardBeforePhaseUISync.apply(this, arguments);
+      syncProgramNutritionPhaseUI();
+      return result;
+    };
+
+
+    const switchTabBeforeNutritionPhaseSync = switchTab;
+    switchTab = function(tabId, btn) {
+      const result = switchTabBeforeNutritionPhaseSync.apply(this, arguments);
+      if (tabId === 'nutritionTab') syncProgramNutritionPhaseUI();
+      return result;
+    };
 
 </script>
 <div class="phase-transition-overlay" id="phaseTransitionOverlay" role="dialog" aria-modal="true" aria-labelledby="phaseTransitionTitle">
