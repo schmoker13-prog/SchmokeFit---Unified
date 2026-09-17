@@ -2558,6 +2558,110 @@ body.program-athlete #cardioActivityOverlay .activity-save-btn:focus{
   box-shadow:0 0 12px rgba(57,211,83,.16) !important;
 }
 </style>
+<style>
+.exercise-reorder-controls{display:flex;gap:6px;margin-left:auto}
+.exercise-reorder-btn{width:30px;height:30px;padding:0!important;border-radius:9px;border:1px solid var(--card-border);background:var(--input-bg);color:#dce8f3;font-weight:900}
+.exercise-reorder-btn:disabled{opacity:.25}
+.save-workout-order-row{display:flex;justify-content:flex-end;margin:8px 0 14px}
+.save-workout-order-btn{border:1px solid var(--card-border);background:var(--input-bg);color:#dce8f3;border-radius:10px;padding:9px 12px;font-size:.68rem;font-weight:900}
+</style>
+<style>
+/* v34 — only show future-order save after a reorder */
+.save-workout-order-row{display:none!important}
+.save-workout-order-row.show{
+  display:flex!important;
+  animation:reorderSavePop .18s ease-out;
+}
+.save-workout-order-row.show .save-workout-order-btn{
+  border-color:rgba(91,155,213,.72);
+  box-shadow:0 0 0 2px rgba(91,155,213,.08),0 0 14px rgba(91,155,213,.13);
+}
+body.program-bahama .save-workout-order-row.show .save-workout-order-btn{
+  border-color:rgba(53,208,186,.72);
+  box-shadow:0 0 0 2px rgba(53,208,186,.08),0 0 14px rgba(53,208,186,.13);
+}
+body.program-athlete .save-workout-order-row.show .save-workout-order-btn{
+  border-color:rgba(57,211,83,.72);
+  box-shadow:0 0 0 2px rgba(57,211,83,.08),0 0 14px rgba(57,211,83,.13);
+}
+@keyframes reorderSavePop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+#reorderLeaveOverlay{display:none!important;position:fixed;inset:0;z-index:2600;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.76)}
+#reorderLeaveOverlay.open{display:flex!important}
+.reorder-leave-modal{width:min(100%,520px);position:relative;border-radius:18px}
+.reorder-change-kicker{font-size:.68rem;font-weight:950;letter-spacing:.1em;color:var(--accent-blue);margin-bottom:5px}
+.reorder-leave-modal p{color:#aeb9c5;line-height:1.45;font-size:.86rem}
+.reorder-choice{width:100%;min-height:44px;margin-top:9px;border-radius:11px;border:1px solid var(--card-border);background:var(--input-bg);color:#e8eef5;font-weight:900;font-size:.75rem}
+.reorder-choice.primary{border-color:rgba(91,155,213,.7);background:rgba(91,155,213,.13)}
+.reorder-choice.discard{color:#c5ced8}
+.reorder-choice.cancel{border-color:transparent;background:transparent;color:#8d9baa}
+body.program-bahama .reorder-choice.primary{border-color:rgba(53,208,186,.7);background:rgba(53,208,186,.13)}
+body.program-athlete .reorder-choice.primary{border-color:rgba(57,211,83,.7);background:rgba(57,211,83,.13)}
+</style>
+<style>
+/* v35 — styled confirmation for saving a future workout order */
+#reorderSaveConfirmOverlay,
+#reorderSavedOverlay,
+#reorderSavedThisWorkoutOverlay{
+  display:none!important;
+  position:fixed;
+  inset:0;
+  z-index:2700;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+  background:rgba(0,0,0,.76);
+}
+#reorderSaveConfirmOverlay.open,
+#reorderSavedOverlay.open,
+#reorderSavedThisWorkoutOverlay.open{display:flex!important}
+.reorder-confirm-modal{
+  width:min(100%,520px);
+  border-radius:18px;
+  border:1px solid var(--card-border);
+  background:var(--card-bg);
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+}
+.reorder-confirm-modal p{color:#aeb9c5;line-height:1.45;font-size:.86rem}
+.reorder-saved-modal{text-align:center}
+.reorder-saved-check{
+  width:46px;height:46px;margin:0 auto 10px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(91,155,213,.72);
+  background:rgba(91,155,213,.12);
+  color:#dceeff;font-size:1.35rem;font-weight:950;
+}
+body.program-bahama .reorder-saved-check{
+  border-color:rgba(53,208,186,.72);background:rgba(53,208,186,.12);color:#e6fffb;
+}
+body.program-athlete .reorder-saved-check{
+  border-color:rgba(57,211,83,.72);background:rgba(57,211,83,.12);color:#ecfff0;
+}
+</style>
+<style>
+/* v38 — styled two-step workout completion flow */
+#completionChangesOverlay,#workoutCompleteConfirmOverlay{
+ display:none!important;position:fixed;inset:0;z-index:2850;align-items:center;justify-content:center;
+ padding:20px;box-sizing:border-box;background:rgba(0,0,0,.78)
+}
+#completionChangesOverlay.open,#workoutCompleteConfirmOverlay.open{display:flex!important}
+.completion-flow-modal{
+ width:min(100%,520px);border-radius:18px;border:1px solid var(--card-border);
+ background:var(--card-bg);box-shadow:0 18px 50px rgba(0,0,0,.58)
+}
+.completion-flow-modal p{color:#aeb9c5;line-height:1.45;font-size:.86rem}
+.completion-kicker{font-size:.68rem;font-weight:950;letter-spacing:.1em;color:var(--accent-blue);margin-bottom:5px}
+.completion-check{
+ width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+ border:1px solid rgba(91,155,213,.72);background:rgba(91,155,213,.12);color:#eaf5ff;
+ font-size:1.4rem;font-weight:950;margin-bottom:10px
+}
+body.program-bahama .completion-kicker{color:#35d0ba}
+body.program-bahama .completion-check{border-color:rgba(53,208,186,.72);background:rgba(53,208,186,.12);color:#e8fffb}
+body.program-athlete .completion-kicker{color:#39d353}
+body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);background:rgba(57,211,83,.12);color:#edfff0}
+</style>
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -2823,7 +2927,7 @@ body.program-athlete #cardioActivityOverlay .activity-save-btn:focus{
 </div>
 <div id="exerciseContainer" style="display:flex; flex-direction:column; gap:12px;"></div>
 <button class="btn btn-outline" onclick="addNewExercise()">+ ADD EXERCISE TO WORKOUT</button>
-<button class="btn btn-blue" id="saveWorkoutButton" onclick="saveWorkoutLog()">✓ LOG WORKOUT COMPLETE</button>
+<button class="btn btn-blue" id="saveWorkoutButton" onclick="requestWorkoutCompletion()">✓ LOG WORKOUT COMPLETE</button>
 </div>
 </div>
 <!-- 02. HISTORY TAB -->
@@ -3681,8 +3785,8 @@ body.program-athlete #cardioActivityOverlay .activity-save-btn:focus{
           { name: "Standing Lateral Raises", badge: "SUPP.", badgeClass: "badge-supp" }
         ],
         wednesday: [
-          { name: "Bulgarian Split Squats", badge: "KEY LIFT", badgeClass: "badge-key" },
           { name: "Standing Calf Raises", badge: "SUPERSET", badgeClass: "badge-superset" },
+{ name: "Bulgarian Split Squats", badge: "KEY LIFT", badgeClass: "badge-key" },
           { name: "Nordic Curls", badge: "KEY LIFT", badgeClass: "badge-key" },
           { name: "Leg Extensions", badge: "SUPERSET", badgeClass: "badge-superset" },
           { name: "Leg Press or Barbell Squat", badge: "OPTIONAL", badgeClass: "badge-optional" }
@@ -4171,10 +4275,25 @@ function renderWorkoutExercises() {
         const prev3 = getPreviousExerciseSet(ex.name, 3);
 
         const substitutions = getExerciseSubstitutions();
-        let options = substitutions?.[ex.name] || [ex.name];
-        if (!options.includes(ex.name)) {
-          options = [ex.name, ...options];
+
+        // v40: keep the ORIGINAL substitution family attached to this workout slot.
+        // Once a user picks an alternate, ex.name changes, so looking up only
+        // substitutions[ex.name] can collapse the dropdown to a single item.
+        // Find the family containing the current exercise and preserve it on the
+        // exercise object for every later render/change-of-mind.
+        let familyKey = ex.substitutionFamily || null;
+        if (!familyKey || !substitutions?.[familyKey]) {
+          familyKey = Object.keys(substitutions || {}).find(key =>
+            key === ex.name || (Array.isArray(substitutions[key]) && substitutions[key].includes(ex.name))
+          ) || null;
         }
+        if (familyKey) ex.substitutionFamily = familyKey;
+
+        let options = familyKey && Array.isArray(substitutions?.[familyKey])
+          ? [...substitutions[familyKey]]
+          : [ex.name];
+
+        if (!options.includes(ex.name)) options = [ex.name, ...options];
 
         let selectOptionsHtml = options.map(opt => 
           `<option value="${opt}" ${opt === ex.name ? 'selected' : ''}>${opt}</option>`
@@ -4227,6 +4346,14 @@ function renderWorkoutExercises() {
     }
 
     function changeExerciseSubstitution(index, newName) {
+      const ex = activeExercises[index];
+      if (ex && !ex.substitutionFamily) {
+        const substitutions = getExerciseSubstitutions();
+        const familyKey = Object.keys(substitutions || {}).find(key =>
+          key === ex.name || (Array.isArray(substitutions[key]) && substitutions[key].includes(ex.name))
+        );
+        if (familyKey) ex.substitutionFamily = familyKey;
+      }
       activeExercises[index].name = newName;
       resetTimerPosition();
       renderWorkoutExercises();
@@ -7988,22 +8115,12 @@ function onRepsEntered(exerciseIndex, repInput) {
       const detail = document.getElementById('workoutDetailView');
       if (!detail || detail.style.display === 'none') return;
       if (workoutCompletionPromptShown) return;
-
-      // Existing saved workouts are edits, not newly completed sessions.
       if (editingWorkoutEntryId && !editingExtraWorkoutName) return;
       if (editingExtraWorkoutId) return;
-
       if (!allWorkoutSetsLogged()) return;
 
       workoutCompletionPromptShown = true;
-
-      // Let the final keystroke/change finish before opening the confirmation.
-      setTimeout(() => {
-        const shouldLog = confirm('Workout complete! All weights and reps are filled in.\n\nLog this workout now?');
-        if (shouldLog) {
-          saveWorkoutLog();
-        }
-      }, 80);
+      setTimeout(() => requestWorkoutCompletion(true), 80);
     }
 
     // Only check completion after the user FINISHES a field:
@@ -8326,12 +8443,15 @@ function onRepsEntered(exerciseIndex, repInput) {
     function captureLiveWorkoutEditorState() {
       const rows = (activeExercises || []).map((ex, idx) => {
         const sets = {};
-        for (let n = 1; n <= 3; n++) {
+        const nums = typeof workoutSetNumbersForExercise === 'function'
+          ? workoutSetNumbersForExercise(idx)
+          : [1,2,3,4,5,6];
+        nums.forEach(n => {
           sets[`set${n}`] = {
             w: document.querySelector(`.ex-${idx}-w${n}`)?.value ?? '',
             r: document.querySelector(`.ex-${idx}-r${n}`)?.value ?? ''
           };
-        }
+        });
         return sets;
       });
 
@@ -8347,12 +8467,14 @@ function onRepsEntered(exerciseIndex, repInput) {
       if (!snapshot) return;
 
       (snapshot.rows || []).forEach((sets, idx) => {
-        for (let n = 1; n <= 3; n++) {
+        Object.keys(sets || {}).forEach(key => {
+          const n = Number(String(key).replace('set',''));
+          if (!n) return;
           const w = document.querySelector(`.ex-${idx}-w${n}`);
           const r = document.querySelector(`.ex-${idx}-r${n}`);
-          if (w) w.value = sets?.[`set${n}`]?.w ?? '';
-          if (r) r.value = sets?.[`set${n}`]?.r ?? '';
-        }
+          if (w) w.value = sets?.[key]?.w ?? '';
+          if (r) r.value = sets?.[key]?.r ?? '';
+        });
       });
 
       // Restore completed-card highlighting without disturbing the current timer.
@@ -9057,6 +9179,438 @@ function saveExtraCardioActivity(){
     }
   },true);
   setTimeout(wireExtraActivityButton,0);
+})();
+</script>
+<script>
+/* v34 — reorder exercises + save-current/save-future unsaved-change flow */
+(function(){
+ let reorderDirty=false;
+ let reorderBaseline=[];
+ let reorderSessionOrder=null;
+ let substitutionDirty=false;
+ let substitutionBaseline={};
+ let substitutionSession=null;
+ let pendingLeaveAction=null;
+ let suppressReorderPrompt=false;
+
+ function orderKey(){
+   const day=editingWorkoutDay||document.getElementById('workoutDaySelect')?.value||'';
+   if(!day||editingExtraWorkoutId||(editingWorkoutDay===null&&editingExtraWorkoutName))return null;
+   const focus=(typeof currentTrainingFocus!=='undefined'?currentTrainingFocus:'')||'';
+   return `schmokefit_exercise_order_${day}_${focus}`;
+ }
+ function currentNames(){return Array.isArray(activeExercises)?activeExercises.map(x=>x.name):[];}
+ function currentSubstitutions(){const o={};currentNames().forEach((n,i)=>o[i]=n);return o;}
+ function sameSubs(a,b){return JSON.stringify(a||{})===JSON.stringify(b||{});}
+ function anyWorkoutCustomizationDirty(){return reorderDirty||substitutionDirty;}
+ function customizationSummary(){
+   const items=[];
+   if(reorderDirty)items.push('Exercise order changed');
+   if(substitutionDirty)items.push('Exercise substitution changed');
+   return items;
+ }
+ function sameOrder(a,b){return JSON.stringify(a||[])===JSON.stringify(b||[]);}
+ function snapshots(){return activeExercises.map((ex,i)=>({name:ex.name,sets:typeof collectExerciseSetData==='function'?collectExerciseSetData(i):{}}));}
+ function restore(ss){
+   activeExercises.forEach((ex,i)=>{
+     const s=ss.find(x=>x.name===ex.name); if(!s)return;
+     Object.entries(s.sets||{}).forEach(([k,v])=>{
+       const n=Number(k.replace('set','')); if(!n)return;
+       const w=document.querySelector(`.ex-${i}-w${n}`),r=document.querySelector(`.ex-${i}-r${n}`);
+       if(w&&!w.disabled&&v?.w!=='-')w.value=v?.w??'';
+       if(r&&v?.r!=='-')r.value=v?.r??'';
+     });
+     if(typeof checkExerciseCompletion==='function')checkExerciseCompletion(i);
+   });
+ }
+ function updateSaveOrderButton(){
+   const row=document.querySelector('#workoutDetailView .save-workout-order-row');
+   if(!row)return;
+   row.classList.toggle('show',anyWorkoutCustomizationDirty());
+ }
+ function markDirty(){
+   reorderDirty=!sameOrder(currentNames(),reorderBaseline);
+   reorderSessionOrder=currentNames();
+   updateSaveOrderButton();
+ }
+ window.markWorkoutSubstitutionDirty=function(index,beforeName,newName){
+   if(!substitutionBaseline||!Object.keys(substitutionBaseline).length)substitutionBaseline=currentSubstitutions();
+   substitutionDirty=!sameSubs(currentSubstitutions(),substitutionBaseline);
+   substitutionSession=currentSubstitutions();
+   updateSaveOrderButton();
+   if(typeof saveWorkoutDraft==='function')saveWorkoutDraft();
+ };
+ window.moveWorkoutExercise=function(i,d){
+   const j=i+d;if(!Array.isArray(activeExercises)||j<0||j>=activeExercises.length)return;
+   const ss=snapshots();
+   [activeExercises[i],activeExercises[j]]=[activeExercises[j],activeExercises[i]];
+   renderWorkoutExercises();restore(ss);
+   markDirty();
+   if(typeof saveWorkoutDraft==='function')saveWorkoutDraft();
+ };
+ function persistFutureOrder(){
+   const k=orderKey();if(!k)return false;
+   appStorage.setItem(k,JSON.stringify(currentNames()));
+   appStorage.setItem(k+'_subs',JSON.stringify(currentSubstitutions()));
+   reorderBaseline=currentNames();
+   reorderSessionOrder=currentNames();
+   substitutionBaseline=currentSubstitutions();
+   substitutionSession=currentSubstitutions();
+   reorderDirty=false;
+   substitutionDirty=false;
+   updateSaveOrderButton();
+   return true;
+ }
+ window.saveCurrentWorkoutOrderForFuture=function(){
+   const overlay=document.getElementById('reorderSaveConfirmOverlay');
+   if(overlay){overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');}
+ };
+ window.closeReorderSaveConfirm=function(){
+   const overlay=document.getElementById('reorderSaveConfirmOverlay');
+   if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+ };
+ window.confirmReorderSaveForFuture=function(){
+   if(persistFutureOrder()){
+     closeReorderSaveConfirm();
+     const saved=document.getElementById('reorderSavedOverlay');
+     if(saved){saved.classList.add('open');saved.setAttribute('aria-hidden','false');}
+   }
+ };
+ window.confirmReorderSaveForThisWorkout=function(){
+   reorderSessionOrder=currentNames();
+   substitutionSession=currentSubstitutions();
+   reorderBaseline=currentNames();
+   substitutionBaseline=currentSubstitutions();
+   reorderDirty=false;
+   substitutionDirty=false;
+   if(typeof saveWorkoutDraft==='function')saveWorkoutDraft();
+   closeReorderSaveConfirm();
+   const saved=document.getElementById('reorderSavedThisWorkoutOverlay');
+   if(saved){saved.classList.add('open');saved.setAttribute('aria-hidden','false');}
+ };
+ window.closeReorderSavedThisWorkout=function(){
+   const saved=document.getElementById('reorderSavedThisWorkoutOverlay');
+   if(saved){saved.classList.remove('open');saved.setAttribute('aria-hidden','true');}
+ };
+ window.closeReorderSaved=function(){
+   const saved=document.getElementById('reorderSavedOverlay');
+   if(saved){saved.classList.remove('open');saved.setAttribute('aria-hidden','true');}
+ };
+ function applyOrder(order){
+   if(!Array.isArray(order)||!Array.isArray(activeExercises))return;
+   const rank=new Map(order.map((n,i)=>[n,i]));
+   activeExercises.sort((x,y)=>(rank.has(x.name)?rank.get(x.name):999)-(rank.has(y.name)?rank.get(y.name):999));
+ }
+ function savedFutureOrder(){
+   const k=orderKey();if(!k)return null;
+   try{return JSON.parse(appStorage.getItem(k)||'null')}catch(e){return null}
+ }
+ function addUI(){
+   if(!Array.isArray(activeExercises))return;
+   activeExercises.forEach((ex,i)=>{
+     const card=document.getElementById(`exerciseCard-${i}`);if(!card||card.querySelector('.exercise-reorder-controls'))return;
+     const h=card.querySelector('.exercise-header,.exercise-title-row,.exercise-title,h3,h4');if(!h)return;
+     const c=document.createElement('div');c.className='exercise-reorder-controls';
+     c.innerHTML=`<button type="button" class="exercise-reorder-btn" ${i===0?'disabled':''} onclick="moveWorkoutExercise(${i},-1)">↑</button><button type="button" class="exercise-reorder-btn" ${i===activeExercises.length-1?'disabled':''} onclick="moveWorkoutExercise(${i},1)">↓</button>`;
+     h.appendChild(c);
+   });
+   const detail=document.getElementById('workoutDetailView');
+   if(detail&&!detail.querySelector('.save-workout-order-row')&&orderKey()){
+     const row=document.createElement('div');row.className='save-workout-order-row';
+     row.innerHTML='<button type="button" class="save-workout-order-btn" onclick="saveCurrentWorkoutOrderForFuture()">SAVE WORKOUT CHANGES</button>';
+     detail.querySelector('[id^="exerciseCard-"]')?.before(row);
+   }
+   updateSaveOrderButton();
+ }
+ const rr=window.renderWorkoutExercises;
+ if(typeof rr==='function')window.renderWorkoutExercises=function(){const x=rr.apply(this,arguments);addUI();return x;};
+
+ const ll=window.loadSelectedWorkoutRoutine;
+ if(typeof ll==='function')window.loadSelectedWorkoutRoutine=function(){
+   const x=ll.apply(this,arguments);
+   const future=savedFutureOrder();
+   if(Array.isArray(future))applyOrder(future);
+   if(Array.isArray(reorderSessionOrder))applyOrder(reorderSessionOrder);
+   reorderBaseline=Array.isArray(reorderSessionOrder)?reorderBaseline:currentNames();
+   if(!substitutionSession)substitutionBaseline=currentSubstitutions();
+   if(activeExercises?.length)renderWorkoutExercises();
+   return x;
+ };
+
+ function openReorderLeaveModal(action){
+   pendingLeaveAction=action;
+   document.getElementById('reorderLeaveOverlay')?.classList.add('open');
+ }
+ window.closeReorderLeaveModal=function(){
+   document.getElementById('reorderLeaveOverlay')?.classList.remove('open');
+   pendingLeaveAction=null;
+ };
+ function continuePendingLeave(){
+   const action=pendingLeaveAction;
+   document.getElementById('reorderLeaveOverlay')?.classList.remove('open');
+   pendingLeaveAction=null;
+   suppressReorderPrompt=true;
+   try{if(typeof action==='function')action();}finally{setTimeout(()=>suppressReorderPrompt=false,0);}
+ }
+ window.keepReorderForThisWorkout=function(){
+   /* Keep the changed order only in this active workout/session. */
+   reorderSessionOrder=currentNames();
+   substitutionSession=currentSubstitutions();
+   reorderBaseline=currentNames();
+   substitutionBaseline=currentSubstitutions();
+   reorderDirty=false;
+   substitutionDirty=false;
+   if(typeof saveWorkoutDraft==='function')saveWorkoutDraft();
+   continuePendingLeave();
+ };
+ window.keepReorderForFutureWorkouts=function(){
+   persistFutureOrder();
+   continuePendingLeave();
+ };
+ window.discardReorderChanges=function(){
+   reorderSessionOrder=null;
+   substitutionSession=null;
+   reorderDirty=false;
+   substitutionDirty=false;
+   continuePendingLeave();
+ };
+
+ /* Intercept the common ways of leaving an open workout. */
+ const priorClose=window.closeWorkoutDetail;
+ if(typeof priorClose==='function')window.closeWorkoutDetail=function(){
+   const args=arguments,ctx=this;
+   if(anyWorkoutCustomizationDirty()&&!suppressReorderPrompt){openReorderLeaveModal(()=>priorClose.apply(ctx,args));return;}
+   return priorClose.apply(ctx,args);
+ };
+ const priorSwitch=window.switchTab;
+ if(typeof priorSwitch==='function')window.switchTab=function(tabId,btn){
+   const ctx=this,args=arguments;
+   const detail=document.getElementById('workoutDetailView');
+   const isOpen=detail&&getComputedStyle(detail).display!=='none';
+   if(anyWorkoutCustomizationDirty()&&isOpen&&tabId!=='workoutTab'&&!suppressReorderPrompt){openReorderLeaveModal(()=>priorSwitch.apply(ctx,args));return;}
+   return priorSwitch.apply(ctx,args);
+ };
+})();
+</script>
+
+<div class="overlay" id="reorderLeaveOverlay" aria-hidden="true">
+  <div class="modal reorder-leave-modal">
+    <div class="reorder-change-kicker">WORKOUT CHANGES</div>
+    <h2>KEEP YOUR WORKOUT CHANGES?</h2>
+    <p>You've customized this workout. This can include exercise order and alternate exercise selections. Choose how you'd like to save the changes.</p>
+    <button class="reorder-choice primary" onclick="keepReorderForThisWorkout()">SAVE FOR THIS WORKOUT</button>
+    <button class="reorder-choice" onclick="keepReorderForFutureWorkouts()">SAVE FOR ALL FUTURE WORKOUTS</button>
+    <button class="reorder-choice discard" onclick="discardReorderChanges()">DISCARD CHANGES</button>
+    <button class="reorder-choice cancel" onclick="closeReorderLeaveModal()">CANCEL • KEEP WORKING OUT</button>
+  </div>
+</div>
+
+
+<div class="overlay" id="reorderSaveConfirmOverlay" aria-hidden="true">
+  <div class="modal reorder-confirm-modal">
+    <div class="reorder-change-kicker">SAVE WORKOUT CHANGES</div>
+    <h2>HOW SHOULD THESE CHANGES BE SAVED?</h2>
+    <p>Save your current exercise order and alternate exercise selections for just this workout or for future workouts.</p>
+    <button class="reorder-choice primary" onclick="confirmReorderSaveForFuture()">SAVE FOR ALL FUTURE WORKOUTS</button>
+    <button class="reorder-choice" onclick="confirmReorderSaveForThisWorkout()">SAVE FOR JUST THIS WORKOUT</button>
+    <button class="reorder-choice cancel" onclick="closeReorderSaveConfirm()">CANCEL</button>
+  </div>
+</div>
+
+<div class="overlay" id="reorderSavedOverlay" aria-hidden="true">
+  <div class="modal reorder-confirm-modal reorder-saved-modal">
+    <div class="reorder-saved-check">✓</div>
+    <h2>ORDER SAVED</h2>
+    <p>Your customized workout will be used the next time you open this workout.</p>
+    <button class="reorder-choice primary" onclick="closeReorderSaved()">DONE</button>
+  </div>
+</div>
+
+
+<div class="overlay" id="reorderSavedThisWorkoutOverlay" aria-hidden="true">
+  <div class="modal reorder-confirm-modal reorder-saved-modal">
+    <div class="reorder-saved-check">✓</div>
+    <h2>ORDER SAVED</h2>
+    <p>These workout changes will be kept for this workout only. Future workouts will keep their normal saved setup.</p>
+    <button class="reorder-choice primary" onclick="closeReorderSavedThisWorkout()">DONE</button>
+  </div>
+</div>
+
+<script>
+/* v37 — exercise substitutions join the workout-customization workflow */
+(function(){
+  const priorChange=window.changeExerciseSubstitution;
+  if(typeof priorChange!=='function')return;
+  window.changeExerciseSubstitution=function(index,newName){
+    const before=Array.isArray(activeExercises)&&activeExercises[index]?activeExercises[index].name:'';
+    const result=priorChange.apply(this,arguments);
+    if(before!==newName && typeof markWorkoutSubstitutionDirty==='function'){
+      markWorkoutSubstitutionDirty(index,before,newName);
+    }
+    return result;
+  };
+})();
+</script>
+<script>
+/* v38 — workout completion flow: resolve customizations first, then confirm log, then return to week */
+(function(){
+ let completionWaitingForChanges=false;
+ let completionAutoDetected=false;
+ let completionSaveMode=null;
+
+ function show(id){
+   const el=document.getElementById(id);
+   if(el){el.classList.add('open');el.setAttribute('aria-hidden','false');}
+ }
+ function hide(id){
+   const el=document.getElementById(id);
+   if(el){el.classList.remove('open');el.setAttribute('aria-hidden','true');}
+ }
+
+ window.requestWorkoutCompletion=function(autoDetected){
+   completionAutoDetected=!!autoDetected;
+   /* The v37 save-changes button is visible exactly when workout customization is dirty. */
+   const dirty=document.querySelector('#workoutDetailView .save-workout-order-row.show');
+   if(dirty){
+     completionWaitingForChanges=true;
+     show('completionChangesOverlay');
+     return;
+   }
+   show('workoutCompleteConfirmOverlay');
+ };
+
+ window.cancelWorkoutCompletion=function(){
+   completionWaitingForChanges=false;
+   completionSaveMode=null;
+   hide('completionChangesOverlay');
+   hide('workoutCompleteConfirmOverlay');
+   /* allow auto-detection again after the user changes/finishes another field */
+   workoutCompletionPromptShown=false;
+ };
+
+ window.completionSaveChangesThisWorkout=function(){
+   completionSaveMode='this';
+   if(typeof confirmReorderSaveForThisWorkout==='function')confirmReorderSaveForThisWorkout();
+   /* The normal v37 success overlay isn't useful mid-completion flow. */
+   hide('reorderSavedThisWorkoutOverlay');
+   hide('completionChangesOverlay');
+   completionWaitingForChanges=false;
+   show('workoutCompleteConfirmOverlay');
+ };
+
+ window.completionSaveChangesFuture=function(){
+   completionSaveMode='future';
+   if(typeof confirmReorderSaveForFuture==='function')confirmReorderSaveForFuture();
+   hide('reorderSavedOverlay');
+   hide('completionChangesOverlay');
+   completionWaitingForChanges=false;
+   show('workoutCompleteConfirmOverlay');
+ };
+
+ window.completionDiscardChanges=function(){
+   /* Preserve workout values but don't make customization the future default.
+      "This workout" is the safest completion behavior for the already-performed session. */
+   completionSaveMode='this';
+   if(typeof confirmReorderSaveForThisWorkout==='function')confirmReorderSaveForThisWorkout();
+   hide('reorderSavedThisWorkoutOverlay');
+   hide('completionChangesOverlay');
+   completionWaitingForChanges=false;
+   show('workoutCompleteConfirmOverlay');
+ };
+
+ window.confirmLogCompletedWorkout=function(){
+   hide('workoutCompleteConfirmOverlay');
+   /* Call the existing fully wrapped logger so history, drafts and week progress all stay intact. */
+   saveWorkoutLog();
+   /* Explicitly return to the week overview after logging. */
+   const detail=document.getElementById('workoutDetailView');
+   const dashboard=document.getElementById('workoutDashboardView');
+   if(detail)detail.style.display='none';
+   if(dashboard)dashboard.style.display='block';
+   if(typeof renderWorkoutDashboard==='function')renderWorkoutDashboard();
+   window.scrollTo({top:0,behavior:'smooth'});
+   completionSaveMode=null;
+   completionWaitingForChanges=false;
+ };
+
+ window.closeWorkoutCompleteConfirm=function(){
+   hide('workoutCompleteConfirmOverlay');
+   workoutCompletionPromptShown=false;
+ };
+})();
+</script>
+
+<div class="overlay" id="completionChangesOverlay" aria-hidden="true">
+  <div class="modal completion-flow-modal">
+    <div class="completion-kicker">WORKOUT CHANGES</div>
+    <h2>SAVE YOUR CHANGES FIRST?</h2>
+    <p>You customized this workout. Choose how you want to save those changes before logging the workout complete.</p>
+    <button class="reorder-choice primary" onclick="completionSaveChangesFuture()">SAVE FOR ALL FUTURE WORKOUTS</button>
+    <button class="reorder-choice" onclick="completionSaveChangesThisWorkout()">SAVE FOR JUST THIS WORKOUT</button>
+    <button class="reorder-choice cancel" onclick="cancelWorkoutCompletion()">CANCEL • KEEP WORKING OUT</button>
+  </div>
+</div>
+
+<div class="overlay" id="workoutCompleteConfirmOverlay" aria-hidden="true">
+  <div class="modal completion-flow-modal workout-complete-modal">
+    <div class="completion-check">✓</div>
+    <div class="completion-kicker">WORKOUT COMPLETE</div>
+    <h2>READY TO LOG IT?</h2>
+    <p>Your workout is complete. Log it to your history and update this week's progress?</p>
+    <button class="reorder-choice primary" onclick="confirmLogCompletedWorkout()">YES • LOG WORKOUT COMPLETE</button>
+    <button class="reorder-choice cancel" onclick="closeWorkoutCompleteConfirm()">NOT YET • KEEP WORKING OUT</button>
+  </div>
+</div>
+
+<script>
+/* v39 — swapping one exercise must never wipe the rest of an in-progress workout */
+(function(){
+  const priorChange=window.changeExerciseSubstitution;
+  if(typeof priorChange!=='function')return;
+
+  function captureSwapState(){
+    return (Array.isArray(activeExercises)?activeExercises:[]).map((ex,idx)=>({
+      name:ex.name,
+      index:idx,
+      sets:typeof collectExerciseSetData==='function'?collectExerciseSetData(idx):{}
+    }));
+  }
+  function restoreUnchangedExerciseData(snapshot,swappedIndex){
+    (Array.isArray(activeExercises)?activeExercises:[]).forEach((ex,idx)=>{
+      /* The changed exercise intentionally starts blank; every other exercise stays intact. */
+      if(idx===swappedIndex)return;
+      const saved=snapshot.find(s=>s.index===idx&&s.name===ex.name);
+      if(!saved)return;
+      Object.entries(saved.sets||{}).forEach(([key,val])=>{
+        const n=Number(String(key).replace('set',''));if(!n)return;
+        const w=document.querySelector(`.ex-${idx}-w${n}`);
+        const r=document.querySelector(`.ex-${idx}-r${n}`);
+        if(w&&!w.disabled)w.value=val?.w==='-'?'':(val?.w??'');
+        if(r)r.value=val?.r==='-'?'':(val?.r??'');
+      });
+      if(typeof checkExerciseCompletion==='function')checkExerciseCompletion(idx);
+    });
+  }
+
+  window.changeExerciseSubstitution=function(index,newName){
+    if(!Array.isArray(activeExercises)||!activeExercises[index])return;
+    const oldName=activeExercises[index].name;
+    if(oldName===newName)return;
+
+    /* Capture the LIVE editor before any existing wrapper can rerender it. */
+    const snapshot=captureSwapState();
+    if(typeof saveCurrentWorkoutDraft==='function')saveCurrentWorkoutDraft();
+
+    /* Run the existing substitution/customization pipeline. */
+    const result=priorChange.apply(this,arguments);
+
+    /* Restore all other exercises after its rerender. */
+    restoreUnchangedExerciseData(snapshot,index);
+
+    /* Save the corrected, preserved state back to the current workout draft. */
+    if(typeof saveCurrentWorkoutDraft==='function')saveCurrentWorkoutDraft();
+    return result;
+  };
 })();
 </script>
 </body>
