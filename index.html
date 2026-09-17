@@ -2892,6 +2892,19 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+
+<style>
+/* v45 — barcode add reliability feedback */
+.barcode-add-error{
+  display:none;
+  margin-top:10px!important;
+  border:1px solid rgba(255,120,120,.32);
+  border-radius:10px;
+  padding:9px 10px!important;
+  text-align:left;
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -5941,6 +5954,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       preview.innerHTML = `<strong>${escapeHtml(amountLabel)}:</strong> ${Math.round(calories)} kcal • ${round1(protein)}P • ${round1(carbs)}C • ${round1(fat)}F`;
     }
 
+    let currentBarcodeFood = null;
+
     function renderBarcodeFoodResult(food, barcode, sourceLabel) {
       const serving = Math.max(1, Number(food.servingGrams) || 100);
       const scale = serving / 100;
@@ -5950,16 +5965,16 @@ function onRepsEntered(exerciseIndex, repInput) {
       const fat = numberOrZero(food.fatPer100) * scale;
       const servingText = food.servingText || `${serving} g`;
 
-      const payload = JSON.stringify(JSON.stringify({
-        name: food.name,
-        barcode,
-        servingText,
+      currentBarcodeFood = {
+        name: String(food.name || `Product ${barcode}`),
+        barcode: String(barcode || ''),
+        servingText: String(servingText || `${serving} g`),
         servingGrams: serving,
         calories: numberOrZero(food.caloriesPer100),
         protein: numberOrZero(food.proteinPer100),
         carbs: numberOrZero(food.carbsPer100),
         fat: numberOrZero(food.fatPer100)
-      }));
+      };
 
       return `<div class="search-result">
         <div class="search-result-top">
@@ -5976,7 +5991,7 @@ function onRepsEntered(exerciseIndex, repInput) {
             <option value="g">grams</option>
             <option value="oz">ounces</option>
           </select>
-          <button type="button" class="btn btn-blue" style="margin-top:0;" onclick='addBarcodeFood(${payload})'>ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
+          <button type="button" class="btn btn-blue" style="margin-top:0;" onclick="addCurrentBarcodeFood(this)">ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
         </div>
         <div id="barcodeFoodPreview" class="search-result-meta" style="margin-top:8px;font-size:.72rem;"
           data-serving-grams="${serving}"
@@ -5988,8 +6003,14 @@ function onRepsEntered(exerciseIndex, repInput) {
       </div>`;
     }
 
-    function addBarcodeFood(serializedFood) {
-      const base = JSON.parse(serializedFood);
+    function addCurrentBarcodeFood(button) {
+      const base = currentBarcodeFood;
+      if (!base) {
+        showBarcodeAddError('This scanned food is no longer available. Please scan the barcode again.');
+        return;
+      }
+
+      try {
       const amount = Math.max(0.01, Number(document.getElementById('barcodeFoodAmount')?.value) || 1);
       const unit = document.getElementById('barcodeFoodUnit')?.value || 'serving';
       const servingGrams = Math.max(1, Number(base.servingGrams) || 100);
@@ -6026,7 +6047,45 @@ function onRepsEntered(exerciseIndex, repInput) {
       }
 
       updateNutritionDashboard();
-      closeFoodSearch();
+
+      if (button) {
+        button.disabled = true;
+        button.textContent = `✓ ADDED TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}`;
+      }
+      setTimeout(() => closeFoodSearch(), 220);
+      } catch (err) {
+        console.error('Barcode add error:', err);
+        if (button) button.disabled = false;
+        showBarcodeAddError('We found the food, but could not add it. Please try again or use Manual Food.');
+      }
+    }
+
+    function showBarcodeAddError(message) {
+      let el = document.getElementById('barcodeAddError');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'barcodeAddError';
+        el.className = 'nutrition-empty barcode-add-error';
+        const result = document.querySelector('#foodSearchResults .search-result');
+        if (result) result.appendChild(el);
+      }
+      if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+      }
+    }
+
+    /* Backward-compatible helper for any older internal call sites. */
+    function addBarcodeFood(serializedFood) {
+      try {
+        currentBarcodeFood = typeof serializedFood === 'string'
+          ? JSON.parse(serializedFood)
+          : serializedFood;
+        addCurrentBarcodeFood();
+      } catch (err) {
+        console.error('Legacy barcode add error:', err);
+        showBarcodeAddError('We found the food, but could not add it. Please scan it again.');
+      }
     }
 
     function showManualFoodForm(barcode = '') {
