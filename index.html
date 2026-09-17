@@ -2853,6 +2853,45 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+
+<style>
+/* v44 — actual source of phone set spacing: parent exercise-card flex gap */
+@media (max-width:600px){
+  /*
+    .exercise-card is a flex column with gap:10px in the base stylesheet.
+    That gap is applied BETWEEN the header and every .set-row, so tightening
+    padding inside the rows alone cannot remove it.
+  */
+  .exercise-card{
+    gap:0!important;
+  }
+
+  /* Keep a small intentional separation only beneath the two-row header. */
+  .exercise-card .exercise-header{
+    margin-bottom:6px!important;
+  }
+
+  .exercise-card .set-row,
+  .exercise-card .athlete-set-row{
+    margin:0!important;
+    padding:4px 0!important;
+    min-height:0!important;
+    height:auto!important;
+  }
+
+  /* Preserve comfortable tap targets without recreating dead space. */
+  .exercise-card .set-input{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  .exercise-card .prev-val-box{
+    height:30px!important;
+    min-height:30px!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
