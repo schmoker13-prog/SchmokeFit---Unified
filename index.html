@@ -2905,6 +2905,48 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+
+<style>
+/* v46 — nutrition graph refeed awareness */
+.refeed-bar-col .weekly-bar-track{
+  outline:1px dashed var(--accent-orange);
+  outline-offset:2px;
+}
+.refeed-day-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:14px;
+  height:14px;
+  margin-left:3px;
+  padding:0 3px;
+  border:1px solid var(--accent-orange);
+  border-radius:999px;
+  color:var(--accent-orange);
+  font-size:.43rem;
+  font-weight:1000;
+  line-height:1;
+  vertical-align:1px;
+}
+.refeed-goal-marker{
+  position:absolute;
+  left:-3px;
+  right:-3px;
+  border-top:2px dashed var(--accent-orange);
+  z-index:4;
+  pointer-events:none;
+}
+.refeed-goal-marker span{
+  position:absolute;
+  right:-2px;
+  bottom:2px;
+  font-size:.42rem;
+  font-weight:1000;
+  color:var(--accent-orange);
+  line-height:1;
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -3482,7 +3524,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 
     const sharedStorageSuffixes = new Set([
       'master_unlocked','user','pass','has_logged_in_before','tour_completed',
-      'bodyweight','meal_definitions','barcode_foods'
+      'bodyweight','meal_definitions','barcode_foods','quick_food_library'
     ]);
 
     function routedStorageKey(key) {
@@ -3503,12 +3545,68 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
       get length(){ return rawLocalStorage.length; }
     };
 
+
+    function mergeSharedQuickFoodLibrary() {
+      const marker = 'schmokefit_unified_quick_food_library_merge_v50';
+      if (rawLocalStorage.getItem(marker) === 'done') return;
+
+      const sharedKey = 'schmokefit_unified_quick_food_library';
+      const sourceKeys = [
+        sharedKey,
+        'schmokefit_unified_greek_quick_food_library',
+        'schmokefit_unified_bahama_quick_food_library',
+        'schmokefit_unified_athlete_quick_food_library',
+        'schmokefit_quick_food_library',
+        'schmokefit_bm_quick_food_library',
+        'schmokefit_aa_quick_food_library'
+      ];
+
+      let merged = [];
+      const seen = new Set();
+      sourceKeys.forEach(key => {
+        try {
+          const items = JSON.parse(rawLocalStorage.getItem(key) || '[]');
+          if (!Array.isArray(items)) return;
+          items.forEach(item => {
+            if (!item || typeof item !== 'object') return;
+            const signature = JSON.stringify([
+              String(item.name || '').trim().toLowerCase(),
+              Number(item.calories) || 0,
+              Number(item.protein) || 0,
+              Number(item.carbs) || 0,
+              Number(item.fat) || 0,
+              String(item.servingText || item.serving || '').trim().toLowerCase()
+            ]);
+            if (seen.has(signature)) {
+              const existing = merged.find(x => x.__sig === signature);
+              if (existing) {
+                if (item.favorite === true || item.isFavorite === true) {
+                  existing.favorite = true;
+                  if ('isFavorite' in existing || 'isFavorite' in item) existing.isFavorite = true;
+                }
+                existing.count = Math.max(Number(existing.count) || 0, Number(item.count) || 0);
+                existing.uses = Math.max(Number(existing.uses) || 0, Number(item.uses) || 0);
+                existing.lastUsed = Math.max(Number(existing.lastUsed) || 0, Number(item.lastUsed) || 0);
+              }
+              return;
+            }
+            seen.add(signature);
+            merged.push({ ...item, __sig: signature });
+          });
+        } catch (e) {}
+      });
+
+      merged = merged.map(({__sig, ...item}) => item);
+      rawLocalStorage.setItem(sharedKey, JSON.stringify(merged));
+      rawLocalStorage.setItem(marker, 'done');
+    }
+
     function migrateLegacyUnifiedData(program) {
       const marker = `schmokefit_unified_${program}_migration_v1`;
       if (rawLocalStorage.getItem(marker) === 'done') return;
       const legacyPrefix = program === 'bahama' ? 'schmokefit_bm_' : (program === 'athlete' ? 'schmokefit_aa_' : 'schmokefit_');
       const programSuffixes = ['week','wk_count','cycle_reset_pending','training_focus','history','workout_cycle','workout_day_names','workout_drafts','workout_skips'];
-      const sharedSuffixes = ['master_unlocked','user','pass','has_logged_in_before','tour_completed','bodyweight','meal_definitions','barcode_foods'];
+      const sharedSuffixes = ['master_unlocked','user','pass','has_logged_in_before','tour_completed','bodyweight','meal_definitions','barcode_foods','quick_food_library'];
       programSuffixes.forEach(suffix => {
         const src = legacyPrefix + suffix;
         const dest = `schmokefit_unified_${program}_${suffix}`;
@@ -3548,6 +3646,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     }
     migrateMovieStarToGreekPhysique();
     migrateLegacyUnifiedData(currentProgram);
+    mergeSharedQuickFoodLibrary();
 
     const greekIntroHtml = "\n\n<div class=\"program-intro-hero\"><img class=\"program-intro-avatar\" src=\"avatar-greek-physique.jpg\" alt=\"Greek Physique program avatar\"><div class=\"program-intro-name\">GREEK PHYSIQUE</div><div class=\"program-intro-tagline\">Chiseled • Proportional • Aesthetic</div></div>\n<!-- MINIMALIST GUIDE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">THE GREEK PHYSIQUE STANDARD</div>\n<p>Inspired by the balanced proportions of classical Greek sculpture, this program is built to develop a physique that looks carved from marble: broad shoulders, a strong chest and back, defined arms, athletic legs, and a lean waist. The goal is not size for size’s sake — it is symmetry, proportion, muscular definition, and timeless aesthetics.</p>\n</div>\n<!-- TRAINING BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">01. TRAINING BLUEPRINT</div>\n<p style=\"margin-bottom: 8px;\"><strong>PHILOSOPHY:</strong> Build the body like a sculptor: prioritize the muscle groups that create classical proportions, train hard enough to force adaptation, and recover enough to grow. Three focused workouts per week keep the program efficient while emphasizing symmetry, shape, and definition.</p>\n<p style=\"margin-bottom: 6px;\"><strong>REVERSE PYRAMID TRAINING (RPT):</strong></p>\n<ul style=\"margin-left: 16px; margin-bottom: 8px;\">\n<li><strong>Set 1 (Heavy):</strong> Target 4\u20136 reps (Heaviest Weight).</li>\n<li><strong>Set 2 (Medium):</strong> Drop weight ~10\u201320%, target 6\u20138 reps.</li>\n<li><strong>Set 3 (Light):</strong> Drop weight another ~10\u201320%, target 8\u201310 reps.</li>\n<li><strong>Rest Period:</strong> Rest 2.5 to 3 minutes between all sets.</li>\n</ul>\n<p style=\"margin-bottom:6px;\"><strong>PROGRESSIVE OVERLOAD:</strong> Reverse pyramid training gives the workout structure; progressive overload is what keeps it moving forward. Aim to improve either <strong>weight or reps every 1\u20132 weeks</strong>.</p>\n<p style=\"margin-bottom:8px;\">When you can complete your <strong>heavy first set at the top of its prescribed rep range</strong> with solid form, increase the weight slightly the next time you perform that lift. Your reps may drop at first\u2014that is normal. Build them back up, then increase the load again.</p>\n<p style=\"font-size:.72rem; color:var(--text-muted); margin-bottom:8px;\"><strong>THE GOAL:</strong> Small, repeatable improvements over time. You do not need a huge jump every workout\u2014just keep giving your body a reason to adapt.</p>\n<p>\u23f1\ufe0f <strong>TIME CRUNCH RULE:</strong> If time is short, perform only the Key Lifts for that day and skip supplemental work.</p>\n</div>\n<!-- TRAINING FOCUS OPTIONS -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">02. CHOOSE YOUR FOCUS</div>\n<p style=\"margin-bottom:8px;\">Greek Physique keeps the core 3-day structure intact while allowing small Monday and Friday adjustments to refine the area that will most improve your overall proportions.</p>\n<p style=\"margin-bottom:5px;\"><strong>SHOULDERS:</strong> Build the broad, capped delts and V-taper that anchor the classical statue silhouette. This is the default focus.</p>\n<p style=\"margin-bottom:5px;\"><strong>ARMS:</strong> Add proportionate biceps and triceps development for defined, sculpted arms without overpowering the torso.</p>\n<p style=\"margin-bottom:5px;\"><strong>CHEST:</strong> Emphasize a full, powerful chest — especially the upper torso — to strengthen the armor-like Greek aesthetic.</p>\n<p style=\"margin-bottom:8px;\"><strong>LEGS:</strong> Build athletic quads and hamstrings so the lower body matches the upper body and the entire physique stays balanced.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\">Wednesday stays essentially the same across every focus. Your key lifts and overall workout length stay intact; only a small amount of Monday and Friday accessory work changes. You can switch focus anytime from the Workout tab.</p>\n</div>\n<!-- 18-WEEK TRAINING CYCLE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. THE 18-WEEK RESET</div>\n<p style=\"margin-bottom:8px;\"><strong>TRAIN IN BLOCKS:</strong> Greek Physique is designed as an 18-week sculpting cycle rather than one workout plan you repeat forever.</p>\n<p style=\"margin-bottom:8px;\">After you complete <strong>Week 18</strong>, the app will prompt you to either keep your current training focus or choose a new focus: <strong>Shoulders, Arms, Chest, or Legs.</strong></p>\n<p style=\"margin-bottom:8px;\">Once you make your selection, your program automatically resets to <strong>Week 1</strong> for a fresh 18-week block. The core program stays familiar, while the focus option makes small changes to Monday and Friday so you can emphasize a different area without completely changing what works.</p>\n<p style=\"font-size:0.72rem; color:var(--text-muted);\"><strong>WHY RESET?</strong> It gives you a clear finish line, a chance to reassess your goals, and a simple way to refresh your training instead of running the exact same emphasis indefinitely.</p>\n</div>\n<!-- NUTRITION BLUEPRINT -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">03. NO-BS NUTRITION BLUEPRINT</div>\n<p style=\"margin-bottom:8px;\">When the goal is to <strong>get lean while building or preserving muscle</strong>, keep the nutrition plan simple: create a modest calorie deficit while consistently eating enough protein to support training and recovery.</p>\n<p style=\"margin-bottom:8px;\">These bodyweight-based calculations give you an easy starting point. The same approach can also be adjusted when your goal changes from fat loss to maintaining your weight or moving into a slight calorie surplus.</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Fat Loss / Deficit:</strong> Bodyweight (lbs) \u00d7 13 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Maintenance:</strong> Bodyweight (lbs) \u00d7 15 calories</p>\n<p style=\"margin-bottom:4px;\">\u2022 <strong>Slight Surplus:</strong> Bodyweight (lbs) \u00d7 17 calories</p>\n<p style=\"margin-bottom:8px;\">\u2022 <strong>Protein Target:</strong> Bodyweight (lbs) \u00d7 0.82g</p>\n<p style=\"font-size:0.72rem; color:#64748b; margin-bottom:10px;\">*These are simple starting estimates. Adjust based on your progress, activity level, and goal. Use your target bodyweight if you have significant weight to lose.</p>\n<p><strong>TRACKING &amp; FLEXIBLE EATING:</strong></p>\n<ul style=\"margin-left: 16px; margin-top: 4px;\">\n<li><strong>Tracking App:</strong> You can log and track your calories, protein, and food directly inside SchmokeFit from the <strong>Macros</strong> tab.</li>\n<li><strong>Food Scale:</strong> Recommended for weighing food precisely at home.</li>\n<li><strong>Flexible Nutrition:</strong> You don't need 100% \"clean\" meals. Fast food like McDonald's works as long as it fits your daily calorie and protein targets!</li>\n<li><strong>Strategic Refeed Day:</strong> After at least two weeks of consistent tracking in a calorie deficit, you may add one refeed day per week. Increase your target by <strong>600 calories</strong>, with most of those extra calories coming from carbohydrates. This can help replenish glycogen stores, support training performance, and make a long deficit easier to stick with. A great place for the refeed is the day before your third workout—for example, Thursday if you train Friday.</li>\n</ul>\n</div>\n<!-- PHASE PROGRESSION -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">05. PHASE PROGRESSION</div>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>Weeks 1\u201310 (The Fat Loss Deficit):</strong> Maintain a consistent caloric deficit while preserving dense muscle mass.</p>\n<p style=\"margin-bottom: 8px;\">\u2022 <strong>Weeks 11\u201318 (The Recomp Phase):</strong> SchmokeFit automatically raises your daily calorie target by <strong>200 calories every two weeks</strong>: +200 in Weeks 11\u201312, +400 in Weeks 13\u201314, +600 in Weeks 15\u201316, and +800 in Weeks 17\u201318. You do not need to adjust the target manually.</p>\n<p>\u2022 <strong>Reset &amp; Repeat:</strong> Recalculate using Bodyweight \u00d7 13 at your new lean weight and repeat as needed.</p>\n</div>\n<!-- RECOVERY NOTE -->\n<div class=\"card info-card\">\n<div class=\"info-subtitle\">OFF DAYS &amp; RECOVERY</div>\n<p>Recovery is an important part of the program, but an off day does not have to mean doing nothing. Walking, cardio, mobility work, recreational activity, or simply taking a full rest day can all be great options depending on how you feel and what fits your goals. The main idea is to give your muscles and nervous system a break from additional high-stress resistance training so you are ready to perform well in your next scheduled workout. Use these days in the way that works best for you—whether that means getting your steps in, enjoying some cardio, staying lightly active, or prioritizing complete rest.</p>\n</div>\n\n<div style=\"margin:14px 0 6px;\">\n  <button class=\"btn btn-blue\" style=\"width:100%; min-height:48px; font-size:.78rem; font-weight:900;\"\n    onclick=\"continueFromIntro();\">\n    CONTINUE INTO THE APP \u2192\n  </button>\n</div>\n<div style=\"margin:6px 0 0; text-align:center;\">\n  <button class=\"app-tour-replay-small\" type=\"button\" onclick=\"startAppTour(true)\">REPLAY APP TOUR</button>\n</div>\n";
     const athleteIntroHtml = `
@@ -5126,7 +5225,13 @@ function onRepsEntered(exerciseIndex, repInput) {
     }
 
     function isRefeedDay(dateStamp) {
-      return appStorage.getItem(refeedDateKey(dateStamp)) === 'true';
+      if (appStorage.getItem(refeedDateKey(dateStamp)) === 'true') return true;
+      try {
+        const meta = JSON.parse(appStorage.getItem(nutritionMetaKey(dateStamp)) || 'null');
+        return meta?.refeed === true;
+      } catch (e) {
+        return false;
+      }
     }
 
     function toggleRefeedDay() {
@@ -6632,15 +6737,35 @@ function onRepsEntered(exerciseIndex, repInput) {
       return new Date(date.getFullYear(), Math.floor(date.getMonth() / 3) * 3, 1);
     }
 
+    function nutritionGraphGoalsForDate(stamp) {
+      const todayStamp = localDateStamp(new Date());
+
+      // For TODAY, always use the exact same live goal calculation shown on the
+      // Nutrition dashboard. This prevents an older saved/meta target from
+      // overriding today's +600 refeed target in the graph.
+      if (stamp === todayStamp) {
+        return { ...(getNutritionGoals(stamp) || {}) };
+      }
+
+      // Past dates use their saved historical goal. The refeed flag remains
+      // available independently so archived refeed days retain their identity.
+      return { ...(getNutritionGoalsForDate(stamp) || {}) };
+    }
+
     function periodDailyRow(date) {
       const stamp = localDateStamp(date);
       const totals = nutritionTotalsFromLog(getNutritionLogForDate(stamp));
+      const goals = nutritionGraphGoalsForDate(stamp);
+      const refeed = isRefeedDay(stamp);
       return {
         date,
         stamp,
         sourceStamps: [stamp],
         calories: Math.round(totals.calories),
-        protein: round1(totals.protein)
+        protein: round1(totals.protein),
+        calorieGoal: Number(goals?.calories) || 0,
+        proteinGoal: Number(goals?.protein) || 0,
+        refeed
       };
     }
 
@@ -6654,7 +6779,10 @@ function onRepsEntered(exerciseIndex, repInput) {
         const sourceStamps = [];
         let calorieTotal = 0;
         let proteinTotal = 0;
+        let calorieGoalTotal = 0;
+        let proteinGoalTotal = 0;
         let loggedDays = 0;
+        let refeedDays = 0;
 
         for (let d = new Date(bucketStart); d <= bucketEnd; d = addDays(d, 1)) {
           const stamp = localDateStamp(d);
@@ -6663,8 +6791,12 @@ function onRepsEntered(exerciseIndex, repInput) {
           const hasFood = Object.values(getNutritionLogForDate(stamp) || {})
             .some(items => Array.isArray(items) && items.length > 0);
           if (hasFood) {
+            const goals = nutritionGraphGoalsForDate(stamp);
             calorieTotal += Number(totals.calories) || 0;
             proteinTotal += Number(totals.protein) || 0;
+            calorieGoalTotal += Number(goals?.calories) || 0;
+            proteinGoalTotal += Number(goals?.protein) || 0;
+            if (isRefeedDay(stamp)) refeedDays += 1;
             loggedDays += 1;
           }
         }
@@ -6675,6 +6807,10 @@ function onRepsEntered(exerciseIndex, repInput) {
           sourceStamps,
           calories: loggedDays ? Math.round(calorieTotal / loggedDays) : 0,
           protein: loggedDays ? round1(proteinTotal / loggedDays) : 0,
+          calorieGoal: loggedDays ? Math.round(calorieGoalTotal / loggedDays) : 0,
+          proteinGoal: loggedDays ? round1(proteinGoalTotal / loggedDays) : 0,
+          refeed: refeedDays > 0,
+          refeedDays,
           shortLabel: bucketStart.toLocaleDateString('en-US', { month:'short', day:'numeric' }),
           subLabel: loggedDays ? `${loggedDays}d` : '—'
         });
@@ -6735,7 +6871,7 @@ function onRepsEntered(exerciseIndex, repInput) {
 
       const calorieNote = document.getElementById('calorieChartRangeNote');
       const proteinNote = document.getElementById('proteinChartRangeNote');
-      if (calorieNote) calorieNote.innerText = chartNote;
+      if (calorieNote) calorieNote.innerText = `${chartNote} • R = refeed day`;
       if (proteinNote) proteinNote.innerText = chartNote;
 
       calorieChart.classList.remove('period-week','period-month','period-quarter');
@@ -6765,7 +6901,10 @@ function onRepsEntered(exerciseIndex, repInput) {
       const ratio = value / goal;
 
       if (metric === 'calories') {
-        if (ratio > 1) return 'status-red';
+        // Allow a small 2% tracking buffer above the day's actual calorie target.
+        // This applies equally to normal days and refeed days because `goal`
+        // is already the per-day target used by the graph.
+        if (ratio > 1.02) return 'status-red';
         if (ratio >= 0.85) return 'status-green';
         return 'status-blue';
       }
@@ -6780,6 +6919,8 @@ function onRepsEntered(exerciseIndex, repInput) {
     function renderWeeklyNutritionBars(container, rows, metric, goal) {
       const values = rows.map(r => Number(r[metric]) || 0);
       const highestValue = Math.max(...values, 0);
+      const rowGoals = rows.map(r => Number(metric === 'calories' ? r.calorieGoal : r.proteinGoal) || goal || 0);
+      const highestGoal = Math.max(...rowGoals, goal || 0);
 
       const buffer = metric === 'calories' ? 1000 : 50;
       const step = metric === 'calories' ? 500 : 25;
@@ -6788,7 +6929,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       // Every day in the selected week uses the same zero-based scale.
       // Normally the ceiling is the goal + buffer, and it expands if needed.
       const maxValue = niceCeiling(
-        Math.max(minimumCeiling, goal + buffer, highestValue),
+        Math.max(minimumCeiling, highestGoal + buffer, highestValue),
         step
       );
 
@@ -6823,15 +6964,27 @@ function onRepsEntered(exerciseIndex, repInput) {
         const valueLabel = metric === 'calories' ? Math.round(value).toLocaleString() : `${round1(value)}g`;
         const dayLabel = row.shortLabel || row.date.toLocaleDateString('en-US', { weekday: 'short' });
         const dateLabel = row.subLabel || row.date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
-        const statusClass = nutritionBarStatus(value, goal, metric);
+        const isRefeed = metric === 'calories' && !!row.refeed;
+        let rowGoal = Number(metric === 'calories' ? row.calorieGoal : row.proteinGoal) || goal;
+        if (isRefeed && row.stamp) {
+          const refeedGoals = nutritionGraphGoalsForDate(row.stamp);
+          rowGoal = Number(refeedGoals?.calories) || rowGoal;
+        }
+        const statusClass = nutritionBarStatus(value, rowGoal, metric);
+        const goalLabel = metric === 'calories' ? Math.round(rowGoal).toLocaleString() : `${round1(rowGoal)}g`;
+        const refeedLabel = isRefeed
+          ? (row.refeedDays > 1 ? `REFEED ×${row.refeedDays}` : 'REFEED')
+          : '';
+        const tooltipRefeed = isRefeed ? ` • ${refeedLabel} TARGET: ${Math.round(rowGoal).toLocaleString()}` : '';
 
         return `
-          <div class="weekly-bar-col" title="${dayLabel} ${dateLabel}: ${valueLabel} • Goal: ${metric === 'calories' ? Math.round(goal) : round1(goal)}">
+          <div class="weekly-bar-col ${isRefeed ? 'refeed-bar-col' : ''}" data-chart-goal="${rowGoal}" data-refeed="${isRefeed ? 'true' : 'false'}" title="${dayLabel} ${dateLabel}: ${valueLabel} • Goal: ${goalLabel}${tooltipRefeed}">
             <div class="weekly-bar-value">${value > 0 ? valueLabel : '—'}</div>
             <div class="weekly-bar-track">
+              ${isRefeed ? `<div class="refeed-goal-marker" style="bottom:${Math.min(100, Math.max(0, rowGoal / maxValue * 100))}%"><span>R</span></div>` : ''}
               <div class="weekly-bar-fill ${statusClass}" style="height:${height}%"></div>
             </div>
-            <div class="weekly-bar-day">${dayLabel}</div>
+            <div class="weekly-bar-day">${dayLabel}${isRefeed ? '<span class="refeed-day-badge">R</span>' : ''}</div>
             <div class="weekly-bar-date">${dateLabel}</div>
           </div>
         `;
