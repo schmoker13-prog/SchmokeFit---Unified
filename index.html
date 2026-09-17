@@ -2805,6 +2805,54 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+
+<style>
+/* v43 — tighter phone set spacing (keep compact header + previous-session values) */
+@media (max-width:600px){
+  .exercise-card .set-row,
+  .exercise-card .athlete-set-row{
+    min-height:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:5px 0!important;
+    row-gap:0!important;
+  }
+
+  .exercise-card .set-row + .set-row,
+  .exercise-card .athlete-set-row + .athlete-set-row{
+    margin-top:0!important;
+  }
+
+  .exercise-card .set-label,
+  .exercise-card .prev-val-box,
+  .exercise-card .set-input-group{
+    margin-top:0!important;
+    margin-bottom:0!important;
+  }
+
+  .exercise-card .prev-val-box{
+    min-height:30px!important;
+    height:30px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+  }
+
+  .exercise-card .set-input{
+    min-height:44px!important;
+    height:44px!important;
+    margin:0!important;
+  }
+
+  /* Reduce unused space between the compact header and first set as well. */
+  .exercise-card .exercise-header{
+    margin-bottom:4px!important;
+    padding-bottom:0!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
