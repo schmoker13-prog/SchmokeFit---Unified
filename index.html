@@ -2662,6 +2662,61 @@ body.program-bahama .completion-check{border-color:rgba(53,208,186,.72);backgrou
 body.program-athlete .completion-kicker{color:#39d353}
 body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);background:rgba(57,211,83,.12);color:#edfff0}
 </style>
+
+<style>
+/* v41 — mobile exercise headers: keep every workout control on-screen */
+@media (max-width: 600px) {
+  .exercise-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .exercise-card .exercise-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 9px !important;
+    align-items: stretch !important;
+  }
+
+  .exercise-card .exercise-select-dropdown {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .exercise-card .exercise-header-controls {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .exercise-card .exercise-header-controls .badge {
+    margin-right: auto !important;
+  }
+
+  .exercise-card .smart-rest-btn,
+  .exercise-card .btn-danger-sm,
+  .exercise-card .exercise-move-btn,
+  .exercise-card .reorder-btn {
+    flex: 0 0 auto !important;
+  }
+
+  /* The reorder controls added in v33+ are appended to the header.
+     On phones they get a dedicated full-width row beneath the name/controls. */
+  .exercise-card .exercise-reorder-controls {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
