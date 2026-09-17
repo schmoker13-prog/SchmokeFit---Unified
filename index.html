@@ -2329,6 +2329,235 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="SchmokeFit" name="apple-mobile-web-app-title"/>
+<style>
+/* v25: compact sticky Calories + Protein summary */
+#stickyMacroSummary{position:fixed;left:20px;top:var(--macro-sticky-top,0px);transform:translateY(-8px);z-index:990;width:min(calc(100% - 40px),648px);box-sizing:border-box;display:flex;justify-content:center;align-items:center;gap:16px;padding:9px 14px;background:rgba(10,18,27,.97);border:1px solid rgba(91,155,213,.48);border-radius:0 0 14px 14px;box-shadow:0 8px 20px rgba(0,0,0,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;transition:.16s ease}
+#stickyMacroSummary.visible{opacity:1;visibility:visible;transform:translateY(0)}
+#stickyMacroSummary>div{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.sticky-macro-label{font-size:.61rem;font-weight:900;letter-spacing:.07em;color:#9fb2c6}
+.sticky-macro-value{font-size:.92rem;font-weight:950;color:#f5f7fb}
+.sticky-macro-divider{width:1px;height:21px;background:rgba(159,178,198,.25)}
+body.program-bahama #stickyMacroSummary{border-color:rgba(53,208,186,.48)}
+body.program-athlete #stickyMacroSummary{border-color:rgba(57,211,83,.48)}
+@media(max-width:480px){#stickyMacroSummary{gap:10px;padding:9px 10px}.sticky-macro-label{font-size:.56rem}.sticky-macro-value{font-size:.86rem}}
+</style>
+<style>
+/* v28 — Extra Activity Logger */
+.extra-activity-modal{max-width:620px}
+.extra-activity-kicker{font-size:.7rem;font-weight:900;letter-spacing:.12em;color:var(--accent-blue);margin-bottom:6px}
+.extra-activity-copy{color:#aeb9c5;font-size:.86rem;line-height:1.45;margin:0 0 16px}
+.extra-activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.extra-activity-grid button{min-height:104px;border:1px solid var(--card-border);border-radius:14px;background:#101820;color:#fff;padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:1.35rem}
+.extra-activity-grid button b{font-size:.75rem;letter-spacing:.04em}
+.extra-activity-grid button span{font-size:.67rem;color:#94a3b8;font-weight:700}
+.activity-form{display:grid;gap:14px}
+.activity-form label{font-size:.7rem;font-weight:900;letter-spacing:.06em;color:#aeb9c5}
+.activity-form input,.activity-form select,.activity-form textarea{width:100%;box-sizing:border-box;margin-top:6px}
+.activity-two-col{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.activity-time-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto;align-items:center;gap:6px}
+.activity-time-row span{font-size:.68rem;color:#94a3b8}
+.activity-result{padding:14px;border:1px solid var(--accent-blue);border-radius:12px;text-align:center;font-weight:950;color:#fff;background:rgba(91,155,213,.08)}
+.activity-result small{display:block;color:#94a3b8;font-size:.64rem;letter-spacing:.08em;margin-bottom:4px}
+.activity-save-btn{width:100%}
+.optional{font-weight:700;color:#718096}
+@media(max-width:480px){.extra-activity-grid{grid-template-columns:1fr 1fr}.extra-activity-grid button{min-height:96px;padding:10px 6px}.activity-two-col{grid-template-columns:1.7fr 1fr}}
+</style>
+<style>
+/* v29 — ensure new Extra Activity interfaces behave as true modals */
+#extraActivityPickerOverlay,
+#cardioActivityOverlay{
+  display:none !important;
+  position:fixed;
+  inset:0;
+  z-index:2200;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+  background:rgba(0,0,0,.72);
+  overflow-y:auto;
+}
+#extraActivityPickerOverlay.open,
+#cardioActivityOverlay.open{
+  display:flex !important;
+}
+#extraActivityPickerOverlay .extra-activity-modal,
+#cardioActivityOverlay .extra-activity-modal{
+  width:min(100%,620px);
+  max-height:calc(100vh - 40px);
+  overflow-y:auto;
+  margin:auto;
+}
+</style>
+<style>
+/* v31 — Extra Activity forms now match the SchmokeFit program UI */
+#extraActivityPickerOverlay .extra-activity-modal,
+#cardioActivityOverlay .extra-activity-modal{
+  width:min(calc(100vw - 40px), 560px) !important;
+  max-width:560px !important;
+  box-sizing:border-box;
+  border-radius:18px;
+  border:1px solid var(--card-border);
+  background:var(--card-bg);
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+}
+
+#cardioActivityOverlay .activity-form input,
+#cardioActivityOverlay .activity-form select,
+#cardioActivityOverlay .activity-form textarea{
+  appearance:none;
+  -webkit-appearance:none;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  padding:12px 13px;
+  margin-top:6px;
+  border-radius:10px;
+  border:1px solid var(--input-border);
+  background:var(--input-bg);
+  color:#fff;
+  font-family:inherit;
+  font-size:.92rem;
+  font-weight:700;
+  outline:none;
+  box-shadow:none;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+#cardioActivityOverlay .activity-form textarea{
+  resize:vertical;
+  min-height:82px;
+  line-height:1.4;
+}
+#cardioActivityOverlay .activity-form input::placeholder,
+#cardioActivityOverlay .activity-form textarea::placeholder{
+  color:#6f7d8b;
+  opacity:1;
+}
+#cardioActivityOverlay .activity-form input:focus,
+#cardioActivityOverlay .activity-form select:focus,
+#cardioActivityOverlay .activity-form textarea:focus{
+  border-color:var(--accent-blue);
+  box-shadow:0 0 0 2px rgba(91,155,213,.13);
+}
+#cardioActivityOverlay .activity-time-row input{
+  text-align:center;
+  padding-left:6px;
+  padding-right:6px;
+}
+#cardioActivityOverlay .activity-result{
+  border-color:var(--accent-blue);
+}
+
+/* Program-specific focus/accent treatment */
+body.program-bahama #cardioActivityOverlay .activity-form input:focus,
+body.program-bahama #cardioActivityOverlay .activity-form select:focus,
+body.program-bahama #cardioActivityOverlay .activity-form textarea:focus{
+  border-color:#35d0ba;
+  box-shadow:0 0 0 2px rgba(53,208,186,.13);
+}
+body.program-bahama #cardioActivityOverlay .activity-result{border-color:#35d0ba}
+body.program-athlete #cardioActivityOverlay .activity-form input:focus,
+body.program-athlete #cardioActivityOverlay .activity-form select:focus,
+body.program-athlete #cardioActivityOverlay .activity-form textarea:focus{
+  border-color:#39d353;
+  box-shadow:0 0 0 2px rgba(57,211,83,.13);
+}
+body.program-athlete #cardioActivityOverlay .activity-result{border-color:#39d353}
+
+@media(max-width:480px){
+  #extraActivityPickerOverlay,
+  #cardioActivityOverlay{padding:20px !important}
+  #extraActivityPickerOverlay .extra-activity-modal,
+  #cardioActivityOverlay .extra-activity-modal{
+    width:100% !important;
+    max-width:100% !important;
+    border-radius:16px;
+  }
+  #cardioActivityOverlay .activity-form input,
+  #cardioActivityOverlay .activity-form select,
+  #cardioActivityOverlay .activity-form textarea{
+    font-size:16px; /* prevents iOS zoom while retaining app styling */
+  }
+}
+</style>
+<style>
+/* v32 — polish Extra Activity actions + close control */
+#extraActivityPickerOverlay .modal-close,
+#cardioActivityOverlay .modal-close{
+  position:absolute !important;
+  top:14px !important;
+  right:14px !important;
+  width:34px !important;
+  height:34px !important;
+  min-width:34px !important;
+  padding:0 !important;
+  margin:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:10px !important;
+  border:1px solid rgba(91,155,213,.42) !important;
+  background:#101820 !important;
+  color:#dce8f3 !important;
+  font-size:1.25rem !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+  box-shadow:none !important;
+  z-index:5;
+}
+#extraActivityPickerOverlay .extra-activity-modal,
+#cardioActivityOverlay .extra-activity-modal{
+  position:relative;
+  padding-top:22px;
+}
+#cardioActivityOverlay .activity-save-btn{
+  min-height:46px;
+  border-radius:11px !important;
+  border:1px solid rgba(91,155,213,.72) !important;
+  background:rgba(91,155,213,.14) !important;
+  color:#eaf4ff !important;
+  font-family:inherit;
+  font-size:.82rem;
+  font-weight:950;
+  letter-spacing:.06em;
+  box-shadow:0 0 0 1px rgba(91,155,213,.05) inset !important;
+}
+#cardioActivityOverlay .activity-save-btn:hover,
+#cardioActivityOverlay .activity-save-btn:focus{
+  background:rgba(91,155,213,.22) !important;
+  box-shadow:0 0 12px rgba(91,155,213,.16) !important;
+}
+body.program-bahama #extraActivityPickerOverlay .modal-close,
+body.program-bahama #cardioActivityOverlay .modal-close{
+  border-color:rgba(53,208,186,.55) !important;
+  color:#dffbf6 !important;
+}
+body.program-bahama #cardioActivityOverlay .activity-save-btn{
+  border-color:rgba(53,208,186,.72) !important;
+  background:rgba(53,208,186,.14) !important;
+  color:#e8fffb !important;
+}
+body.program-bahama #cardioActivityOverlay .activity-save-btn:hover,
+body.program-bahama #cardioActivityOverlay .activity-save-btn:focus{
+  background:rgba(53,208,186,.22) !important;
+  box-shadow:0 0 12px rgba(53,208,186,.16) !important;
+}
+body.program-athlete #extraActivityPickerOverlay .modal-close,
+body.program-athlete #cardioActivityOverlay .modal-close{
+  border-color:rgba(57,211,83,.55) !important;
+  color:#e7ffeb !important;
+}
+body.program-athlete #cardioActivityOverlay .activity-save-btn{
+  border-color:rgba(57,211,83,.72) !important;
+  background:rgba(57,211,83,.14) !important;
+  color:#edfff0 !important;
+}
+body.program-athlete #cardioActivityOverlay .activity-save-btn:hover,
+body.program-athlete #cardioActivityOverlay .activity-save-btn:focus{
+  background:rgba(57,211,83,.22) !important;
+  box-shadow:0 0 12px rgba(57,211,83,.16) !important;
+}
+</style>
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -2554,7 +2783,7 @@
 </div>
 </div>
 <div class="extra-workout-list" id="extraWorkoutList"></div>
-<button class="btn btn-outline extra-add-btn" id="addExtraWorkoutBtn" onclick="startExtraWorkout()">+ ADD EXTRA WORKOUT</button>
+<button class="btn btn-outline extra-add-btn" id="addExtraWorkoutBtn" onclick="openExtraActivityPicker()">+ EXTRA WORKOUT / CARDIO SESSION</button>
 </div><div class="workout-cycle-actions">
 <button class="btn btn-blue" id="startNextWeekBtn" onclick="advanceActiveWorkoutWeek()">START NEXT WEEK →</button>
 <button class="btn btn-outline" onclick="requestManualNewCycle()">↻ START NEW 18-WEEK CYCLE</button>
@@ -2605,6 +2834,11 @@
 </div>
 <!-- 03. MACROS TAB -->
 <div class="tab-content" id="macrosTab">
+<div id="stickyMacroSummary" class="sticky-macro-summary" aria-hidden="true">
+  <div><span class="sticky-macro-label">CALORIES</span><span id="stickyMacroCalories" class="sticky-macro-value">0 / 0</span></div>
+  <span class="sticky-macro-divider"></span>
+  <div><span class="sticky-macro-label">PROTEIN</span><span id="stickyMacroProtein" class="sticky-macro-value">0 / 0g</span></div>
+</div>
 <div class="section-title-banner">03. DYNAMIC MACRO CALCULATOR</div>
 <div class="card">
 <div style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); margin-bottom:8px;">DAILY CALCULATOR</div>
@@ -8562,5 +8796,268 @@ function finishAppTour() {
     <button class="btn btn-blue" type="button" style="width:100%;" onclick="closePhaseTransitionPopup()">START PHASE 2 →</button>
   </div>
 </div>
+<script>
+/* v25: show compact totals only after the full totals have scrolled under the sticky header */
+(function(){
+  function macroVisible(){
+    const el=document.getElementById('macrosTab');
+    if(!el) return false;
+    const s=getComputedStyle(el);
+    return s.display!=='none' && s.visibility!=='hidden';
+  }
+  function headerBottom(){
+    let bottom=0;
+    const bar=document.getElementById('stickyMacroSummary');
+
+    /* Only count persistent top-of-app sticky/fixed UI.
+       Temporary alerts/overlays (including TIME'S UP) must never move this bar. */
+    document.querySelectorAll('header, nav, .app-header, .main-header, .top-header, .tabs, .tab-nav, .top-nav, [class*="header"], [class*="tabs"]').forEach(el=>{
+      if(el===bar || bar?.contains(el)) return;
+      const s=getComputedStyle(el);
+      if(s.position!=='fixed' && s.position!=='sticky') return;
+      if(s.display==='none' || s.visibility==='hidden') return;
+      const r=el.getBoundingClientRect();
+      if(r.width<=0 || r.height<=0 || r.bottom<=0) return;
+
+      const declaredTop=parseFloat(s.top);
+      const target=Number.isFinite(declaredTop)?declaredTop:0;
+      if(r.top<=Math.max(target,bottom)+3) bottom=Math.max(bottom,r.bottom);
+    });
+
+    return Math.max(0,Math.round(bottom));
+  }
+  function updateStickyMacro(){
+    const bar=document.getElementById('stickyMacroSummary');
+    if(!bar) return;
+    const cal=document.getElementById('nutritionCalories');
+    const pro=document.getElementById('nutritionProtein');
+    if(cal) document.getElementById('stickyMacroCalories').textContent=cal.textContent.trim();
+    if(pro) document.getElementById('stickyMacroProtein').textContent=pro.textContent.trim();
+
+    if(!macroVisible()){bar.classList.remove('visible');bar.setAttribute('aria-hidden','true');return;}
+    const top=headerBottom();
+    document.documentElement.style.setProperty('--macro-sticky-top',(top+2)+'px');
+
+    /* Match the width/alignment of the normal content cards on screen. */
+    const macroTab=document.getElementById('macrosTab');
+    const referenceCard=macroTab?.querySelector('.card');
+    const refRect=referenceCard?.getBoundingClientRect();
+    if(refRect && refRect.width>0){
+      bar.style.left=refRect.left+'px';
+      bar.style.width=refRect.width+'px';
+      bar.style.transform='translateY(-8px)';
+    }
+
+    /* Both large Calories/Protein cards share the same row; use their stat row as trigger. */
+    const trigger=cal?.closest('.nutrition-stats') || cal?.parentElement || cal;
+    const rect=trigger?.getBoundingClientRect();
+    const show=!!rect && rect.bottom<=top+2;
+    bar.classList.toggle('visible',show);
+    bar.setAttribute('aria-hidden',show?'false':'true');
+  }
+  let raf=0;
+  function schedule(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;updateStickyMacro();});}
+  addEventListener('scroll',schedule,{passive:true});
+  addEventListener('resize',schedule,{passive:true});
+  document.addEventListener('click',()=>setTimeout(schedule,0));
+  document.addEventListener('input',()=>setTimeout(schedule,0));
+  document.addEventListener('DOMContentLoaded',schedule);
+  setInterval(()=>{if(macroVisible()) updateStickyMacro();},1000);
+})();
+</script>
+
+<div class="overlay" id="extraActivityPickerOverlay" aria-hidden="true" onclick="closeExtraActivityPickerIfBackdrop(event)">
+  <div class="modal extra-activity-modal">
+    <button class="modal-close" onclick="closeExtraActivityPicker()">×</button>
+    <div class="extra-activity-kicker">EXTRA ACTIVITY</div>
+    <h2>WHAT DID YOU DO?</h2>
+    <p class="extra-activity-copy">Log something outside your programmed workouts. Extra activities never affect required workout completion.</p>
+    <div class="extra-activity-grid">
+      <button onclick="chooseExtraActivity('strength')">🏋️<b>STRENGTH</b><span>Custom exercises</span></button>
+      <button onclick="chooseExtraActivity('run')">🏃<b>RUN / TREADMILL</b><span>Distance • time • pace</span></button>
+      <button onclick="chooseExtraActivity('bike')">🚴<b>BIKE</b><span>Distance • time • speed</span></button>
+      <button onclick="chooseExtraActivity('row')">🚣<b>ROW</b><span>Distance • time • /500m</span></button>
+      <button onclick="chooseExtraActivity('cardio')">❤️<b>OTHER CARDIO</b><span>Duration • optional distance</span></button>
+      <button onclick="chooseExtraActivity('manual')">✏️<b>MANUAL ACTIVITY</b><span>Name • duration • notes</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="cardioActivityOverlay" aria-hidden="true" onclick="closeCardioActivityIfBackdrop(event)">
+  <div class="modal extra-activity-modal">
+    <button class="modal-close" onclick="closeCardioActivity()">×</button>
+    <div class="extra-activity-kicker" id="cardioActivityKicker">EXTRA ACTIVITY</div>
+    <h2 id="cardioActivityTitle">RUN / TREADMILL</h2>
+    <div class="activity-form">
+      <label id="activityNameWrap" style="display:none">ACTIVITY NAME<input id="activityNameInput" type="text" placeholder="e.g. Stair Climber"></label>
+      <div class="activity-two-col" id="activityDistanceRow">
+        <label>DISTANCE<input id="activityDistance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="3.10" oninput="updateActivityCalculatedMetric()"></label>
+        <label>UNIT<select id="activityDistanceUnit" onchange="updateActivityCalculatedMetric()"><option value="mi">miles</option><option value="km">km</option><option value="m">meters</option></select></label>
+      </div>
+      <label>DURATION
+        <div class="activity-time-row">
+          <input id="activityHours" type="number" inputmode="numeric" min="0" placeholder="0" oninput="updateActivityCalculatedMetric()"><span>hr</span>
+          <input id="activityMinutes" type="number" inputmode="numeric" min="0" max="59" placeholder="24" oninput="updateActivityCalculatedMetric()"><span>min</span>
+          <input id="activitySeconds" type="number" inputmode="numeric" min="0" max="59" placeholder="32" oninput="updateActivityCalculatedMetric()"><span>sec</span>
+        </div>
+      </label>
+      <div class="activity-result" id="activityCalculatedMetric" style="display:none"></div>
+      <label>NOTES <span class="optional">(OPTIONAL)</span><textarea id="activityNotes" rows="3" placeholder="Easy Zone 2, intervals, how it felt..."></textarea></label>
+      <button class="btn-primary activity-save-btn" onclick="saveExtraCardioActivity()">SAVE ACTIVITY</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* v28 — Extra Activity Logger */
+let selectedExtraActivityType='run';
+
+function openExtraActivityPicker(){
+  const el=document.getElementById('extraActivityPickerOverlay');
+  if(el){el.classList.add('open');el.setAttribute('aria-hidden','false');}
+}
+function closeExtraActivityPicker(){
+  const el=document.getElementById('extraActivityPickerOverlay');
+  if(el){el.classList.remove('open');el.setAttribute('aria-hidden','true');}
+}
+function closeExtraActivityPickerIfBackdrop(e){if(e.target?.id==='extraActivityPickerOverlay')closeExtraActivityPicker();}
+function closeCardioActivity(){
+  const el=document.getElementById('cardioActivityOverlay');
+  if(el){el.classList.remove('open');el.setAttribute('aria-hidden','true');}
+}
+function closeCardioActivityIfBackdrop(e){if(e.target?.id==='cardioActivityOverlay')closeCardioActivity();}
+
+function chooseExtraActivity(type){
+  closeExtraActivityPicker();
+  if(type==='strength'){
+    /* Start the app's existing NEW custom strength workout flow. */
+    if(typeof startExtraWorkout==='function') return startExtraWorkout();
+    return;
+  }
+  selectedExtraActivityType=type;
+  const titles={run:'RUN / TREADMILL',bike:'BIKE',row:'ROW',cardio:'OTHER CARDIO',manual:'MANUAL ACTIVITY'};
+  document.getElementById('cardioActivityTitle').textContent=titles[type]||'EXTRA ACTIVITY';
+  document.getElementById('activityNameWrap').style.display=(type==='cardio'||type==='manual')?'block':'none';
+  document.getElementById('activityDistanceRow').style.display=type==='manual'?'none':'grid';
+  const unit=document.getElementById('activityDistanceUnit');
+  unit.innerHTML=type==='row'
+    ? '<option value="m">meters</option><option value="km">km</option>'
+    : '<option value="mi">miles</option><option value="km">km</option><option value="m">meters</option>';
+  document.getElementById('activityDistance').value='';
+  document.getElementById('activityHours').value='';
+  document.getElementById('activityMinutes').value='';
+  document.getElementById('activitySeconds').value='';
+  document.getElementById('activityNameInput').value='';
+  document.getElementById('activityNotes').value='';
+  updateActivityCalculatedMetric();
+  const overlay=document.getElementById('cardioActivityOverlay');
+  if(overlay){overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');}
+}
+
+function activityDurationSeconds(){
+  return (Number(document.getElementById('activityHours')?.value)||0)*3600+
+         (Number(document.getElementById('activityMinutes')?.value)||0)*60+
+         (Number(document.getElementById('activitySeconds')?.value)||0);
+}
+function formatActivityDuration(sec){
+  sec=Math.max(0,Math.round(sec)); const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  return h?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`;
+}
+function activityMiles(distance,unit){
+  if(unit==='mi')return distance;
+  if(unit==='km')return distance/1.609344;
+  return distance/1609.344;
+}
+function updateActivityCalculatedMetric(){
+  const box=document.getElementById('activityCalculatedMetric');
+  if(!box)return;
+  const d=Number(document.getElementById('activityDistance')?.value)||0;
+  const unit=document.getElementById('activityDistanceUnit')?.value||'mi';
+  const sec=activityDurationSeconds();
+  if(!d||!sec||selectedExtraActivityType==='manual'||selectedExtraActivityType==='cardio'){box.style.display='none';return;}
+  let label='',value='';
+  if(selectedExtraActivityType==='run'){
+    const mi=activityMiles(d,unit); if(mi>0){label='AVERAGE PACE';value=`${formatActivityDuration(sec/mi)} / mile`;}
+  }else if(selectedExtraActivityType==='bike'){
+    const mi=activityMiles(d,unit); if(mi>0){label='AVERAGE SPEED';value=`${(mi/(sec/3600)).toFixed(1)} mph`;}
+  }else if(selectedExtraActivityType==='row'){
+    const meters=unit==='km'?d*1000:d; if(meters>0){label='AVERAGE PACE';value=`${formatActivityDuration(sec/(meters/500))} / 500m`;}
+  }
+  box.innerHTML=`<small>${label}</small>${value}`; box.style.display=value?'block':'none';
+}
+function saveExtraCardioActivity(){
+  const sec=activityDurationSeconds();
+  const d=Number(document.getElementById('activityDistance')?.value)||0;
+  const unit=document.getElementById('activityDistanceUnit')?.value||'mi';
+  const custom=document.getElementById('activityNameInput')?.value.trim();
+  if(sec<=0){alert('Enter the activity duration before saving.');return;}
+  if(['run','bike','row'].includes(selectedExtraActivityType)&&d<=0){alert('Enter the distance before saving.');return;}
+  if(selectedExtraActivityType==='manual'&&!custom){alert('Enter an activity name before saving.');return;}
+
+  const names={run:'Run / Treadmill',bike:'Bike',row:'Row',cardio:custom||'Other Cardio',manual:custom||'Manual Activity'};
+  let metric='';
+  if(d>0){
+    if(selectedExtraActivityType==='run')metric=` • ${formatActivityDuration(sec/activityMiles(d,unit))}/mi`;
+    else if(selectedExtraActivityType==='bike')metric=` • ${(activityMiles(d,unit)/(sec/3600)).toFixed(1)} mph`;
+    else if(selectedExtraActivityType==='row'){const meters=unit==='km'?d*1000:d;metric=` • ${formatActivityDuration(sec/(meters/500))}/500m`;}
+  }
+  const distanceText=d>0?`${d} ${unit}`:'';
+  const details=[distanceText,formatActivityDuration(sec)].filter(Boolean).join(' • ')+metric;
+  const notes=document.getElementById('activityNotes')?.value.trim()||'';
+
+  const history=typeof workoutHistoryItems==='function'?workoutHistoryItems():[];
+  const week=Number(viewedWorkoutWeek||currentWeek||1);
+  const entry={
+    entryId:`activity-${Date.now()}`,
+    workoutCycle:Number(currentWorkoutCycle||1),
+    workoutWeek:week,
+    type:'EXTRA_ACTIVITY',
+    activityType:selectedExtraActivityType,
+    title:names[selectedExtraActivityType],
+    details:details+(notes?`\n${notes}`:''),
+    activityData:{distance:d||null,distanceUnit:d?unit:null,durationSeconds:sec,notes},
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  };
+  history.unshift(entry);
+  appStorage.setItem('schmokefit_history',JSON.stringify(history));
+  closeCardioActivity();
+  if(typeof renderWorkoutDashboard==='function')renderWorkoutDashboard();
+  alert(`${entry.title} saved!`);
+}
+</script>
+<script>
+/* v30 — keep the dashboard Extra Workout/Cardio button routed to the activity picker */
+(function(){
+  function wireExtraActivityButton(){
+    const btn=document.getElementById('addExtraWorkoutBtn');
+    if(!btn) return;
+    btn.textContent='+ EXTRA WORKOUT / CARDIO SESSION';
+    btn.onclick=function(e){
+      if(e){e.preventDefault();e.stopPropagation();}
+      openExtraActivityPicker();
+      return false;
+    };
+  }
+
+  const priorRenderWorkoutDashboard=window.renderWorkoutDashboard;
+  if(typeof priorRenderWorkoutDashboard==='function'){
+    window.renderWorkoutDashboard=function(){
+      const result=priorRenderWorkoutDashboard.apply(this,arguments);
+      wireExtraActivityButton();
+      return result;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',wireExtraActivityButton);
+  document.addEventListener('click',function(e){
+    if(e.target?.id==='addExtraWorkoutBtn'){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openExtraActivityPicker();
+    }
+  },true);
+  setTimeout(wireExtraActivityButton,0);
+})();
+</script>
 </body>
 </html>
