@@ -10200,13 +10200,28 @@ function saveExtraCardioActivity(){
      if(typeof checkExerciseCompletion==='function')checkExerciseCompletion(i);
    });
  }
+ function hasSavedWorkoutCustomization(){
+   const k=orderKey();
+   if(k){
+     if(appStorage.getItem(k)!==null) return true;
+     if(appStorage.getItem(k+'_subs')!==null) return true;
+     if(appStorage.getItem(k+'_routine')!==null) return true;
+   }
+   const oneWorkoutKey=thisWorkoutRoutineKey();
+   return !!(oneWorkoutKey && appStorage.getItem(oneWorkoutKey)!==null);
+ }
  function updateSaveOrderButton(){
    const row=document.querySelector('#workoutDetailView .save-workout-order-row');
    if(!row)return;
-   row.classList.add('show');
    const saveBtn=row.querySelector('.save-workout-order-btn');
-   if(saveBtn) saveBtn.style.display=anyWorkoutCustomizationDirty()?'inline-flex':'none';
+   const resetBtn=row.querySelector('.reset-workout-default-btn');
+   const showSave=anyWorkoutCustomizationDirty();
+   const showReset=hasSavedWorkoutCustomization();
+   if(saveBtn) saveBtn.style.display=showSave?'inline-flex':'none';
+   if(resetBtn) resetBtn.style.display=showReset?'inline-flex':'none';
+   row.classList.toggle('show',showSave||showReset);
  }
+ 
  function markDirty(){
    reorderDirty=!sameOrder(currentNames(),reorderBaseline);
    reorderSessionOrder=currentNames();
@@ -10336,6 +10351,7 @@ function saveExtraCardioActivity(){
    reorderDirty=false;
    substitutionDirty=false;
    if(typeof saveCurrentWorkoutDraft==='function') saveCurrentWorkoutDraft();
+   updateSaveOrderButton();
    closeReorderSaveConfirm();
    const saved=document.getElementById('reorderSavedThisWorkoutOverlay');
    if(saved){saved.classList.add('open');saved.setAttribute('aria-hidden','false');}
