@@ -3080,6 +3080,82 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+
+<style>
+/* v58 — compact rest timer: preserve the large countdown, reduce vertical footprint */
+#mainRestTimer.timer-card{
+  display:grid!important;
+  grid-template-columns:auto minmax(105px,auto) 1fr!important;
+  grid-template-areas:
+    "title time context"
+    "controls controls controls"!important;
+  align-items:center!important;
+  column-gap:12px!important;
+  row-gap:8px!important;
+  padding:10px 12px!important;
+  text-align:left!important;
+}
+#mainRestTimer .timer-title{
+  grid-area:title;
+  white-space:nowrap;
+  margin:0!important;
+}
+#mainRestTimer .timer-display{
+  grid-area:time;
+  margin:0!important;
+  line-height:1!important;
+  text-align:center!important;
+}
+#mainRestTimer .smart-rest-context{
+  grid-area:context;
+  margin:0!important;
+  min-width:0;
+  text-align:right!important;
+  line-height:1.2!important;
+}
+#mainRestTimer .timer-controls{
+  grid-area:controls;
+  gap:6px!important;
+  margin:0!important;
+}
+#mainRestTimer .timer-controls .btn{
+  padding:8px 7px!important;
+  min-height:36px!important;
+}
+@media (max-width:600px){
+  #mainRestTimer.timer-card{
+    grid-template-columns:auto 1fr!important;
+    grid-template-areas:
+      "title time"
+      "context context"
+      "controls controls"!important;
+    column-gap:10px!important;
+    row-gap:5px!important;
+    padding:9px 10px!important;
+  }
+  #mainRestTimer .timer-display{
+    justify-self:end!important;
+    font-size:2.2rem!important;
+  }
+  #mainRestTimer .smart-rest-context{
+    text-align:center!important;
+    font-size:10px!important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #mainRestTimer .timer-controls{
+    gap:4px!important;
+  }
+  #mainRestTimer .timer-controls .btn{
+    padding:7px 4px!important;
+    min-height:34px!important;
+    font-size:.68rem!important;
+    letter-spacing:.2px!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -3337,7 +3413,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div id="smartRestContext" class="smart-rest-context">SELECT AN EXERCISE • SMART REST READY</div>
 <div class="timer-controls">
 <button class="btn btn-dark" onclick="adjustTimer(-30)" style="flex:0.6;">-30s</button>
-<button class="btn btn-orange" onclick="startTimer()">START REST</button>
+<button class="btn btn-orange" id="restTimerStartBtn" onclick="startTimer()">START REST</button>
 <button class="btn btn-dark" onclick="adjustTimer(30)" style="flex:0.6;">+30s</button>
 <button class="btn btn-dark" onclick="resetTimer()" style="flex:0.8;">RESET</button>
 </div>
@@ -4994,6 +5070,12 @@ function onRepsEntered(exerciseIndex, repInput) {
     // TIMER LOGIC & PULSE ALARM
     let timerInterval = null;
     let totalSeconds = 150;
+    let restTimerStartSeconds = 150;
+    function setRestTimerButtonState(state) {
+      const btn = document.getElementById('restTimerStartBtn');
+      if (!btn) return;
+      btn.innerText = state === 'running' ? 'RESTART REST' : state === 'finished' ? 'START AGAIN' : 'START REST';
+    }
 
     function playTimerAlarm() {
       try {
@@ -5097,19 +5179,39 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     function adjustTimer(seconds) {
       totalSeconds = Math.max(0, totalSeconds + seconds);
+      if (timerInterval === null && totalSeconds > 0) {
+        restTimerStartSeconds = totalSeconds;
+      }
       updateTimerDisplay();
     }
 
     function startTimer() {
+      const wasRunning = timerInterval !== null;
+      const startBtn = document.getElementById('restTimerStartBtn');
+      const wasFinished = startBtn?.innerText === 'START AGAIN';
+
       clearInterval(timerInterval);
+      timerInterval = null;
+
+      // START REST uses the duration currently shown. RESTART REST / START AGAIN
+      // restore the full rest duration before beginning a fresh countdown.
+      if (wasRunning || wasFinished || totalSeconds <= 0) {
+        totalSeconds = restTimerStartSeconds;
+      } else {
+        restTimerStartSeconds = Math.max(1, totalSeconds);
+      }
+
       updateTimerDisplay();
-      
+      setRestTimerButtonState('running');
+
       timerInterval = setInterval(() => {
         if (totalSeconds > 0) {
           totalSeconds--;
           updateTimerDisplay();
         } else {
           clearInterval(timerInterval);
+          timerInterval = null;
+          setRestTimerButtonState('finished');
           playTimerAlarm();
           showRestTimerNotification();
         }
@@ -5118,10 +5220,13 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     function resetTimer() {
       clearInterval(timerInterval);
+      timerInterval = null;
+      setRestTimerButtonState('ready');
       const ex = Number.isInteger(smartRestExerciseIndex) && Array.isArray(activeExercises)
         ? activeExercises[smartRestExerciseIndex]
         : null;
       totalSeconds = ex ? getSmartRestSeconds(ex) : 150;
+      restTimerStartSeconds = totalSeconds;
       updateTimerDisplay();
     }
 
@@ -8678,7 +8783,9 @@ function onRepsEntered(exerciseIndex, repInput) {
       clearInterval(timerInterval);
       timerInterval = null;
       totalSeconds = 150;
+      restTimerStartSeconds = 150;
       updateTimerDisplay();
+      setRestTimerButtonState('ready');
     }
 
 
