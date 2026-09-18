@@ -3187,6 +3187,24 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+<style>
+/* v68 — live macro feedback */
+.sticky-macro-value.status-blue-text{color:#38bdf8}
+.sticky-macro-value.status-green-text{color:#4ade80}
+.sticky-macro-value.status-red-text{color:#fb7185}
+.nutrition-stat-percent{
+  margin-top:3px;
+  font-size:.62rem;
+  line-height:1.15;
+  font-weight:800;
+  color:#8fa2b5;
+  white-space:nowrap;
+}
+@media(max-width:480px){
+  .nutrition-stat-percent{font-size:.56rem}
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -3535,8 +3553,8 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="nutrition-summary-grid">
 <div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionCalories">0 / 2,340</div><div class="nutrition-stat-label">Calories</div></div>
 <div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionProtein">0 / 148g</div><div class="nutrition-stat-label">Protein</div></div>
-<div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionCarbs">0g</div><div class="nutrition-stat-label">Carbs</div></div>
-<div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionFat">0g</div><div class="nutrition-stat-label">Fat</div></div>
+<div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionCarbs">0g</div><div class="nutrition-stat-label">Carbs</div><div class="nutrition-stat-percent" id="nutritionCarbsPercent">0% of calories</div></div>
+<div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionFat">0g</div><div class="nutrition-stat-label">Fat</div><div class="nutrition-stat-percent" id="nutritionFatPercent">0% of calories</div></div>
 </div>
 <div class="macro-progress-wrap">
 <div class="macro-progress-row">
@@ -5931,6 +5949,13 @@ function onRepsEntered(exerciseIndex, repInput) {
       document.getElementById('nutritionProtein').innerText = `${rounded(totals.protein)} / ${goals.protein}g`;
       document.getElementById('nutritionCarbs').innerText = `${rounded(totals.carbs)}g`;
       document.getElementById('nutritionFat').innerText = `${rounded(totals.fat)}g`;
+      const loggedCalories = Number(totals.calories) || 0;
+      const carbsCaloriePct = loggedCalories > 0 ? Math.round((Number(totals.carbs || 0) * 4 / loggedCalories) * 100) : 0;
+      const fatCaloriePct = loggedCalories > 0 ? Math.round((Number(totals.fat || 0) * 9 / loggedCalories) * 100) : 0;
+      const carbsPctEl = document.getElementById('nutritionCarbsPercent');
+      const fatPctEl = document.getElementById('nutritionFatPercent');
+      if (carbsPctEl) carbsPctEl.innerText = `${carbsCaloriePct}% of calories`;
+      if (fatPctEl) fatPctEl.innerText = `${fatCaloriePct}% of calories`;
 
       const calRemain = Math.round(goals.calories - totals.calories);
       const proRemain = rounded(goals.protein - totals.protein);
@@ -9930,8 +9955,25 @@ function finishAppTour() {
     if(!bar) return;
     const cal=document.getElementById('nutritionCalories');
     const pro=document.getElementById('nutritionProtein');
-    if(cal) document.getElementById('stickyMacroCalories').textContent=cal.textContent.trim();
-    if(pro) document.getElementById('stickyMacroProtein').textContent=pro.textContent.trim();
+    const stickyCal=document.getElementById('stickyMacroCalories');
+    const stickyPro=document.getElementById('stickyMacroProtein');
+    if(cal && stickyCal) stickyCal.textContent=cal.textContent.trim();
+    if(pro && stickyPro) stickyPro.textContent=pro.textContent.trim();
+
+    const totals=nutritionTotalsFromLog(getNutritionLogForDate(selectedNutritionDateStamp));
+    const goals=getNutritionGoals(selectedNutritionDateStamp);
+    const textStatusClass=(value,goal,metric)=>{
+      const status=nutritionBarStatus(Number(value)||0,Number(goal)||0,metric);
+      return status==='status-red'?'status-red-text':status==='status-green'?'status-green-text':'status-blue-text';
+    };
+    if(stickyCal){
+      stickyCal.classList.remove('status-blue-text','status-green-text','status-red-text');
+      stickyCal.classList.add(textStatusClass(totals.calories,goals.calories,'calories'));
+    }
+    if(stickyPro){
+      stickyPro.classList.remove('status-blue-text','status-green-text','status-red-text');
+      stickyPro.classList.add(textStatusClass(totals.protein,goals.protein,'protein'));
+    }
 
     if(!macroVisible()){bar.classList.remove('visible');bar.setAttribute('aria-hidden','true');return;}
     const top=headerBottom();
