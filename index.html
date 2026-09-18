@@ -2947,6 +2947,139 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+
+<style>
+/* v51 — restore a customized workout to its original SchmokeFit programming */
+.save-workout-order-row.show{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center;
+  gap:8px;
+}
+.reset-workout-default-btn{
+  border:1px solid rgba(255,255,255,.18);
+  background:transparent;
+  color:#aeb9c5;
+  border-radius:10px;
+  padding:9px 12px;
+  font-size:.68rem;
+  font-weight:900;
+  cursor:pointer;
+}
+.reset-workout-default-btn:hover{color:#eef5fb;border-color:rgba(255,255,255,.32)}
+#resetWorkoutDefaultOverlay,
+#resetWorkoutDefaultDoneOverlay{
+  display:none!important;
+  position:fixed;
+  inset:0;
+  z-index:2750;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+  background:rgba(0,0,0,.76);
+}
+#resetWorkoutDefaultOverlay.open,
+#resetWorkoutDefaultDoneOverlay.open{display:flex!important}
+.reset-default-confirm{
+  border-color:rgba(255,170,70,.58)!important;
+  background:rgba(255,170,70,.10)!important;
+}
+@media (max-width:600px){
+  .save-workout-order-row.show{flex-wrap:wrap}
+  .reset-workout-default-btn,
+  .save-workout-order-btn{min-height:40px}
+}
+</style>
+
+
+<style>
+/* v54 — SchmokeFit exercise-delete confirmation */
+#exerciseDeleteConfirmOverlay{
+  display:none!important;
+  position:fixed;
+  inset:0;
+  z-index:2800;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+  background:rgba(0,0,0,.76);
+}
+#exerciseDeleteConfirmOverlay.open{display:flex!important}
+.exercise-delete-confirm{
+  border-color:rgba(255,120,120,.5)!important;
+  background:rgba(255,120,120,.10)!important;
+}
+</style>
+
+
+<style>
+/* v55 — compact, contained SchmokeFit modal layout */
+.reorder-confirm-modal,
+.reorder-leave-modal,
+#completionChangesOverlay .modal,
+#workoutCompleteConfirmOverlay .modal{
+  width:min(100%,480px)!important;
+  max-width:calc(100vw - 28px)!important;
+  box-sizing:border-box!important;
+  padding:20px!important;
+  overflow:hidden!important;
+}
+.reorder-confirm-modal *,
+.reorder-leave-modal *,
+#completionChangesOverlay .modal *,
+#workoutCompleteConfirmOverlay .modal *{
+  box-sizing:border-box;
+  max-width:100%;
+}
+.reorder-confirm-modal h2,
+.reorder-leave-modal h2,
+#completionChangesOverlay .modal h2,
+#workoutCompleteConfirmOverlay .modal h2{
+  margin:7px 0 9px!important;
+  line-height:1.12!important;
+  overflow-wrap:anywhere;
+}
+.reorder-confirm-modal p,
+.reorder-leave-modal p,
+#completionChangesOverlay .modal p,
+#workoutCompleteConfirmOverlay .modal p{
+  margin:7px 0 12px!important;
+  line-height:1.38!important;
+  overflow-wrap:anywhere;
+}
+.reorder-choice{
+  width:100%!important;
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  line-height:1.18!important;
+  padding:11px 12px!important;
+}
+@media (max-width:600px){
+  .reorder-confirm-modal,
+  .reorder-leave-modal,
+  #completionChangesOverlay .modal,
+  #workoutCompleteConfirmOverlay .modal{
+    width:100%!important;
+    max-width:calc(100vw - 24px)!important;
+    padding:16px!important;
+    border-radius:15px!important;
+  }
+  .reorder-confirm-modal p,
+  .reorder-leave-modal p,
+  #completionChangesOverlay .modal p,
+  #workoutCompleteConfirmOverlay .modal p{
+    font-size:.80rem!important;
+  }
+  .reorder-choice{
+    font-size:.76rem!important;
+    padding:10px!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -4714,26 +4847,47 @@ function renderWorkoutExercises() {
       }
     }
 
+    let pendingExerciseRemovalIndex = null;
+
     function removeExercise(idx) {
       if (!Array.isArray(activeExercises) || idx < 0 || idx >= activeExercises.length) return;
-
+      pendingExerciseRemovalIndex = idx;
       const ex = activeExercises[idx];
-      const confirmed = confirm(`Remove ${ex?.name || 'this exercise'} from this workout? Your other workout progress will be kept.`);
-      if (!confirmed) return;
+      const name = document.getElementById('exerciseDeleteName');
+      if (name) name.textContent = ex?.name || 'this exercise';
+      const overlay = document.getElementById('exerciseDeleteConfirmOverlay');
+      if (overlay) {
+        overlay.classList.add('open');
+        overlay.setAttribute('aria-hidden','false');
+      }
+    }
 
-      // Snapshot current entries before indexes change.
+    function closeExerciseDeleteConfirm() {
+      pendingExerciseRemovalIndex = null;
+      const overlay = document.getElementById('exerciseDeleteConfirmOverlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+      }
+    }
+
+    function confirmExerciseRemoval() {
+      const idx = pendingExerciseRemovalIndex;
+      if (!Array.isArray(activeExercises) || idx === null || idx < 0 || idx >= activeExercises.length) {
+        closeExerciseDeleteConfirm();
+        return;
+      }
+
+      const namesBeforeRemoval = activeExercises.map(item => item.name);
+
       const snapshots = activeExercises.map((item, exerciseIndex) => ({
         name: item.name,
         sets: collectExerciseSetData(exerciseIndex)
       }));
 
-      // Remove ONLY the selected exercise.
       activeExercises.splice(idx, 1);
-
-      // Re-render this same workout rather than creating/resetting one.
       renderWorkoutExercises();
 
-      // Restore all surviving progress by exercise identity.
       activeExercises.forEach((item, newIndex) => {
         const snap = snapshots.find(s => s.name === item.name);
         if (!snap) return;
@@ -4748,13 +4902,26 @@ function renderWorkoutExercises() {
         checkExerciseCompletion(newIndex);
       });
 
-      // Structural edits should not leave stale Smart Rest context.
       smartRestExerciseIndex = null;
       const timerContext = document.getElementById('smartRestContext');
       if (timerContext) timerContext.innerHTML = 'SELECT AN EXERCISE • SMART REST READY';
 
-      // Save the edited workout as an in-progress draft.
-      if (typeof saveWorkoutDraft === 'function') saveWorkoutDraft();
+      // Deleting an exercise is a workout customization, just like reordering.
+      // Use the public bridge because the customization state lives in its own scope.
+      if (typeof window.markWorkoutStructuralDirty === 'function') {
+        window.markWorkoutStructuralDirty(namesBeforeRemoval);
+      }
+
+      // Keep the current in-progress version safe until the user decides whether
+      // the structural change is for this workout or all future workouts.
+      if (typeof saveCurrentWorkoutDraft === 'function') saveCurrentWorkoutDraft();
+
+      pendingExerciseRemovalIndex = null;
+      const overlay = document.getElementById('exerciseDeleteConfirmOverlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+      }
     }
 
     function checkExerciseCompletion(exerciseIndex) {
@@ -9668,13 +9835,23 @@ function saveExtraCardioActivity(){
  function updateSaveOrderButton(){
    const row=document.querySelector('#workoutDetailView .save-workout-order-row');
    if(!row)return;
-   row.classList.toggle('show',anyWorkoutCustomizationDirty());
+   row.classList.add('show');
+   const saveBtn=row.querySelector('.save-workout-order-btn');
+   if(saveBtn) saveBtn.style.display=anyWorkoutCustomizationDirty()?'inline-flex':'none';
  }
  function markDirty(){
    reorderDirty=!sameOrder(currentNames(),reorderBaseline);
    reorderSessionOrder=currentNames();
    updateSaveOrderButton();
  }
+ window.markWorkoutStructuralDirty=function(namesBeforeChange){
+   if((!Array.isArray(reorderBaseline)||!reorderBaseline.length) && Array.isArray(namesBeforeChange)){
+     reorderBaseline=[...namesBeforeChange];
+   }
+   reorderDirty=!sameOrder(currentNames(),reorderBaseline);
+   reorderSessionOrder=currentNames();
+   updateSaveOrderButton();
+ };
  window.markWorkoutSubstitutionDirty=function(index,beforeName,newName){
    if(!substitutionBaseline||!Object.keys(substitutionBaseline).length)substitutionBaseline=currentSubstitutions();
    substitutionDirty=!sameSubs(currentSubstitutions(),substitutionBaseline);
@@ -9694,6 +9871,9 @@ function saveExtraCardioActivity(){
    const k=orderKey();if(!k)return false;
    appStorage.setItem(k,JSON.stringify(currentNames()));
    appStorage.setItem(k+'_subs',JSON.stringify(currentSubstitutions()));
+   // Save the complete customized routine so deletions, additions, swaps, badges,
+   // set prescriptions, and order all carry into future weeks.
+   appStorage.setItem(k+'_routine',JSON.stringify(activeExercises||[]));
    reorderBaseline=currentNames();
    reorderSessionOrder=currentNames();
    substitutionBaseline=currentSubstitutions();
@@ -9701,8 +9881,69 @@ function saveExtraCardioActivity(){
    reorderDirty=false;
    substitutionDirty=false;
    updateSaveOrderButton();
+   // Keep any IN PROGRESS workout draft synchronized with the version just saved.
+   // This preserves current weights/reps while updating exercise order/selections.
+   if(typeof saveCurrentWorkoutDraft==='function') saveCurrentWorkoutDraft();
    return true;
  }
+ window.openResetWorkoutDefault=function(){
+   if(!orderKey())return;
+   const overlay=document.getElementById('resetWorkoutDefaultOverlay');
+   if(overlay){overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');}
+ };
+ window.closeResetWorkoutDefault=function(){
+   const overlay=document.getElementById('resetWorkoutDefaultOverlay');
+   if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+ };
+ window.confirmResetWorkoutDefault=function(){
+   const k=orderKey();
+   if(!k)return;
+
+   // Remove only this workout/day's saved future customization.
+   appStorage.removeItem(k);
+   appStorage.removeItem(k+'_subs');
+   appStorage.removeItem(k+'_routine');
+   const oneWorkoutKey=thisWorkoutRoutineKey();
+   if(oneWorkoutKey) appStorage.removeItem(oneWorkoutKey);
+
+   // Clear session customization so the loader returns to the programmed routine.
+   reorderSessionOrder=null;
+   substitutionSession=null;
+   reorderDirty=false;
+   substitutionDirty=false;
+
+   const day=editingWorkoutDay||document.getElementById('workoutDaySelect')?.value||'monday';
+   const existing=(typeof getWorkoutEntry==='function')
+     ? getWorkoutEntry(editingWorkoutWeek||currentWeek,day)
+     : null;
+
+   // Reload from PROGRAM_CONFIG/getFocusRoutines. This restores deleted exercises,
+   // original order, original selections, and removes manually added exercises.
+   loadSelectedWorkoutRoutine(day,existing);
+
+   reorderBaseline=currentNames();
+   substitutionBaseline=currentSubstitutions();
+   reorderSessionOrder=null;
+   substitutionSession=null;
+   reorderDirty=false;
+   substitutionDirty=false;
+
+   // A reset must also discard the old IN PROGRESS draft. Otherwise reopening
+   // the workout would restore the pre-reset exercise list/data over the default.
+   const draftKey = currentWorkoutDraftKey();
+   if (draftKey && typeof deleteWorkoutDraft === 'function') {
+     deleteWorkoutDraft(draftKey);
+   }
+   updateSaveOrderButton();
+   closeResetWorkoutDefault();
+
+   const done=document.getElementById('resetWorkoutDefaultDoneOverlay');
+   if(done){done.classList.add('open');done.setAttribute('aria-hidden','false');}
+ };
+ window.closeResetWorkoutDefaultDone=function(){
+   const overlay=document.getElementById('resetWorkoutDefaultDoneOverlay');
+   if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+ };
  window.saveCurrentWorkoutOrderForFuture=function(){
    const overlay=document.getElementById('reorderSaveConfirmOverlay');
    if(overlay){overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');}
@@ -9719,13 +9960,14 @@ function saveExtraCardioActivity(){
    }
  };
  window.confirmReorderSaveForThisWorkout=function(){
+   saveThisWorkoutRoutine();
    reorderSessionOrder=currentNames();
    substitutionSession=currentSubstitutions();
    reorderBaseline=currentNames();
    substitutionBaseline=currentSubstitutions();
    reorderDirty=false;
    substitutionDirty=false;
-   if(typeof saveWorkoutDraft==='function')saveWorkoutDraft();
+   if(typeof saveCurrentWorkoutDraft==='function') saveCurrentWorkoutDraft();
    closeReorderSaveConfirm();
    const saved=document.getElementById('reorderSavedThisWorkoutOverlay');
    if(saved){saved.classList.add('open');saved.setAttribute('aria-hidden','false');}
@@ -9747,6 +9989,31 @@ function saveExtraCardioActivity(){
    const k=orderKey();if(!k)return null;
    try{return JSON.parse(appStorage.getItem(k)||'null')}catch(e){return null}
  }
+ function savedFutureRoutine(){
+   const k=orderKey();if(!k)return null;
+   try{
+     const routine=JSON.parse(appStorage.getItem(k+'_routine')||'null');
+     return Array.isArray(routine)?routine:null;
+   }catch(e){return null}
+ }
+ function thisWorkoutRoutineKey(){
+   const day=editingWorkoutDay||document.getElementById('workoutDaySelect')?.value||'';
+   const week=Number(editingWorkoutWeek||currentWeek);
+   if(!day||!week||editingExtraWorkoutId||(editingWorkoutDay===null&&editingExtraWorkoutName))return null;
+   return `schmokefit_workout_custom_${currentWorkoutCycle}_${week}_${day}`;
+ }
+ function saveThisWorkoutRoutine(){
+   const k=thisWorkoutRoutineKey();if(!k)return false;
+   appStorage.setItem(k,JSON.stringify(activeExercises||[]));
+   return true;
+ }
+ function savedThisWorkoutRoutine(){
+   const k=thisWorkoutRoutineKey();if(!k)return null;
+   try{
+     const routine=JSON.parse(appStorage.getItem(k)||'null');
+     return Array.isArray(routine)?routine:null;
+   }catch(e){return null}
+ }
  function addUI(){
    if(!Array.isArray(activeExercises))return;
    activeExercises.forEach((ex,i)=>{
@@ -9759,7 +10026,7 @@ function saveExtraCardioActivity(){
    const detail=document.getElementById('workoutDetailView');
    if(detail&&!detail.querySelector('.save-workout-order-row')&&orderKey()){
      const row=document.createElement('div');row.className='save-workout-order-row';
-     row.innerHTML='<button type="button" class="save-workout-order-btn" onclick="saveCurrentWorkoutOrderForFuture()">SAVE WORKOUT CHANGES</button>';
+     row.innerHTML='<button type="button" class="reset-workout-default-btn" onclick="openResetWorkoutDefault()">↺ RESET TO DEFAULT</button><button type="button" class="save-workout-order-btn" onclick="saveCurrentWorkoutOrderForFuture()">SAVE WORKOUT CHANGES</button>';
      detail.querySelector('[id^="exerciseCard-"]')?.before(row);
    }
    updateSaveOrderButton();
@@ -9770,8 +10037,18 @@ function saveExtraCardioActivity(){
  const ll=window.loadSelectedWorkoutRoutine;
  if(typeof ll==='function')window.loadSelectedWorkoutRoutine=function(){
    const x=ll.apply(this,arguments);
+   const thisRoutine=savedThisWorkoutRoutine();
+   const futureRoutine=savedFutureRoutine();
    const future=savedFutureOrder();
-   if(Array.isArray(future))applyOrder(future);
+   if(Array.isArray(thisRoutine)){
+     // A day-specific save overrides the reusable future template for this one workout.
+     activeExercises=JSON.parse(JSON.stringify(thisRoutine));
+   }else if(Array.isArray(futureRoutine)){
+     activeExercises=JSON.parse(JSON.stringify(futureRoutine));
+   }else if(Array.isArray(future)){
+     // Backward compatibility for customizations saved before v56.
+     applyOrder(future);
+   }
    if(Array.isArray(reorderSessionOrder))applyOrder(reorderSessionOrder);
    reorderBaseline=Array.isArray(reorderSessionOrder)?reorderBaseline:currentNames();
    if(!substitutionSession)substitutionBaseline=currentSubstitutions();
@@ -9795,14 +10072,15 @@ function saveExtraCardioActivity(){
    try{if(typeof action==='function')action();}finally{setTimeout(()=>suppressReorderPrompt=false,0);}
  }
  window.keepReorderForThisWorkout=function(){
-   /* Keep the changed order only in this active workout/session. */
+   /* Keep the changed routine only for this specific cycle/week/day. */
+   saveThisWorkoutRoutine();
    reorderSessionOrder=currentNames();
    substitutionSession=currentSubstitutions();
    reorderBaseline=currentNames();
    substitutionBaseline=currentSubstitutions();
    reorderDirty=false;
    substitutionDirty=false;
-   if(typeof saveWorkoutDraft==='function')saveWorkoutDraft();
+   if(typeof saveCurrentWorkoutDraft==='function') saveCurrentWorkoutDraft();
    continuePendingLeave();
  };
  window.keepReorderForFutureWorkouts=function(){
@@ -9847,6 +10125,39 @@ function saveExtraCardioActivity(){
   </div>
 </div>
 
+
+
+
+<div class="overlay" id="exerciseDeleteConfirmOverlay" aria-hidden="true">
+  <div class="modal reorder-confirm-modal">
+    <div class="reorder-change-kicker">WORKOUT CHANGE</div>
+    <h2>REMOVE EXERCISE?</h2>
+    <p>Remove <strong id="exerciseDeleteName">this exercise</strong> from this workout?</p>
+    <p>Your other exercises and current workout progress will be kept. You can then choose whether to save this change for just this workout or for future workouts.</p>
+    <button class="reorder-choice exercise-delete-confirm" onclick="confirmExerciseRemoval()">REMOVE EXERCISE</button>
+    <button class="reorder-choice cancel" onclick="closeExerciseDeleteConfirm()">CANCEL</button>
+  </div>
+</div>
+
+<div class="overlay" id="resetWorkoutDefaultOverlay" aria-hidden="true">
+  <div class="modal reorder-confirm-modal">
+    <div class="reorder-change-kicker">RESTORE SCHMOKEFIT WORKOUT</div>
+    <h2>RESET THIS WORKOUT?</h2>
+    <p>This will restore the original SchmokeFit exercises, exercise order, and exercise selections for this workout. Manually added exercises will be removed.</p>
+    <p><strong>Your workout history will not be deleted.</strong> Any weight or reps currently entered in this unsaved workout will be cleared.</p>
+    <button class="reorder-choice reset-default-confirm" onclick="confirmResetWorkoutDefault()">↺ RESET TO DEFAULT</button>
+    <button class="reorder-choice cancel" onclick="closeResetWorkoutDefault()">CANCEL</button>
+  </div>
+</div>
+
+<div class="overlay" id="resetWorkoutDefaultDoneOverlay" aria-hidden="true">
+  <div class="modal reorder-confirm-modal reorder-saved-modal">
+    <div class="reorder-saved-check">↺</div>
+    <h2>WORKOUT RESTORED</h2>
+    <p>This workout is back to the original SchmokeFit default. Your workout history was left untouched.</p>
+    <button class="reorder-choice primary" onclick="closeResetWorkoutDefaultDone()">DONE</button>
+  </div>
+</div>
 
 <div class="overlay" id="reorderSaveConfirmOverlay" aria-hidden="true">
   <div class="modal reorder-confirm-modal">
