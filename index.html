@@ -3205,6 +3205,24 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+<style>
+/* v69 — reuse foods from historical logs */
+.food-copy-today{
+  margin-top:12px;
+  padding:10px;
+  border:1px solid var(--input-border);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+}
+.food-copy-today-title{
+  margin-bottom:5px;
+  font-size:.7rem;
+  font-weight:950;
+  letter-spacing:.08em;
+  color:var(--accent-blue);
+}
+</style>
+
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -3722,6 +3740,13 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <div class="food-edit-sub" id="foodEditServingNote" style="margin-top:6px;"></div>
 <div class="food-edit-sub" id="foodEditPreview" style="margin-top:8px;"></div>
+<div class="food-copy-today" id="foodCopyTodayPanel" style="display:none;">
+<div class="food-copy-today-title">HAVE IT AGAIN TODAY?</div>
+<div class="food-edit-sub" style="margin:0 0 8px;">Copy this exact logged serving to today's food log. The original entry will stay on this day.</div>
+<label class="select-label" for="foodCopyTodayMeal">ADD TO TODAY'S</label>
+<select class="custom-select" id="foodCopyTodayMeal"></select>
+<button class="btn btn-blue" id="foodCopyTodayBtn" type="button" onclick="addEditedFoodToToday()" style="margin:8px 0 0;">ADD TO TODAY</button>
+</div>
 <div class="food-edit-actions">
 <button class="btn btn-dark" onclick="closeFoodEdit()" style="margin:0;">CANCEL</button>
 <button class="btn btn-blue" onclick="saveFoodEdit()" style="margin:0;">UPDATE FOOD</button>
@@ -6089,7 +6114,7 @@ function onRepsEntered(exerciseIndex, repInput) {
             <div>
               <div class="food-name">${escapeHtml(item.name)}</div>
               <div class="food-macros">${Math.round(item.calories)} kcal • ${round1(item.protein)}P • ${round1(item.carbs)}C • ${round1(item.fat)}F</div>
-              <div class="food-edit-hint">Tap to edit amount</div>
+              <div class="food-edit-hint">${selectedNutritionDateStamp < localDateStamp(new Date()) ? 'Tap to edit or add to today' : 'Tap to edit amount'}</div>
             </div>
             <div class="food-amount">${formatLoggedFoodAmount(item)}</div>
             <button class="food-favorite ${isFoodFavorite(item) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFoodFavoriteFromLog('${meal}', ${idx})" aria-label="Favorite ${escapeHtml(item.name)}">${isFoodFavorite(item) ? '★' : '☆'}</button>
@@ -7074,6 +7099,17 @@ function onRepsEntered(exerciseIndex, repInput) {
 
       updateFoodEditPreview();
 
+      const todayStamp = localDateStamp(new Date());
+      const copyPanel = document.getElementById('foodCopyTodayPanel');
+      const copyMeal = document.getElementById('foodCopyTodayMeal');
+      if (copyPanel) copyPanel.style.display = selectedNutritionDateStamp < todayStamp ? 'block' : 'none';
+      if (copyMeal && selectedNutritionDateStamp < todayStamp) {
+        const activeMeals = getNutritionMealDefinitions().filter(m => m.active !== false);
+        copyMeal.innerHTML = activeMeals.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join('');
+        const sameMeal = activeMeals.find(m => m.id === meal);
+        copyMeal.value = sameMeal ? sameMeal.id : (activeMeals[0]?.id || '');
+      }
+
       const overlay = document.getElementById('foodEditOverlay');
       if (overlay) overlay.classList.add('open');
 
@@ -7128,6 +7164,61 @@ function onRepsEntered(exerciseIndex, repInput) {
       saveNutritionLog(log);
       updateNutritionDashboard();
       closeFoodEdit();
+    }
+
+    function addEditedFoodToToday() {
+      if (editingFoodMeal === null || editingFoodIndex === null) return;
+      const todayStamp = localDateStamp(new Date());
+      if (!(selectedNutritionDateStamp < todayStamp)) return;
+
+      const sourceLog = getNutritionLog();
+      const sourceItem = sourceLog?.[editingFoodMeal]?.[editingFoodIndex];
+      if (!sourceItem) return;
+
+      // Respect any amount change currently shown in the modal without
+      // changing the historical entry itself.
+      const oldGrams = Math.max(0.01, Number(sourceItem.grams) || 0.01);
+      const amount = Math.max(0.01, Number(document.getElementById('foodEditAmount')?.value) || 1);
+      const unit = document.getElementById('foodEditUnit')?.value || 'g';
+      const servingGrams = Number(sourceItem.servingGrams) > 0 ? Number(sourceItem.servingGrams) : 0;
+      const newGrams = amountToGrams(amount, unit, servingGrams);
+      const scale = newGrams / oldGrams;
+      const copiedItem = {
+        ...sourceItem,
+        grams: newGrams,
+        calories: (Number(sourceItem.calories) || 0) * scale,
+        protein: (Number(sourceItem.protein) || 0) * scale,
+        carbs: (Number(sourceItem.carbs) || 0) * scale,
+        fat: (Number(sourceItem.fat) || 0) * scale
+      };
+
+      const targetMeal = document.getElementById('foodCopyTodayMeal')?.value || 'Snacks';
+      const todayLog = getNutritionLogForDate(todayStamp);
+      if (!Array.isArray(todayLog[targetMeal])) todayLog[targetMeal] = [];
+      todayLog[targetMeal].push(copiedItem);
+      appStorage.setItem(nutritionDateKey(todayStamp), JSON.stringify(todayLog));
+
+      // Save today's current goals/meta without changing the date being viewed.
+      const todayGoals = getNutritionGoals(todayStamp);
+      appStorage.setItem(nutritionMetaKey(todayStamp), JSON.stringify({
+        goals: todayGoals,
+        refeed: isRefeedDay(todayStamp),
+        savedAt: new Date().toISOString()
+      }));
+      rememberQuickFood(copiedItem);
+
+      const btn = document.getElementById('foodCopyTodayBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = `✓ ADDED TO ${nutritionMealName(targetMeal).toUpperCase()}`;
+      }
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'ADD TO TODAY';
+        }
+        closeFoodEdit();
+      }, 450);
     }
 
     function closeFoodEdit() {
