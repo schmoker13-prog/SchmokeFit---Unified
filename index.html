@@ -3223,6 +3223,15 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 }
 </style>
 
+<style>
+/* v72 — unified workout + food history filters */
+.history-filter-card{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px solid var(--input-border);border-radius:10px;background:rgba(255,255,255,.025)}
+.history-filter-label{font-size:.68rem;font-weight:950;letter-spacing:.1em;color:var(--muted)}
+.history-filter-option{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.74rem;font-weight:900;letter-spacing:.04em}
+.history-filter-option input{width:18px;height:18px;margin:0;accent-color:var(--accent-blue);cursor:pointer}
+.history-type-badge{display:inline-flex;align-items:center;margin:0 0 7px;padding:3px 7px;border-radius:999px;font-size:.58rem;font-weight:950;letter-spacing:.08em;border:1px solid var(--input-border);color:var(--muted)}
+.history-card[data-history-type="food"] .history-type-badge{color:#4ade80}.history-card[data-history-type="workout"] .history-type-badge{color:#38bdf8}
+</style>
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -3501,7 +3510,12 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <!-- 02. HISTORY TAB -->
 <div class="tab-content" id="historyTab">
-<div class="section-title-banner">02. WORKOUT HISTORY</div>
+<div class="section-title-banner">02. HISTORY</div>
+<div class="history-filter-card" aria-label="History filters">
+<span class="history-filter-label">SHOW</span>
+<label class="history-filter-option" for="historyFilterWorkouts"><input type="checkbox" id="historyFilterWorkouts" checked onchange="renderHistory()"><span>WORKOUTS</span></label>
+<label class="history-filter-option" for="historyFilterFood"><input type="checkbox" id="historyFilterFood" checked onchange="renderHistory()"><span>FOOD LOGS</span></label>
+</div>
 <div id="historyLogsContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
 <button class="btn btn-dark" onclick="clearHistory()" style="margin-top:10px; font-size:0.7rem;">CLEAR ALL HISTORY</button>
 </div>
@@ -3630,12 +3644,24 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <div>
 <label for="manualFoodServing">Amount</label>
-<div style="display:grid; grid-template-columns:1fr 88px; gap:5px;">
+<div style="display:grid; grid-template-columns:1fr 110px; gap:5px;">
 <input class="custom-select" id="manualFoodServing" min="0.01" step="0.01" type="number" value="100"/>
-<select class="custom-select" id="manualFoodUnit">
+<select class="custom-select" id="manualFoodUnit" onchange="updateManualServingFields()">
 <option value="g">grams</option>
 <option value="oz">ounces</option>
+<option value="serving">custom serving</option>
 </select>
+</div>
+<div id="manualCustomServingFields" style="display:none; margin-top:7px;">
+<label>CUSTOM SERVING</label>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+<input class="custom-select" id="manualServingName" placeholder="slice, piece, cup..." type="text"/>
+<div style="display:grid; grid-template-columns:1fr 34px; gap:4px; align-items:center;">
+<input class="custom-select" id="manualServingGrams" min="0.01" placeholder="28" step="0.1" type="number"/>
+<span style="font-size:.7rem;color:var(--text-muted);">g</span>
+</div>
+</div>
+<div class="nutrition-note" style="margin-top:5px;">Example: enter <strong>slice</strong> and <strong>28 g</strong>. Then 2 slices can be logged as 2 servings.</div>
 </div>
 </div>
 <div>
@@ -5059,6 +5085,10 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
       if(!ex) return;
       smartRestExerciseIndex=index;
       totalSeconds=getSmartRestSeconds(ex);
+      // A new exercise recommendation becomes the timer's new restart baseline.
+      // Without this, startTimer() can reuse the previous exercise's duration
+      // when a prior rest countdown is/was active.
+      restTimerStartSeconds=totalSeconds;
       updateTimerDisplay();
       const context=document.getElementById('smartRestContext');
       if(context) context.innerHTML=`<strong>${ex.name}</strong> • ${smartRestCategory(ex).toUpperCase()} RECOVERY • ${formatSmartRest(totalSeconds)}`;
@@ -6231,7 +6261,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       const existing = lib.find(x => x.signature === sig);
       const clean = {
         name:item.name, grams:Number(item.grams)||0, servingGrams:Number(item.servingGrams)||0,
-        servingText:item.servingText||'', calories:Number(item.calories)||0, protein:Number(item.protein)||0,
+        servingText:item.servingText||'', loggedUnit:item.loggedUnit||'', loggedAmount:Number(item.loggedAmount)||0, calories:Number(item.calories)||0, protein:Number(item.protein)||0,
         carbs:Number(item.carbs)||0, fat:Number(item.fat)||0
       };
       if (existing) {
@@ -6252,7 +6282,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       const sig = quickFoodSignature(item);
       let entry = lib.find(x => x.signature === sig);
       if (!entry) {
-        entry = {name:item.name, grams:Number(item.grams)||0, servingGrams:Number(item.servingGrams)||0, servingText:item.servingText||'', calories:Number(item.calories)||0, protein:Number(item.protein)||0, carbs:Number(item.carbs)||0, fat:Number(item.fat)||0, signature:sig, count:0, lastUsed:Date.now(), favorite:false};
+        entry = {name:item.name, grams:Number(item.grams)||0, servingGrams:Number(item.servingGrams)||0, servingText:item.servingText||'', loggedUnit:item.loggedUnit||'', loggedAmount:Number(item.loggedAmount)||0, calories:Number(item.calories)||0, protein:Number(item.protein)||0, carbs:Number(item.carbs)||0, fat:Number(item.fat)||0, signature:sig, count:0, lastUsed:Date.now(), favorite:false};
         lib.push(entry);
       }
       entry.favorite = typeof force === 'boolean' ? force : !entry.favorite;
@@ -6329,7 +6359,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       const food = getQuickFoodLibrary().find(x=>x.signature===signature);
       if (!food) return;
       const mealName = nutritionMealName(activeNutritionMeal);
-      const item = {name:food.name, grams:Number(food.grams)||0, servingGrams:Number(food.servingGrams)||0, servingText:food.servingText||'', calories:Number(food.calories)||0, protein:Number(food.protein)||0, carbs:Number(food.carbs)||0, fat:Number(food.fat)||0};
+      const item = {name:food.name, grams:Number(food.grams)||0, servingGrams:Number(food.servingGrams)||0, servingText:food.servingText||'', loggedUnit:food.loggedUnit||'', loggedAmount:Number(food.loggedAmount)||0, calories:Number(food.calories)||0, protein:Number(food.protein)||0, carbs:Number(food.carbs)||0, fat:Number(food.fat)||0};
       const log = getNutritionLog();
       if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal]=[];
       log[activeNutritionMeal].push(item);
@@ -6709,6 +6739,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         grams,
         servingGrams,
         servingText: base.servingText || `${round1(servingGrams)} g`,
+        loggedUnit: unit, loggedAmount: amount,
         calories: numberOrZero(base.calories) * scale,
         protein: numberOrZero(base.protein) * scale,
         carbs: numberOrZero(base.carbs) * scale,
@@ -6793,6 +6824,16 @@ function onRepsEntered(exerciseIndex, repInput) {
       return Number.isFinite(n) && n >= 0 ? n : 0;
     }
 
+    function updateManualServingFields() {
+      const unit = document.getElementById('manualFoodUnit')?.value || 'g';
+      const fields = document.getElementById('manualCustomServingFields');
+      if (fields) fields.style.display = unit === 'serving' ? 'block' : 'none';
+      if (unit === 'serving') {
+        const amount = document.getElementById('manualFoodServing');
+        if (amount && (Number(amount.value) === 100 || !amount.value)) amount.value = '1';
+      }
+    }
+
     function saveManualFood() {
       const name = document.getElementById('manualFoodName').value.trim();
       const calories = numberOrZero(document.getElementById('manualFoodCalories').value);
@@ -6801,15 +6842,27 @@ function onRepsEntered(exerciseIndex, repInput) {
       const fat = numberOrZero(document.getElementById('manualFoodFat').value);
       const manualAmount = Math.max(0.01, Number(document.getElementById('manualFoodServing').value) || 100);
       const manualUnit = document.getElementById('manualFoodUnit')?.value || 'g';
-      const grams = amountToGrams(manualAmount, manualUnit, 0);
+      const customServingName = document.getElementById('manualServingName')?.value.trim() || '';
+      const customServingGrams = numberOrZero(document.getElementById('manualServingGrams')?.value);
+      const servingGrams = manualUnit === 'serving' ? customServingGrams : 0;
+      const grams = amountToGrams(manualAmount, manualUnit, servingGrams);
       const barcode = document.getElementById('manualFoodBarcode').value.trim();
 
       if (!name) {
         alert('Please enter a food name.');
         return;
       }
+      if (manualUnit === 'serving' && !(servingGrams > 0)) {
+        alert('Please enter how many grams are in one custom serving.');
+        return;
+      }
+      if (manualUnit === 'serving' && !customServingName) {
+        alert('Please name the custom serving, such as slice, piece, cup, or bar.');
+        return;
+      }
 
-      const item = { name, grams, calories, protein, carbs, fat };
+      const servingText = manualUnit === 'serving' ? `1 ${customServingName}` : '';
+      const item = { name, grams, servingGrams, servingText, loggedUnit: manualUnit, loggedAmount: manualAmount, calories, protein, carbs, fat };
       const log = getNutritionLog();
       if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
       log[activeNutritionMeal].push(item);
@@ -6821,8 +6874,8 @@ function onRepsEntered(exerciseIndex, repInput) {
         saveBarcodeFood(barcode, {
           name,
           brand: 'Custom food',
-          servingText: `${grams} g`,
-          servingGrams: grams,
+          servingText: manualUnit === 'serving' ? servingText : `${grams} g`,
+          servingGrams: manualUnit === 'serving' ? servingGrams : grams,
           caloriesPer100: calories * scaleTo100,
           proteinPer100: protein * scaleTo100,
           carbsPer100: carbs * scaleTo100,
@@ -6845,6 +6898,11 @@ function onRepsEntered(exerciseIndex, repInput) {
       document.getElementById('manualFoodBarcode').value = '';
       const unit = document.getElementById('manualFoodUnit');
       if (unit) unit.value = 'g';
+      const servingName = document.getElementById('manualServingName');
+      const servingGrams = document.getElementById('manualServingGrams');
+      if (servingName) servingName.value = '';
+      if (servingGrams) servingGrams.value = '';
+      updateManualServingFields();
     }
 
     let liveFoodSearchTimer = null;
@@ -7037,6 +7095,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         grams,
         servingGrams,
         servingText,
+        loggedUnit: String(unit).startsWith('portion:') ? 'serving' : unit, loggedAmount: amount,
         calories: base.calories * scale,
         protein: base.protein * scale,
         carbs: base.carbs * scale,
@@ -7054,11 +7113,13 @@ function onRepsEntered(exerciseIndex, repInput) {
     function formatLoggedFoodAmount(item) {
       const grams = Number(item?.grams) || 0;
       const servingGrams = Number(item?.servingGrams) || 0;
+      const loggedUnit = ['g','oz','serving'].includes(item?.loggedUnit) ? item.loggedUnit : '';
+      if (loggedUnit === 'g') return `${round1(grams)}g`;
+      if (loggedUnit === 'oz') return `${round1(gramsToAmount(grams, 'oz', servingGrams))} oz`;
+      if (loggedUnit === 'serving' && servingGrams > 0) return formatServingQuantity(gramsToAmount(grams, 'serving', servingGrams), item?.servingText || '1 serving');
       if (servingGrams > 0) {
         const servings = grams / servingGrams;
-        if (Math.abs(servings - Math.round(servings * 4) / 4) < 0.01) {
-          return formatServingQuantity(servings, item?.servingText || '1 serving');
-        }
+        if (Math.abs(servings - Math.round(servings * 4) / 4) < 0.01) return formatServingQuantity(servings, item?.servingText || '1 serving');
       }
       return `${round1(grams)}g`;
     }
@@ -7081,10 +7142,9 @@ function onRepsEntered(exerciseIndex, repInput) {
         servingOption.textContent = servingGrams > 0 ? portionUnitLabel(item.servingText || 'serving') : 'serving';
       }
 
-      let preferredUnit = 'g';
-      if (servingGrams > 0 && Math.abs((Number(item.grams) || 0) / servingGrams - Math.round((Number(item.grams) || 0) / servingGrams)) < 0.01) {
-        preferredUnit = 'serving';
-      }
+      let preferredUnit = ['g','oz','serving'].includes(item.loggedUnit) ? item.loggedUnit : 'g';
+      if (!item.loggedUnit && servingGrams > 0 && Math.abs((Number(item.grams) || 0) / servingGrams - Math.round((Number(item.grams) || 0) / servingGrams)) < 0.01) preferredUnit = 'serving';
+      if (preferredUnit === 'serving' && !(servingGrams > 0)) preferredUnit = 'g';
 
       if (unitSelect) unitSelect.value = preferredUnit;
       const amountInput = document.getElementById('foodEditAmount');
@@ -7160,6 +7220,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       item.carbs = (Number(item.carbs) || 0) * scale;
       item.fat = (Number(item.fat) || 0) * scale;
       item.grams = newGrams;
+      item.loggedUnit = unit;
+      item.loggedAmount = amount;
 
       saveNutritionLog(log);
       updateNutritionDashboard();
@@ -7186,6 +7248,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       const copiedItem = {
         ...sourceItem,
         grams: newGrams,
+        loggedUnit: unit,
+        loggedAmount: amount,
         calories: (Number(sourceItem.calories) || 0) * scale,
         protein: (Number(sourceItem.protein) || 0) * scale,
         carbs: (Number(sourceItem.carbs) || 0) * scale,
@@ -7668,19 +7732,42 @@ function onRepsEntered(exerciseIndex, repInput) {
       alert('Macro log saved to History!');
     }
 
+    function syncFoodLogsIntoHistory() {
+      // Daily nutrition logs are shared across programs. History used to rely on a separate
+      // summary entry, so a missed save/program switch could make real food logs look absent.
+      const prefix = 'schmokefit_unified_nutrition_';
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      const stamps = [];
+      for (let i = 0; i < rawLocalStorage.length; i++) {
+        const key = rawLocalStorage.key(i) || '';
+        if (!key.startsWith(prefix)) continue;
+        const suffix = key.slice(prefix.length);
+        if (datePattern.test(suffix)) stamps.push(suffix);
+      }
+      stamps.sort().forEach(stamp => upsertNutritionHistoryEntry(stamp, false));
+    }
+
     function renderHistory() {
       const container = document.getElementById('historyLogsContainer');
+      syncFoodLogsIntoHistory();
       const history = JSON.parse(appStorage.getItem('schmokefit_history') || '[]');
+      const showWorkouts = document.getElementById('historyFilterWorkouts')?.checked !== false;
+      const showFood = document.getElementById('historyFilterFood')?.checked !== false;
+      const workoutHistoryTypes = new Set(['WORKOUT', 'EXTRA_WORKOUT', 'EXTRA_ACTIVITY']);
+      const visibleHistory = history.filter(item => workoutHistoryTypes.has(item.type) ? showWorkouts : (item.type === 'MACROS' ? showFood : true));
 
-      if (history.length === 0) {
-        container.innerHTML = '<div class="empty-history">No logged workouts or macros found.</div>';
+      if (visibleHistory.length === 0) {
+        const message = history.length === 0 ? 'No logged workouts or food found.' : 'No history matches the selected filters.';
+        container.innerHTML = `<div class="empty-history">${message}</div>`;
         return;
       }
 
       container.innerHTML = '';
-      history.forEach(item => {
+      visibleHistory.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card history-card';
+        const historyType = item.type === 'MACROS' ? 'food' : 'workout';
+        card.dataset.historyType = historyType;
 
         let displayDetails = item.details || '';
 
@@ -7697,6 +7784,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         }
 
         card.innerHTML = `
+          <div class="history-type-badge">${historyType === 'food' ? 'FOOD LOG' : 'WORKOUT'}</div>
           <div class="history-header">
             <span>${item.title}</span>
             <span>${item.date}</span>
@@ -10790,8 +10878,15 @@ function saveExtraCardioActivity(){
 
  window.confirmLogCompletedWorkout=function(){
    hide('workoutCompleteConfirmOverlay');
-   /* Call the existing fully wrapped logger so history, drafts and week progress all stay intact. */
-   saveWorkoutLog();
+   /* The SchmokeFit modal is already the confirmation. Suppress the legacy browser
+      success alert only while this confirmed workout is being saved. */
+   const nativeAlert = window.alert;
+   try {
+     window.alert = function(){};
+     saveWorkoutLog();
+   } finally {
+     window.alert = nativeAlert;
+   }
    /* Explicitly return to the week overview after logging. */
    const detail=document.getElementById('workoutDetailView');
    const dashboard=document.getElementById('workoutDashboardView');
