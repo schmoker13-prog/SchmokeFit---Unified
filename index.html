@@ -2316,6 +2316,102 @@
       }
     }
 
+
+/* v78 — clearer previous-set context, subtle PRs, saved meals, exercise notes */
+.prev-val-wrap{width:65px;flex-shrink:0;text-align:center;}
+.prev-val-label{font-size:.48rem;font-weight:800;letter-spacing:.08em;color:var(--text-muted);margin-bottom:2px;line-height:1;}
+.prev-val-wrap .prev-val-box{width:100%;box-sizing:border-box;}
+.exercise-pr-badge{display:none;font-size:.55rem;font-weight:900;letter-spacing:.04em;padding:4px 7px;border-radius:999px;border:1px solid rgba(250,204,21,.38);background:rgba(250,204,21,.08);color:#facc15;white-space:nowrap;}
+.exercise-pr-badge.show{display:inline-flex;align-items:center;gap:3px;}
+.exercise-note-btn{border:1px solid var(--input-border);background:rgba(255,255,255,.03);color:var(--text-muted);border-radius:7px;padding:5px 7px;font-size:.58rem;font-weight:800;cursor:pointer;white-space:nowrap;}
+.exercise-note-btn.has-note{color:var(--accent-orange);border-color:rgba(249,115,22,.42);background:rgba(249,115,22,.08);}
+.exercise-note-preview{display:none;margin:5px 0 8px;padding:7px 9px;border-left:2px solid var(--accent-orange);background:rgba(255,255,255,.025);border-radius:0 6px 6px 0;color:var(--text-muted);font-size:.68rem;line-height:1.35;}
+.exercise-note-preview.show{display:block;}
+.v78-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:10020;display:none;align-items:center;justify-content:center;padding:18px;}
+.v78-overlay.open{display:flex;}
+.v78-modal{width:min(430px,100%);background:#111827;border:1px solid #334155;border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.v78-modal h3{margin:0 0 6px;font-size:1rem;}
+.v78-modal p{margin:0 0 12px;color:var(--text-muted);font-size:.72rem;line-height:1.4;}
+.v78-modal textarea{min-height:105px;resize:vertical;}
+.v78-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.meal-shortcuts{border:1px solid #263244;background:rgba(255,255,255,.02);border-radius:10px;padding:9px;margin-bottom:10px;}
+.meal-shortcuts-title{font-size:.58rem;font-weight:900;letter-spacing:.08em;color:var(--text-muted);margin-bottom:7px;}
+.meal-shortcut-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.meal-shortcut-btn{border:1px solid var(--input-border);background:#111827;color:var(--text);border-radius:8px;padding:8px 7px;font-size:.62rem;font-weight:800;cursor:pointer;}
+.saved-meals-list{display:grid;gap:5px;margin-top:7px;}
+.saved-meal-row{display:grid;grid-template-columns:1fr auto auto;gap:5px;align-items:center;border-top:1px solid #202b3b;padding-top:6px;}
+.saved-meal-name{font-size:.68rem;font-weight:800;}
+.saved-meal-meta{font-size:.56rem;color:var(--text-muted);margin-top:1px;}
+.saved-meal-add,.saved-meal-delete{border:1px solid var(--input-border);background:rgba(255,255,255,.03);color:var(--text);border-radius:7px;padding:6px 8px;font-size:.58rem;font-weight:800;cursor:pointer;}
+.saved-meal-delete{color:var(--text-muted);padding:6px;}
+@media(max-width:600px){
+  .prev-val-wrap{width:58px;}
+  .exercise-note-btn{padding:5px 6px;}
+  .meal-shortcut-actions{grid-template-columns:1fr;}
+}
+
+
+/* v80 — workout header + removable exercise-note polish */
+.exercise-card .exercise-header{min-width:0;}
+.exercise-card .exercise-header-controls{min-width:0;flex-wrap:wrap;}
+.exercise-card .exercise-reorder-controls{flex:0 0 auto;}
+.exercise-note-preview.show{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+}
+.exercise-note-preview-text{
+  flex:1 1 auto;
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.exercise-note-delete{
+  flex:0 0 auto;
+  width:22px;
+  height:22px;
+  padding:0;
+  margin:-2px -2px 0 0;
+  border:0;
+  border-radius:6px;
+  background:transparent;
+  color:var(--text-muted);
+  font-size:1rem;
+  line-height:1;
+  font-weight:700;
+  cursor:pointer;
+}
+.exercise-note-delete:hover,
+.exercise-note-delete:focus{
+  background:rgba(255,255,255,.07);
+  color:var(--text);
+}
+@media (min-width:601px){
+  .exercise-card .exercise-header{
+    display:grid;
+    grid-template-columns:minmax(220px,1fr) auto;
+    gap:8px 12px;
+    align-items:center;
+  }
+  .exercise-card .exercise-header-controls{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    gap:6px;
+  }
+  .exercise-card .exercise-reorder-controls{
+    grid-column:1 / -1;
+    justify-self:end;
+    margin-left:0;
+  }
+}
+
+/* v81 — highlight the exact set(s) responsible for NEW BEST */
+.exercise-card .set-label.set-new-best{
+  color:#facc15 !important;
+  text-shadow:0 0 10px rgba(250,204,21,.22);
+  font-weight:900 !important;
+}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3603,6 +3699,14 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div id="mealSections"></div>
 <div class="nutrition-search-panel" id="nutritionSearchPanel">
 <div class="select-label" id="searchMealLabel">ADD FOOD</div>
+<div class="meal-shortcuts" id="mealShortcuts">
+<div class="meal-shortcuts-title">MEAL SHORTCUTS</div>
+<div class="meal-shortcut-actions">
+<button class="meal-shortcut-btn" type="button" onclick="copyPreviousDayMeal()">↶ COPY YESTERDAY'S MEAL</button>
+<button class="meal-shortcut-btn" type="button" onclick="openSaveMealModal()">＋ SAVE CURRENT MEAL</button>
+</div>
+<div class="saved-meals-list" id="savedMealsList"></div>
+</div>
 <div class="quick-foods-wrap">
 <div class="quick-food-tabs" role="group" aria-label="Quick foods">
 <button class="quick-food-tab active" id="quickFoodTab-recent" type="button" onclick="setQuickFoodTab('recent')">RECENT / FREQUENT</button>
@@ -4943,17 +5047,135 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
       setTrainingFocus(currentTrainingFocus, document.getElementById(`focusBtn-${currentTrainingFocus}`));
     }
 
-    function getPreviousExerciseSet(exName, setNum) {
+    const exerciseNotesKey = 'schmokefit_exercise_notes';
+    let editingExerciseNoteIndex = null;
+
+    function getExerciseNotes() {
+      try { return JSON.parse(appStorage.getItem(exerciseNotesKey) || '{}') || {}; }
+      catch(e) { return {}; }
+    }
+    function exerciseNoteKey(name) { return String(name || '').trim().toLowerCase(); }
+    function getExerciseNote(name) { return String(getExerciseNotes()[exerciseNoteKey(name)] || ''); }
+    function openExerciseNote(idx) {
+      const ex = activeExercises?.[idx];
+      if (!ex) return;
+      editingExerciseNoteIndex = idx;
+      document.getElementById('exerciseNoteTitle').innerText = `${ex.name.toUpperCase()} • NOTE`;
+      document.getElementById('exerciseNoteText').value = getExerciseNote(ex.name);
+      document.getElementById('exerciseNoteOverlay')?.classList.add('open');
+      setTimeout(()=>document.getElementById('exerciseNoteText')?.focus(),50);
+    }
+    function closeExerciseNote() {
+      document.getElementById('exerciseNoteOverlay')?.classList.remove('open');
+      editingExerciseNoteIndex = null;
+    }
+    function deleteExerciseNote(idx) {
+      const ex = activeExercises?.[idx];
+      if (!ex) return;
+      const notes = getExerciseNotes();
+      delete notes[exerciseNoteKey(ex.name)];
+      appStorage.setItem(exerciseNotesKey, JSON.stringify(notes));
+
+      /* Update only the note UI. Do not rerender the exercise card, so every
+         live weight/rep entry and the active rest timer stay exactly intact. */
+      document.getElementById(`exerciseNotePreview-${idx}`)?.classList.remove('show');
+      const previewText = document.querySelector(`#exerciseNotePreview-${idx} .exercise-note-preview-text`);
+      if (previewText) previewText.textContent = '';
+      document.getElementById(`exerciseNoteBtn-${idx}`)?.classList.remove('has-note');
+    }
+    function saveExerciseNote() {
+      const ex = activeExercises?.[editingExerciseNoteIndex];
+      if (!ex) return closeExerciseNote();
+      const notes = getExerciseNotes();
+      const key = exerciseNoteKey(ex.name);
+      const value = String(document.getElementById('exerciseNoteText')?.value || '').trim();
+      if (value) notes[key] = value; else delete notes[key];
+      appStorage.setItem(exerciseNotesKey, JSON.stringify(notes));
+
+      /* Saving a note must never disturb the workout in progress. Capture the exact
+         live form values before the exercise cards rerender, then restore them. */
+      const liveState = typeof captureLiveWorkoutEditorState === 'function'
+        ? captureLiveWorkoutEditorState()
+        : null;
+      closeExerciseNote();
+      renderWorkoutExercises();
+      if (liveState && typeof restoreLiveWorkoutEditorState === 'function') {
+        restoreLiveWorkoutEditorState(liveState);
+      }
+      if (typeof saveCurrentWorkoutDraft === 'function') saveCurrentWorkoutDraft();
+    }
+
+    function getPreviousExerciseSetData(exName, setNum) {
       const history = JSON.parse(appStorage.getItem('schmokefit_history') || '[]');
-      for (let log of history) {
+      for (const log of history) {
         if (log.type === 'WORKOUT' && log.structuredData && log.structuredData[exName]) {
           const setData = log.structuredData[exName][`set${setNum}`];
-          if (setData && (setData.w !== '-' || setData.r !== '-')) {
-            return `${setData.w}×${setData.r}`;
-          }
+          if (setData && (setData.w !== '-' || setData.r !== '-')) return setData;
         }
       }
-      return '-';
+      return null;
+    }
+
+    function getAllTimeExerciseSetBest(exName, setNum) {
+      const history = JSON.parse(appStorage.getItem('schmokefit_history') || '[]');
+      let best = null;
+
+      for (const log of history) {
+        if (log.type !== 'WORKOUT' || !log.structuredData || !log.structuredData[exName]) continue;
+        const setData = log.structuredData[exName][`set${setNum}`];
+        if (!setData) continue;
+
+        const w = Number(setData.w);
+        const r = Number(setData.r);
+        const hasWeight = String(setData.w ?? '').trim() !== '' && Number.isFinite(w);
+        const hasReps = String(setData.r ?? '').trim() !== '' && Number.isFinite(r);
+        if (!hasWeight || !hasReps) continue;
+
+        if (!best || w > best.w || (w === best.w && r > best.r)) {
+          best = { w, r };
+        }
+      }
+      return best;
+    }
+
+    function checkSetPR(idx, setNum) {
+      const ex = activeExercises?.[idx];
+      const badge = document.getElementById(`exercisePR-${idx}`);
+      const wEl = document.querySelector(`.ex-${idx}-w${setNum}`);
+      const rEl = document.querySelector(`.ex-${idx}-r${setNum}`);
+      const row = wEl?.closest('.set-row');
+      const label = row?.querySelector('.set-label');
+      if (!ex || !badge || !wEl || wEl.disabled || !rEl) return;
+
+      const currentW = Number(wEl.value);
+      const currentR = Number(rEl.value);
+      const historicalBest = getAllTimeExerciseSetBest(ex.name, setNum);
+      const bestW = Number(historicalBest?.w);
+      const bestR = Number(historicalBest?.r);
+      const hasCurrent = String(wEl.value).trim() !== '' && String(rEl.value).trim() !== '';
+      const hasHistory = historicalBest && Number.isFinite(bestW) && Number.isFinite(bestR);
+
+      /* NEW BEST means a true all-time PR for this exercise/set position.
+         The normal previous-session display stays unchanged; only the trophy
+         logic scans the full workout history. */
+      const isBest = hasCurrent && hasHistory &&
+        (currentW > bestW || (currentW === bestW && currentR > bestR));
+
+      label?.classList.toggle('set-new-best', !!isBest);
+
+      /* Keep just ONE trophy badge at the exercise level. It stays visible when
+         any set in this exercise currently qualifies as a new best. */
+      const anyBest = Array.from(document.querySelectorAll(`#exerciseCard-${idx} .set-label`))
+        .some(el => el.classList.contains('set-new-best'));
+      badge.classList.toggle('show', anyBest);
+    }
+
+    function checkFirstSetPR(idx) {
+      checkSetPR(idx, 1);
+    }
+    function getPreviousExerciseSet(exName, setNum) {
+      const setData = getPreviousExerciseSetData(exName, setNum);
+      return setData ? `${setData.w}×${setData.r}` : '-';
     }
 
     function switchTab(tabId, btn) {
@@ -5131,10 +5353,10 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
         html+=`
           <div class="set-row athlete-set-row">
             <div class="set-label">${label}</div>
-            <div class="prev-val-box" title="Previous Session">${prev}</div>
+            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session">${prev}</div></div>
             <div class="set-input-group">
-              <input type="number" class="set-input ex-${idx}-w${n}" placeholder="${weightPlaceholder}" ${isSprint||isConditioning?'disabled':''}>
-              <input type="${isSprint||isConditioning?'text':'number'}" inputmode="${isSprint||isConditioning?'text':'numeric'}" class="set-input ex-${idx}-r${n}" placeholder="${repPlaceholder}" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
+              <input type="number" class="set-input ex-${idx}-w${n}" placeholder="${weightPlaceholder}" ${isSprint||isConditioning?'disabled':''} oninput="checkSetPR(${idx}, ${n})">
+              <input type="${isSprint||isConditioning?'text':'number'}" inputmode="${isSprint||isConditioning?'text':'numeric'}" class="set-input ex-${idx}-r${n}" placeholder="${repPlaceholder}" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, ${n}); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
           </div>`;
       }
@@ -5189,34 +5411,40 @@ function renderWorkoutExercises() {
             </select>
             <div class="exercise-header-controls">
               <span class="badge ${ex.badgeClass}">${ex.badge}</span>
+              <span class="exercise-pr-badge" id="exercisePR-${idx}">🏆 NEW BEST</span>
+              <button class="exercise-note-btn ${getExerciseNote(ex.name) ? 'has-note' : ''}" id="exerciseNoteBtn-${idx}" type="button" onclick="openExerciseNote(${idx})" title="Exercise note">📝 NOTE</button>
               <button class="smart-rest-btn" onclick="setSmartRestForExercise(${idx}, false)" title="Load recommended rest">⏱ ${formatSmartRest(getSmartRestSeconds(ex))}</button>
               <button class="btn-danger-sm" onclick="removeExercise(${idx})" title="Remove Exercise">🗑️</button>
             </div>
+          </div>
+          <div class="exercise-note-preview ${getExerciseNote(ex.name) ? 'show' : ''}" id="exerciseNotePreview-${idx}">
+            <span class="exercise-note-preview-text">${escapeHtml(getExerciseNote(ex.name))}</span>
+            <button class="exercise-note-delete" type="button" onclick="deleteExerciseNote(${idx})" title="Delete note" aria-label="Delete note">×</button>
           </div>
           ${currentProgram === 'athlete' ? athleteRows : `
           <!-- SET 1 -->
           <div class="set-row">
             <div class="set-label">Set 1 (Heavy)</div>
-            <div class="prev-val-box" title="Previous Session Weight × Reps">${prev1}</div>
+            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session Weight × Reps">${prev1}</div></div>
             <div class="set-input-group">
-              <input type="number" class="set-input ex-${idx}-w1" placeholder="Wt" oninput="autoCalcRPT(${idx})">
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r1" placeholder="Reps (4-6)" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
+              <input type="number" class="set-input ex-${idx}-w1" placeholder="Wt" oninput="autoCalcRPT(${idx}); checkSetPR(${idx}, 1)">
+              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r1" placeholder="Reps (4-6)" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, 1); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
           </div>
           <div class="set-row">
             <div class="set-label">Set 2 (-10%)</div>
-            <div class="prev-val-box" title="Previous Session Weight × Reps">${prev2}</div>
+            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session Weight × Reps">${prev2}</div></div>
             <div class="set-input-group">
-              <input type="number" class="set-input ex-${idx}-w2" placeholder="Wt">
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r2" placeholder="Reps (6-8)" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
+              <input type="number" class="set-input ex-${idx}-w2" placeholder="Wt" oninput="checkSetPR(${idx}, 2)">
+              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r2" placeholder="Reps (6-8)" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, 2); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
           </div>
           <div class="set-row">
             <div class="set-label">Set 3 (-20%)</div>
-            <div class="prev-val-box" title="Previous Session Weight × Reps">${prev3}</div>
+            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session Weight × Reps">${prev3}</div></div>
             <div class="set-input-group">
-              <input type="number" class="set-input ex-${idx}-w3" placeholder="Wt" oninput="checkExerciseCompletion(${idx})">
-              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r3" placeholder="Reps (8-10)" onchange="onRepsEntered(${idx}, this); if(this.value) setSmartRestForExercise(${idx}, true)">
+              <input type="number" class="set-input ex-${idx}-w3" placeholder="Wt" oninput="checkExerciseCompletion(${idx}); checkSetPR(${idx}, 3)">
+              <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r3" placeholder="Reps (8-10)" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, 3); if(this.value) setSmartRestForExercise(${idx}, true)">
             </div>
           </div>`}
         `;
@@ -6170,9 +6398,13 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     function openFoodSearch(meal) {
       activeNutritionMeal = meal;
+      /* Each food-logging session starts compact, even if SHOW ALL was used last time. */
+      quickFoodExpanded.recent = false;
+      quickFoodExpanded.favorites = false;
       const panel = document.getElementById('nutritionSearchPanel');
       const slot = document.getElementById(`nutritionSearchSlot-${meal}`);
       document.getElementById('searchMealLabel').innerText = `ADD TO ${nutritionMealName(meal).toUpperCase()}`;
+      renderMealShortcuts();
       renderQuickFoods();
 
       if (slot && panel) slot.appendChild(panel);
@@ -6231,6 +6463,8 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     async function closeFoodSearch() {
       await stopBarcodeScanner();
+      quickFoodExpanded.recent = false;
+      quickFoodExpanded.favorites = false;
       hideManualFoodForm();
       document.getElementById('foodLookupPanel')?.classList.remove('open');
       document.getElementById('nutritionSearchPanel').classList.remove('food-mode-active');
@@ -6239,6 +6473,131 @@ function onRepsEntered(exerciseIndex, repInput) {
       document.getElementById('foodSearchInput').value = '';
     }
 
+
+    const savedMealsKey = 'schmokefit_saved_meals';
+
+    function cloneFoodItem(item) {
+      return JSON.parse(JSON.stringify(item || {}));
+    }
+    function getSavedMeals() {
+      try {
+        const meals = JSON.parse(appStorage.getItem(savedMealsKey) || '[]');
+        return Array.isArray(meals) ? meals : [];
+      } catch(e) { return []; }
+    }
+    function saveSavedMeals(meals) {
+      appStorage.setItem(savedMealsKey, JSON.stringify((meals || []).slice(0,40)));
+    }
+    function renderMealShortcuts() {
+      const list = document.getElementById('savedMealsList');
+      if (!list) return;
+      const meals = getSavedMeals();
+      if (!meals.length) {
+        list.innerHTML = '<div class="nutrition-empty" style="padding:6px 0 0;">No saved meals yet.</div>';
+        return;
+      }
+      list.innerHTML = meals.map(meal => {
+        const items = Array.isArray(meal.items) ? meal.items : [];
+        const calories = items.reduce((sum,item)=>sum+(Number(item.calories)||0),0);
+        return `<div class="saved-meal-row">
+          <div><div class="saved-meal-name">${escapeHtml(meal.name)}</div><div class="saved-meal-meta">${items.length} item${items.length===1?'':'s'} • ${Math.round(calories)} kcal</div></div>
+          <button class="saved-meal-add" type="button" onclick="addSavedMeal('${meal.id}')">+ ADD</button>
+          <button class="saved-meal-delete" type="button" onclick="deleteSavedMeal('${meal.id}')" aria-label="Delete ${escapeHtml(meal.name)}">✕</button>
+        </div>`;
+      }).join('');
+    }
+    function foodActionToast(message) {
+      let toast = document.getElementById('quickAddToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'quickAddToast';
+        toast.className = 'quick-add-toast';
+        toast.setAttribute('role','status');
+        toast.setAttribute('aria-live','polite');
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.remove('show');
+      void toast.offsetWidth;
+      toast.classList.add('show');
+      clearTimeout(quickAddToastTimer);
+      quickAddToastTimer = setTimeout(()=>toast.classList.remove('show'),1700);
+    }
+    function previousDateStamp(stamp) {
+      const d = dateFromLocalStamp(stamp || localDateStamp(new Date()));
+      d.setDate(d.getDate()-1);
+      return localDateStamp(d);
+    }
+    function copyPreviousDayMeal() {
+      if (!activeNutritionMeal) return;
+      const sourceStamp = previousDateStamp(selectedNutritionDateStamp);
+      const source = getNutritionLogForDate(sourceStamp);
+      const items = Array.isArray(source?.[activeNutritionMeal]) ? source[activeNutritionMeal] : [];
+      if (!items.length) {
+        foodActionToast(`No ${nutritionMealName(activeNutritionMeal)} logged yesterday.`);
+        return;
+      }
+      const log = getNutritionLog();
+      if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
+      const copies = items.map(cloneFoodItem);
+      log[activeNutritionMeal].push(...copies);
+      saveNutritionLog(log);
+      copies.forEach(item=>rememberQuickFood(item));
+      updateNutritionDashboard();
+      renderMealSections();
+      const slot=document.getElementById(`nutritionSearchSlot-${activeNutritionMeal}`);
+      const panel=document.getElementById('nutritionSearchPanel');
+      if(slot&&panel){slot.appendChild(panel);panel.classList.add('open');renderMealShortcuts();renderQuickFoods();}
+      foodActionToast(`✓ Yesterday's ${nutritionMealName(activeNutritionMeal)} copied.`);
+    }
+    function openSaveMealModal() {
+      if (!activeNutritionMeal) return;
+      const items = getNutritionLog()?.[activeNutritionMeal] || [];
+      if (!items.length) {
+        foodActionToast(`Add food to ${nutritionMealName(activeNutritionMeal)} before saving it.`);
+        return;
+      }
+      const input = document.getElementById('savedMealNameInput');
+      if (input) input.value = nutritionMealName(activeNutritionMeal);
+      document.getElementById('saveMealOverlay')?.classList.add('open');
+      setTimeout(()=>input?.focus(),50);
+    }
+    function closeSaveMealModal() {
+      document.getElementById('saveMealOverlay')?.classList.remove('open');
+    }
+    function saveCurrentMealAsShortcut() {
+      if (!activeNutritionMeal) return;
+      const items = getNutritionLog()?.[activeNutritionMeal] || [];
+      const name = String(document.getElementById('savedMealNameInput')?.value || '').trim();
+      if (!items.length || !name) return;
+      const meals = getSavedMeals();
+      meals.unshift({id:`meal-${Date.now()}`, name:name.slice(0,40), items:items.map(cloneFoodItem), savedAt:Date.now()});
+      saveSavedMeals(meals);
+      closeSaveMealModal();
+      renderMealShortcuts();
+      foodActionToast(`✓ ${name} saved.`);
+    }
+    function addSavedMeal(id) {
+      const saved = getSavedMeals().find(meal=>meal.id===id);
+      if (!saved || !activeNutritionMeal) return;
+      const copies = (saved.items || []).map(cloneFoodItem);
+      const log = getNutritionLog();
+      if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal]=[];
+      log[activeNutritionMeal].push(...copies);
+      saveNutritionLog(log);
+      copies.forEach(item=>rememberQuickFood(item));
+      updateNutritionDashboard();
+      renderMealSections();
+      const slot=document.getElementById(`nutritionSearchSlot-${activeNutritionMeal}`);
+      const panel=document.getElementById('nutritionSearchPanel');
+      if(slot&&panel){slot.appendChild(panel);panel.classList.add('open');renderMealShortcuts();renderQuickFoods();}
+      foodActionToast(`✓ ${saved.name} added to ${nutritionMealName(activeNutritionMeal)}.`);
+    }
+    function deleteSavedMeal(id) {
+      const meals = getSavedMeals().filter(meal=>meal.id!==id);
+      saveSavedMeals(meals);
+      renderMealShortcuts();
+    }
 
     const quickFoodLibraryKey = 'schmokefit_quick_food_library';
     let quickFoodTab = 'recent';
@@ -7018,7 +7377,8 @@ function onRepsEntered(exerciseIndex, repInput) {
             portions
           };
           currentUsdaSearchFoods[idx] = searchFood;
-          const payload = JSON.stringify(JSON.stringify(searchFood));
+          /* Keep the result in memory and pass only its numeric index to the ADD button.
+             This avoids food names/serving labels breaking an inline onclick attribute. */
           const initialGrams = portions.length
             ? (Number(portions[0]?.grams) || servingGrams || 100)
             : (servingGrams > 0 ? servingGrams : 100);
@@ -7047,7 +7407,7 @@ function onRepsEntered(exerciseIndex, repInput) {
                 <option value="g" ${defaultUnit === 'g' ? 'selected' : ''}>grams</option>
                 <option value="oz">ounces</option>
               </select>
-              <button class="btn btn-blue" style="margin-top:0;" onclick='addUsdaFood(${payload}, ${idx})'>ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
+              <button class="btn btn-blue" style="margin-top:0;" onclick="addUsdaFood(${idx})">ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
             </div>
           </div>`;
         }).join('');
@@ -7070,44 +7430,61 @@ function onRepsEntered(exerciseIndex, repInput) {
       };
     }
 
-    function addUsdaFood(serializedFood, idx) {
-      const base = JSON.parse(serializedFood);
-      const amount = Math.max(0.01, Number(document.getElementById(`foodAmount-${idx}`)?.value) || 1);
-      const unit = document.getElementById(`foodUnit-${idx}`)?.value || 'g';
-      let servingGrams = Number(base.servingGrams) > 0 ? Number(base.servingGrams) : 0;
-      let servingText = base.servingText || '';
-      let grams;
+    function addUsdaFood(idx) {
+      try {
+        const base = currentUsdaSearchFoods[idx];
+        if (!base) throw new Error('Food result is no longer available.');
 
-      if (String(unit).startsWith('portion:')) {
-        const portionIndex = Number(String(unit).split(':')[1]);
-        const portion = Array.isArray(base.portions) ? base.portions[portionIndex] : null;
-        if (portion && Number(portion.grams) > 0) {
-          servingGrams = Number(portion.grams);
-          servingText = portion.label || servingText;
-          grams = amount * servingGrams;
+        const amount = Math.max(0.01, Number(document.getElementById(`foodAmount-${idx}`)?.value) || 1);
+        const unit = document.getElementById(`foodUnit-${idx}`)?.value || 'g';
+        let servingGrams = Number(base.servingGrams) > 0 ? Number(base.servingGrams) : 0;
+        let servingText = base.servingText || '';
+        let grams;
+
+        if (String(unit).startsWith('portion:')) {
+          const portionIndex = Number(String(unit).split(':')[1]);
+          const portion = Array.isArray(base.portions) ? base.portions[portionIndex] : null;
+          if (portion && Number(portion.grams) > 0) {
+            servingGrams = Number(portion.grams);
+            servingText = portion.label || servingText;
+            grams = amount * servingGrams;
+          }
         }
-      }
 
-      if (!(grams > 0)) grams = amountToGrams(amount, unit, servingGrams);
-      const scale = grams / 100;
-      const item = {
-        name: base.name,
-        grams,
-        servingGrams,
-        servingText,
-        loggedUnit: String(unit).startsWith('portion:') ? 'serving' : unit, loggedAmount: amount,
-        calories: base.calories * scale,
-        protein: base.protein * scale,
-        carbs: base.carbs * scale,
-        fat: base.fat * scale
-      };
-      const log = getNutritionLog();
-      if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
-      log[activeNutritionMeal].push(item);
-      saveNutritionLog(log);
-      rememberQuickFood(item);
-      updateNutritionDashboard();
-      closeFoodSearch();
+        if (!(grams > 0)) grams = amountToGrams(amount, unit, servingGrams);
+        const scale = grams / 100;
+        const item = {
+          name: base.name,
+          grams,
+          servingGrams,
+          servingText,
+          loggedUnit: String(unit).startsWith('portion:') ? 'serving' : unit,
+          loggedAmount: amount,
+          calories: numberOrZero(base.calories) * scale,
+          protein: numberOrZero(base.protein) * scale,
+          carbs: numberOrZero(base.carbs) * scale,
+          fat: numberOrZero(base.fat) * scale
+        };
+
+        const log = getNutritionLog();
+        if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
+        log[activeNutritionMeal].push(item);
+        saveNutritionLog(log);
+        rememberQuickFood(item);
+        updateNutritionDashboard();
+        closeFoodSearch();
+      } catch (err) {
+        console.error('USDA food add error:', err);
+        const result = document.getElementById(`foodAmount-${idx}`)?.closest('.search-result');
+        let error = result?.querySelector('.food-add-error');
+        if (result && !error) {
+          error = document.createElement('div');
+          error.className = 'nutrition-empty food-add-error';
+          error.style.marginTop = '7px';
+          result.appendChild(error);
+        }
+        if (error) error.textContent = 'This food could not be added. Please try another serving option or search result.';
+      }
     }
 
     function formatLoggedFoodAmount(item) {
@@ -9667,6 +10044,14 @@ function onRepsEntered(exerciseIndex, repInput) {
         document.getElementById(`exerciseCard-${idx}`)?.classList.toggle('completed', complete);
       });
 
+      // Recompute the visual PR markers after restoring live values.
+      (snapshot.rows || []).forEach((sets, idx) => {
+        Object.keys(sets || {}).forEach(key => {
+          const n = Number(String(key).replace('set',''));
+          if (n && typeof checkSetPR === 'function') checkSetPR(idx, n);
+        });
+      });
+
       // Keep the timer beneath the exact exercise it was beneath before adding.
       if (snapshot.timerAnchorId) {
         const anchor = document.getElementById(snapshot.timerAnchorId);
@@ -11004,6 +11389,30 @@ function saveExtraCardioActivity(){
  window.addEventListener('resize',compactExerciseHeaders);
 })();
 </script>
+
+
+<div class="v78-overlay" id="exerciseNoteOverlay" onclick="if(event.target===this)closeExerciseNote()">
+  <div class="v78-modal">
+    <h3 id="exerciseNoteTitle">EXERCISE NOTE</h3>
+    <p>This note stays attached to this exercise and will be here the next time you train it.</p>
+    <textarea class="custom-select" id="exerciseNoteText" placeholder="Seat position, setup cue, equipment note, how it felt..."></textarea>
+    <div class="v78-modal-actions">
+      <button class="btn btn-dark" type="button" onclick="closeExerciseNote()">CANCEL</button>
+      <button class="btn btn-blue" type="button" onclick="saveExerciseNote()">SAVE NOTE</button>
+    </div>
+  </div>
+</div>
+<div class="v78-overlay" id="saveMealOverlay" onclick="if(event.target===this)closeSaveMealModal()">
+  <div class="v78-modal">
+    <h3>SAVE THIS MEAL</h3>
+    <p>Save all foods currently logged in this meal so you can add the whole meal again with one tap.</p>
+    <input class="custom-select" id="savedMealNameInput" maxlength="40" placeholder="e.g. Usual Breakfast" type="text">
+    <div class="v78-modal-actions">
+      <button class="btn btn-dark" type="button" onclick="closeSaveMealModal()">CANCEL</button>
+      <button class="btn btn-blue" type="button" onclick="saveCurrentMealAsShortcut()">SAVE MEAL</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
