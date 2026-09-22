@@ -2412,6 +2412,32 @@
   font-weight:900 !important;
 }
 
+
+/* v83 — refreshed tour for current SchmokeFit workflow */
+.app-tour-card{max-height:calc(100vh - 24px);overflow:auto;}
+.app-tour-title{letter-spacing:.015em;}
+
+.progress-category-title{margin:22px 0 10px;font-size:.78rem;font-weight:900;letter-spacing:.16em;color:#aeb8c4}.progress-metric-card{margin-top:12px}.progress-metric-copy{font-size:.82rem;color:#98a3af;margin:4px 0 14px}.consistency-row{display:flex;justify-content:space-between;font-size:.86rem;font-weight:800;margin:10px 0 6px}.consistency-track{height:9px;border-radius:999px;background:#252b32;overflow:hidden}.consistency-fill{height:100%;width:0;border-radius:999px}.progress-big-stat{font-size:1.7rem;font-weight:950;margin-bottom:12px}.progress-week-row,.recent-pr-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:.84rem}.progress-select{width:100%;margin:2px 0 14px;padding:10px;border-radius:10px;background:#171b20;color:#f4f6f8;border:1px solid #343b44}.strength-progress-chart{min-height:150px;display:flex;align-items:flex-end;gap:8px;padding:18px 4px 4px;border-bottom:1px solid #343b44;overflow-x:auto}.strength-bar-wrap{width:56px;min-width:56px;flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:130px}.strength-bar{width:32px;max-width:32px;min-height:3px;border-radius:6px 6px 2px 2px;background:#cbd5e1}.strength-bar-value{font-size:.66rem;font-weight:900}.strength-bar-label{font-size:.58rem;color:#7f8a96}.strength-progress-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:.76rem}.recent-pr-name{font-weight:900}.recent-pr-detail{font-size:.72rem;color:#98a3af}.recent-pr-badge{color:#facc15;font-weight:950}.progress-empty{font-size:.8rem;color:#7f8a96;padding:8px 0}#nutritionCalConsistencyBar{background:#60a5fa}#nutritionProteinConsistencyBar{background:#34d399}
+/* v89 — Tips Playbook + personal daily reminders */
+.tips-section-block{margin-top:18px;padding-top:4px}
+.tips-section-heading{font-size:.82rem;font-weight:950;letter-spacing:.14em;color:#dbe7f2;margin:10px 0 5px}
+.tips-section-copy{font-size:.82rem;color:#8f9aa6;line-height:1.45;margin-bottom:12px}
+.custom-tips-list{display:grid;gap:8px;margin-bottom:10px}
+.custom-tip-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid #2e3945;border-radius:12px;background:#111922}
+.custom-tip-row input{width:18px;height:18px;accent-color:#5ea9dd}
+.custom-tip-text{font-size:.88rem;color:#e7edf3}
+.custom-tip-delete{border:0;background:transparent;color:#7f8a96;font-size:1.2rem;line-height:1;cursor:pointer;padding:3px 5px}
+.custom-tip-add-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.custom-tip-input{min-width:0;padding:11px 12px;border-radius:10px;border:1px solid #35414d;background:#171d23;color:#f4f6f8;font-size:16px}
+.playbook-tip{border:1px solid #2e3945;border-radius:12px;background:#111922;margin:8px 0;overflow:hidden}
+.playbook-tip summary{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;list-style:none;font-size:.82rem;color:#e8eef4}
+.playbook-tip summary::-webkit-details-marker{display:none}
+.playbook-tip summary:after{content:'＋';grid-column:3;color:#788694;font-weight:900}
+.playbook-tip[open] summary:after{content:'−'}
+.playbook-tip p{margin:0;padding:0 14px 14px 44px;color:#9ca8b4;font-size:.82rem;line-height:1.55}
+.playbook-footer{margin-top:14px;padding:15px;border-radius:12px;border:1px solid #35414d;background:#151d25;color:#aeb9c4;font-size:.82rem;line-height:1.55}
+.playbook-footer strong{color:#f4f6f8;letter-spacing:.08em}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3403,8 +3429,8 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="nav-tabs">
 <button class="tab-btn" id="tabBtn-workoutTab" onclick="switchTab('workoutTab', this)">WORKOUT</button>
 <button class="tab-btn" id="tabBtn-historyTab" onclick="switchTab('historyTab', this)">HISTORY</button>
-<button class="tab-btn" id="tabBtn-macrosTab" onclick="switchTab('macrosTab', this)">MACROS</button>
-<button class="tab-btn" id="tabBtn-nutritionHistoryTab" onclick="switchTab('nutritionHistoryTab', this)">NUTRITION</button>
+<button class="tab-btn" id="tabBtn-macrosTab" onclick="switchTab('macrosTab', this)">NUTRITION</button>
+<button class="tab-btn" id="tabBtn-nutritionHistoryTab" onclick="switchTab('nutritionHistoryTab', this)">PROGRESS</button>
 <button class="tab-btn" id="tabBtn-tipsTab" onclick="switchTab('tipsTab', this)">TIPS</button>
 </div>
 <!-- 00. INTRO TAB -->
@@ -3615,14 +3641,14 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div id="historyLogsContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
 <button class="btn btn-dark" onclick="clearHistory()" style="margin-top:10px; font-size:0.7rem;">CLEAR ALL HISTORY</button>
 </div>
-<!-- 03. MACROS TAB -->
+<!-- 03. NUTRITION TAB -->
 <div class="tab-content" id="macrosTab">
 <div id="stickyMacroSummary" class="sticky-macro-summary" aria-hidden="true">
   <div><span class="sticky-macro-label">CALORIES</span><span id="stickyMacroCalories" class="sticky-macro-value">0 / 0</span></div>
   <span class="sticky-macro-divider"></span>
   <div><span class="sticky-macro-label">PROTEIN</span><span id="stickyMacroProtein" class="sticky-macro-value">0 / 0g</span></div>
 </div>
-<div class="section-title-banner">03. DYNAMIC MACRO CALCULATOR</div>
+<div class="section-title-banner">03. NUTRITION</div>
 <div class="card info-card nutrition-foundation-card">
 <div class="info-subtitle">THE SCHMOKEFIT NUTRITION STANDARD</div>
 <p style="margin-bottom:7px; font-size:.88rem;"><strong>YOU CAN'T OUT-TRAIN A BAD DIET.</strong></p>
@@ -3794,11 +3820,12 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <button class="btn btn-blue" id="saveNutritionHistoryBtn" onclick="saveDailyNutritionSummary()">SAVE TODAY TO HISTORY</button>
 </div>
 </div>
-<!-- 04. NUTRITION HISTORY TAB -->
+<!-- 04. PROGRESS TAB -->
 <div class="tab-content" id="nutritionHistoryTab">
-<div class="section-title-banner">04. NUTRITION TRENDS</div>
+<div class="section-title-banner">04. PROGRESS</div>
+<div class="progress-category-title">NUTRITION</div>
 <div class="card">
-<div class="nutrition-view-toggle" role="group" aria-label="Nutrition graph range">
+<div class="nutrition-view-toggle" role="group" aria-label="Nutrition progress graph range">
 <button class="nutrition-view-btn active" id="nutritionView-week" onclick="setNutritionHistoryView('week')">WEEK</button>
 <button class="nutrition-view-btn" id="nutritionView-month" onclick="setNutritionHistoryView('month')">MONTH</button>
 <button class="nutrition-view-btn" id="nutritionView-quarter" onclick="setNutritionHistoryView('quarter')">QUARTER</button>
@@ -3826,6 +3853,19 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <div class="weekly-bar-chart" id="proteinWeeklyChart"></div>
 </div>
+
+<div class="card progress-metric-card">
+<div class="info-subtitle">NUTRITION CONSISTENCY</div>
+<div class="progress-metric-copy">How often your logged days land in SchmokeFit's target ranges.</div>
+<div class="consistency-row"><span>Calories on target</span><strong id="nutritionCalConsistency">—</strong></div>
+<div class="consistency-track"><div id="nutritionCalConsistencyBar" class="consistency-fill"></div></div>
+<div class="consistency-row"><span>Protein on target</span><strong id="nutritionProteinConsistency">—</strong></div>
+<div class="consistency-track"><div id="nutritionProteinConsistencyBar" class="consistency-fill"></div></div>
+</div>
+<div class="progress-category-title">TRAINING</div>
+<div class="card progress-metric-card"><div class="info-subtitle">WORKOUT CONSISTENCY</div><div class="progress-metric-copy">Scheduled workouts completed across your recent program weeks.</div><div id="workoutConsistencySummary" class="progress-big-stat">—</div><div id="workoutConsistencyRows"></div></div>
+<div class="card progress-metric-card"><div class="info-subtitle">STRENGTH PROGRESS</div><div class="progress-metric-copy">Track your best logged performance for an exercise over time.</div><select id="strengthProgressExercise" class="progress-select" onchange="renderStrengthProgress()"></select><div id="strengthProgressChart" class="strength-progress-chart"></div><div id="strengthProgressStats" class="strength-progress-stats"></div></div>
+<div class="card progress-metric-card"><div class="info-subtitle">RECENT PRs</div><div class="progress-metric-copy">Your newest all-time set records from logged workouts.</div><div id="recentPrList"></div></div>
 </div>
 <!-- 05. PROGRESS TIPS TAB -->
 <div class="tab-content" id="tipsTab">
@@ -3852,6 +3892,30 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div>🔥 <strong>High Training Intensity:</strong> Took sets to or near failure.</div>
 </div>
 </div>
+
+  <div class="tips-section-block">
+    <div class="tips-section-heading">YOUR DAILY REMINDERS</div>
+    <div class="tips-section-copy">SchmokeFit gives you the foundation. Add a few personal habits you want to see alongside it each day.</div>
+    <div id="customTipsChecklist" class="custom-tips-list"></div>
+    <div class="custom-tip-add-row">
+      <input id="customTipInput" class="custom-tip-input" maxlength="60" placeholder="Add a daily reminder…" onkeydown="if(event.key==='Enter') addCustomTip()">
+      <button class="btn small-btn" type="button" onclick="addCustomTip()">+ ADD</button>
+    </div>
+  </div>
+
+  <div class="tips-section-block">
+    <div class="tips-section-heading">SCHMOKEFIT PLAYBOOK</div>
+    <div class="tips-section-copy">Simple tools that can make consistency easier. Use what helps you—skip what doesn't.</div>
+    <details class="playbook-tip"><summary><span>⏱️</span><strong>FASTING IS A TOOL, NOT A RULE</strong></summary><p>If eating within a shorter window makes it easier to stay within your calorie target, intermittent fasting can be useful. It does not replace a calorie deficit, and you do not need to fast to make progress.</p></details>
+    <details class="playbook-tip"><summary><span>🥤</span><strong>USE ZERO-CALORIE VOLUME</strong></summary><p>Water, sparkling water, unsweetened coffee, and other very-low-calorie drinks can make a dieting phase easier. Carbonated water may temporarily increase feelings of fullness for some people.</p></details>
+    <details class="playbook-tip"><summary><span>💧</span><strong>START HYDRATED</strong></summary><p>Try beginning your day with 1–2 glasses of water. You do not need to “kickstart” your metabolism or digestion—it is simply an easy way to start the day hydrated.</p></details>
+    <details class="playbook-tip"><summary><span>🧂</span><strong>THE LITTLE THINGS COUNT</strong></summary><p>Oils, dressings, sauces, creamers, bites while cooking, and condiments are easy to forget. Small extras can add meaningful calories, so log what you actually eat—not just the main foods.</p></details>
+    <details class="playbook-tip"><summary><span>🥛</span><strong>MAKE PROTEIN EASY</strong></summary><p>Struggling to hit your protein target? Protein powder can be a convenient, calorie-efficient way to close the gap. Think of it as food convenience—not a requirement.</p></details>
+    <details class="playbook-tip"><summary><span>💪</span><strong>CONSIDER CREATINE</strong></summary><p>Creatine monohydrate is one of the better-supported sports supplements for people doing resistance training. Consistent use can support training performance and gains in strength and lean mass over time.</p></details>
+    <details class="playbook-tip"><summary><span>🍽️</span><strong>PLAN BEFORE YOU'RE HUNGRY</strong></summary><p>Logging or planning some food earlier in the day can show you how many calories and how much protein you have available for later meals. A little planning makes the end of the day much easier.</p></details>
+    <details class="playbook-tip"><summary><span>🎯</span><strong>DON'T CHASE PERFECTION</strong></summary><p>One meal above target does not ruin your week, and one perfect day does not create results. Get back to your normal plan at the next meal. Consistency beats compensation.</p></details>
+    <div class="playbook-footer"><strong>KEEP IT SIMPLE.</strong><br>Train consistently. Hit your calories and protein. Stay active. Recover. Repeat.</div>
+  </div>
 </div>
 </div>
 <!-- EDIT LOGGED FOOD -->
@@ -3908,6 +3972,13 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
       if (typeof renderWorkoutDashboard === 'function') renderWorkoutDashboard();
     }
 
+
+document.addEventListener('click',function(e){
+  if(e.target.closest?.('#tabBtn-tipsTab')) setTimeout(()=>{if(typeof renderCustomTips==='function')renderCustomTips()},0);
+});
+
+
+document.addEventListener('DOMContentLoaded',()=>{if(document.getElementById('customTipsChecklist'))renderCustomTips();});
 </script>
 <script>
     // ===== UNIFIED SCHMOKEFIT PROGRAM + STORAGE ROUTER =====
@@ -4133,7 +4204,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:8px;">4. <strong>Daily Movement &amp; Cardio:</strong> Support health, conditioning, and energy expenditure—but they do not replace nutrition consistency.</p>
 <p style="margin-bottom:8px;"><strong>START WITH YOUR CURRENT BODYWEIGHT.</strong> Don't overthink goal weight or try to predict where you'll end up. Enter what you weigh now, follow your calorie and protein targets consistently, and let your actual progress guide future adjustments.</p><div class="nutrition-formula-explainer">
 <p style="margin-bottom:6px;"><strong>HOW SCHMOKEFIT SETS YOUR TARGETS:</strong></p>
-<p style="margin-bottom:5px;">You do not need to calculate everything yourself. Enter your <strong>current bodyweight</strong> in the Macros tab and SchmokeFit uses it to create simple starting targets:</p>
+<p style="margin-bottom:5px;">You do not need to calculate everything yourself. Enter your <strong>current bodyweight</strong> in the Nutrition tab and SchmokeFit uses it to create simple starting targets:</p>
 <p style="margin-bottom:3px;">• <strong>Fat Loss:</strong> Bodyweight × 13 calories</p>
 <p style="margin-bottom:3px;">• <strong>Maintenance:</strong> Bodyweight × 15 calories</p>
 <p style="margin-bottom:7px;">• <strong>Slight Surplus:</strong> Bodyweight × 17 calories</p>
@@ -4142,7 +4213,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:6px;"><strong>WHAT ABOUT REFEED DAYS?</strong></p>
 <p style="margin-bottom:7px;">During the fat-loss phase, consistency with your normal calorie and protein targets comes first. After you've built at least <strong>two weeks of consistent tracking</strong>, SchmokeFit gives you the option to use <strong>one higher-calorie refeed day per week</strong>.</p>
 <p style="margin-bottom:7px;">A refeed adds <strong>600 calories for that day</strong>, primarily from carbohydrates. It is not meant to be a &quot;cheat day.&quot; It is a planned increase in calories that can support training performance and make a longer dieting phase easier to stick with.</p>
-<p style="margin-bottom:7px;"><strong>HOW TO USE IT:</strong> On the <strong>Macros</strong> tab, tap <strong>MAKE TODAY A REFEED DAY • +600 CAL</strong>. SchmokeFit will automatically increase that day's calorie target by 600 calories and mark the day as a refeed. Your normal target returns afterward.</p>
+<p style="margin-bottom:7px;"><strong>HOW TO USE IT:</strong> On the <strong>Nutrition</strong> tab, tap <strong>MAKE TODAY A REFEED DAY • +600 CAL</strong>. SchmokeFit will automatically increase that day's calorie target by 600 calories and mark the day as a refeed. Your normal target returns afterward.</p>
 <p style="margin-bottom:7px;"><strong>WHEN SHOULD I USE IT?</strong> Put it before one of your harder training days or wherever it best helps performance and adherence. The exact day matters less than staying consistent with the rest of the week.</p>
 <p style="margin-bottom:0; font-size:.72rem; color:var(--text-muted);"><strong>EARN THE REFEED WITH CONSISTENCY.</strong> A refeed is not meant to fix an inconsistent week. Get consistent with your normal calorie and protein targets first, then use it strategically.</p>
 </div>
@@ -4201,7 +4272,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:8px;">4. <strong>Daily Movement &amp; Cardio:</strong> Support health, conditioning, and energy expenditure—but they do not replace nutrition consistency.</p>
 <p style="margin-bottom:8px;"><strong>START WITH YOUR CURRENT BODYWEIGHT.</strong> Don't overthink goal weight or try to predict where you'll end up. Enter what you weigh now, follow your calorie and protein targets consistently, and let your actual progress guide future adjustments.</p><div class="nutrition-formula-explainer">
 <p style="margin-bottom:6px;"><strong>HOW SCHMOKEFIT SETS YOUR TARGETS:</strong></p>
-<p style="margin-bottom:5px;">You do not need to calculate everything yourself. Enter your <strong>current bodyweight</strong> in the Macros tab and SchmokeFit uses it to create simple starting targets:</p>
+<p style="margin-bottom:5px;">You do not need to calculate everything yourself. Enter your <strong>current bodyweight</strong> in the Nutrition tab and SchmokeFit uses it to create simple starting targets:</p>
 <p style="margin-bottom:3px;">• <strong>Lean / Fat Loss:</strong> Bodyweight × 13 calories</p>
 <p style="margin-bottom:3px;">• <strong>Maintenance:</strong> Bodyweight × 15 calories</p>
 <p style="margin-bottom:7px;">• <strong>Performance Build:</strong> Bodyweight × 17 calories</p>
@@ -4210,7 +4281,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:6px;"><strong>WHAT ABOUT REFEED DAYS?</strong></p>
 <p style="margin-bottom:7px;">During the fat-loss phase, consistency with your normal calorie and protein targets comes first. After you've built at least <strong>two weeks of consistent tracking</strong>, SchmokeFit gives you the option to use <strong>one higher-calorie refeed day per week</strong>.</p>
 <p style="margin-bottom:7px;">A refeed adds <strong>600 calories for that day</strong>, primarily from carbohydrates. It is not meant to be a &quot;cheat day.&quot; It is a planned increase in calories that can support training performance and make a longer dieting phase easier to stick with.</p>
-<p style="margin-bottom:7px;"><strong>HOW TO USE IT:</strong> On the <strong>Macros</strong> tab, tap <strong>MAKE TODAY A REFEED DAY • +600 CAL</strong>. SchmokeFit will automatically increase that day's calorie target by 600 calories and mark the day as a refeed. Your normal target returns afterward.</p>
+<p style="margin-bottom:7px;"><strong>HOW TO USE IT:</strong> On the <strong>Nutrition</strong> tab, tap <strong>MAKE TODAY A REFEED DAY • +600 CAL</strong>. SchmokeFit will automatically increase that day's calorie target by 600 calories and mark the day as a refeed. Your normal target returns afterward.</p>
 <p style="margin-bottom:7px;"><strong>WHEN SHOULD I USE IT?</strong> Put it before one of your harder training days or wherever it best helps performance and adherence. The exact day matters less than staying consistent with the rest of the week.</p>
 <p style="margin-bottom:0; font-size:.72rem; color:var(--text-muted);"><strong>EARN THE REFEED WITH CONSISTENCY.</strong> A refeed is not meant to fix an inconsistent week. Get consistent with your normal calorie and protein targets first, then use it strategically.</p>
 </div>
@@ -4221,7 +4292,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:8px;">• <strong>Weeks 1–10 — Lean Athlete:</strong> Use the Bodyweight × 13 target to create a manageable deficit while protein and performance-focused training help preserve muscle and athletic output.</p>
 <p style="margin-bottom:8px;">• <strong>Weeks 11–18 — Build &amp; Perform:</strong> After 10 weeks in a deficit, SchmokeFit begins <strong>gradually increasing food intake</strong> instead of asking you to diet harder. Calories rise by <strong>200 every two weeks</strong>: +200 in Weeks 11–12, +400 in Weeks 13–14, +600 in Weeks 15–16, and +800 in Weeks 17–18.</p>
 <p style="margin-bottom:8px;"><strong>WHY ADD CALORIES SLOWLY?</strong> More available energy can support recovery, training quality, and performance. The step-by-step increase also gives you time to watch your bodyweight trend, hunger, and performance instead of making one large jump. It is a structured transition—not a magic metabolism reset.</p>
-<p><strong>After Week 18:</strong> Reassess your current bodyweight and goal. If leaning out is still the priority, start a new cycle using your updated current bodyweight; if your goal changes, the Macros tab can calculate the appropriate phase target.</p>
+<p><strong>After Week 18:</strong> Reassess your current bodyweight and goal. If leaning out is still the priority, start a new cycle using your updated current bodyweight; if your goal changes, the Nutrition tab can calculate the appropriate phase target.</p>
 </div>
 <div class="card info-card">
 <div class="info-subtitle">OFF DAYS &amp; RECOVERY</div>
@@ -4279,7 +4350,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:8px;">4. <strong>Daily Movement &amp; Cardio:</strong> Support health, conditioning, and energy expenditure—but they do not replace nutrition consistency.</p>
 <p style="margin-bottom:8px;"><strong>START WITH YOUR CURRENT BODYWEIGHT.</strong> Don't overthink goal weight or try to predict where you'll end up. Enter what you weigh now, follow your calorie and protein targets consistently, and let your actual progress guide future adjustments.</p><div class="nutrition-formula-explainer">
 <p style="margin-bottom:6px;"><strong>HOW SCHMOKEFIT SETS YOUR TARGETS:</strong></p>
-<p style="margin-bottom:5px;">You do not need to calculate everything yourself. Enter your <strong>current bodyweight</strong> in the Macros tab and SchmokeFit uses it to create simple starting targets:</p>
+<p style="margin-bottom:5px;">You do not need to calculate everything yourself. Enter your <strong>current bodyweight</strong> in the Nutrition tab and SchmokeFit uses it to create simple starting targets:</p>
 <p style="margin-bottom:3px;">• <strong>Fat Loss:</strong> Bodyweight × 12 calories</p>
 <p style="margin-bottom:3px;">• <strong>Maintenance:</strong> Bodyweight × 14 calories</p>
 <p style="margin-bottom:7px;">• <strong>Lean Tone / Build:</strong> Bodyweight × 16 calories</p>
@@ -4288,7 +4359,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <p style="margin-bottom:6px;"><strong>WHAT ABOUT REFEED DAYS?</strong></p>
 <p style="margin-bottom:7px;">During the fat-loss phase, consistency with your normal calorie and protein targets comes first. After you've built at least <strong>two weeks of consistent tracking</strong>, SchmokeFit gives you the option to use <strong>one higher-calorie refeed day per week</strong>.</p>
 <p style="margin-bottom:7px;">A refeed adds <strong>600 calories for that day</strong>, primarily from carbohydrates. It is not meant to be a &quot;cheat day.&quot; It is a planned increase in calories that can support training performance and make a longer dieting phase easier to stick with.</p>
-<p style="margin-bottom:7px;"><strong>HOW TO USE IT:</strong> On the <strong>Macros</strong> tab, tap <strong>MAKE TODAY A REFEED DAY • +600 CAL</strong>. SchmokeFit will automatically increase that day's calorie target by 600 calories and mark the day as a refeed. Your normal target returns afterward.</p>
+<p style="margin-bottom:7px;"><strong>HOW TO USE IT:</strong> On the <strong>Nutrition</strong> tab, tap <strong>MAKE TODAY A REFEED DAY • +600 CAL</strong>. SchmokeFit will automatically increase that day's calorie target by 600 calories and mark the day as a refeed. Your normal target returns afterward.</p>
 <p style="margin-bottom:7px;"><strong>WHEN SHOULD I USE IT?</strong> Put it before one of your harder training days or wherever it best helps performance and adherence. The exact day matters less than staying consistent with the rest of the week.</p>
 <p style="margin-bottom:0; font-size:.72rem; color:var(--text-muted);"><strong>EARN THE REFEED WITH CONSISTENCY.</strong> A refeed is not meant to fix an inconsistent week. Get consistent with your normal calorie and protein targets first, then use it strategically.</p>
 </div>
@@ -5195,6 +5266,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
       if(tabId === 'nutritionHistoryTab') {
         checkNutritionDateRollover();
         renderNutritionHistoryWeek();
+        setTimeout(() => { if (typeof renderExpandedProgress === 'function') renderExpandedProgress(); }, 0);
       }
     }
 
@@ -6041,7 +6113,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         note.classList.toggle('past', !isToday);
         note.innerText = isToday
           ? 'Logging food for today.'
-          : `Editing ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Changes update Nutrition History automatically.`;
+          : `Editing ${selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. Changes update Progress automatically.`;
       }
 
       const nextBtn = document.getElementById('nutritionNextDayBtn');
@@ -8883,7 +8955,7 @@ function onRepsEntered(exerciseIndex, repInput) {
 
       // Clear transient UI/session state as well, then reload into a true Cycle 1 / Week 1 state.
       try { window.sessionStorage.clear(); } catch (e) {}
-      alert('Fresh start complete. SchmokeFit will restart at Cycle 1, Week 1 with empty workout and nutrition history.');
+      alert('Fresh start complete. SchmokeFit will restart at Cycle 1, Week 1 with empty workout and nutrition progress.');
       window.location.reload();
     }
 
@@ -10222,31 +10294,72 @@ const appTourCompletedKey = 'schmokefit_tour_completed';
 let appTourIndex = 0;
 let appTourResizeHandler = null;
 
+function progressWorkoutLogs(){try{return (JSON.parse(appStorage.getItem('schmokefit_history')||'[]')||[]).filter(x=>x&&x.type==='WORKOUT'&&x.structuredData)}catch(e){return[]}}
+function renderWorkoutConsistency(){const logs=progressWorkoutLogs(),req=requiredWorkoutDays(),by={};logs.forEach(l=>{const w=Number(l.week||l.weekNumber||0),d=String(l.day||l.workoutDay||'').toLowerCase();if(w&&req.includes(d))(by[w]??=new Set()).add(d)});const ws=Object.keys(by).map(Number).sort((a,b)=>b-a).slice(0,6).reverse(),done=ws.reduce((n,w)=>n+Math.min(by[w].size,req.length),0),poss=ws.length*req.length,pct=poss?Math.round(done/poss*100):null;document.getElementById('workoutConsistencySummary').textContent=pct===null?'No completed weeks yet':pct+'% completed';document.getElementById('workoutConsistencyRows').innerHTML=ws.length?ws.map(w=>`<div class="progress-week-row"><span>Week ${w}</span><strong>${Math.min(by[w].size,req.length)}/${req.length}</strong></div>`).join(''):'<div class="progress-empty">Complete workouts to build your consistency history.</div>'}
+function strengthExerciseSeries(){const map={};progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>{let best=null;Object.values(sets||{}).forEach(s=>{const w=Number(s?.w),r=Number(s?.r);if(Number.isFinite(w)&&Number.isFinite(r)&&String(s?.w??'').trim()&&String(s?.r??'').trim()&&(!best||w>best.w||(w===best.w&&r>best.r)))best={w,r}});if(best)(map[name]??=[]).push(best)}));return map}
+function renderStrengthProgress(){const map=strengthExerciseSeries(),sel=document.getElementById('strengthProgressExercise'),chart=document.getElementById('strengthProgressChart'),stats=document.getElementById('strengthProgressStats'),names=Object.keys(map).sort(),old=sel.value;sel.innerHTML=names.length?names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join(''):'<option>No exercise history yet</option>';if(names.includes(old))sel.value=old;const s=map[sel.value]||[];if(!s.length){chart.innerHTML='<div class="progress-empty">Log workouts to see strength progress.</div>';stats.innerHTML='';return}const max=Math.max(...s.map(x=>x.w),1);const visible=s.slice(-10);chart.style.justifyContent=visible.length<=3?'center':'flex-start';chart.innerHTML=visible.map((x,i)=>`<div class="strength-bar-wrap"><div class="strength-bar-value">${x.w}×${x.r}</div><div class="strength-bar" style="height:${Math.max(3,Math.round(x.w/max*100))}px"></div><div class="strength-bar-label">${i+1}</div></div>`).join('');let best=s[0];s.forEach(x=>{if(x.w>best.w||(x.w===best.w&&x.r>best.r))best=x});stats.innerHTML=`Starting: <strong>${s[0].w} × ${s[0].r}</strong> &nbsp; Latest: <strong>${s.at(-1).w} × ${s.at(-1).r}</strong> &nbsp; All-time: <strong>${best.w} × ${best.r}</strong> 🏆`}
+function renderRecentPRs(){const rec={},prs=[];progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>Object.entries(sets||{}).forEach(([sk,s])=>{const w=Number(s?.w),r=Number(s?.r);if(!Number.isFinite(w)||!Number.isFinite(r)||!String(s?.w??'').trim()||!String(s?.r??'').trim())return;const k=name+'::'+sk,p=rec[k];if(p&&(w>p.w||(w===p.w&&r>p.r)))prs.push({name,sk,w,r});if(!p||w>p.w||(w===p.w&&r>p.r))rec[k]={w,r}})));document.getElementById('recentPrList').innerHTML=prs.length?prs.slice(-6).reverse().map(p=>`<div class="recent-pr-item"><div><div class="recent-pr-name">${escapeHtml(p.name)}</div><div class="recent-pr-detail">${escapeHtml(p.sk.replace('set','Set '))} • ${p.w} × ${p.r}</div></div><div class="recent-pr-badge">🏆 PR</div></div>`).join(''):'<div class="progress-empty">New all-time bests will appear here as you build workout history.</div>'}
+function renderNutritionConsistency(){const days=[];for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k||!k.startsWith('schmokefit_unified_nutrition_'))continue;try{const d=JSON.parse(appStorage.getItem(k)||'null'),meals=d?.meals||d||{};let c=0,p=0;Object.values(meals).forEach(m=>(Array.isArray(m)?m:(m?.items||[])).forEach(x=>{c+=Number(x?.calories)||0;p+=Number(x?.protein)||0}));if(c||p)days.push({c,p,gc:Number(d?.calorieGoal||d?.targets?.calories||dailyCalories||0),gp:Number(d?.proteinGoal||d?.targets?.protein||dailyProtein||0)})}catch(e){}}const ce=days.filter(x=>x.gc),pe=days.filter(x=>x.gp),cp=ce.length?Math.round(ce.filter(x=>x.c/x.gc>=.85&&x.c/x.gc<=1.02).length/ce.length*100):null,pp=pe.length?Math.round(pe.filter(x=>x.p/x.gp>=.85&&x.p/x.gp<=1.30).length/pe.length*100):null;document.getElementById('nutritionCalConsistency').textContent=cp===null?'—':cp+'%';document.getElementById('nutritionProteinConsistency').textContent=pp===null?'—':pp+'%';document.getElementById('nutritionCalConsistencyBar').style.width=(cp||0)+'%';document.getElementById('nutritionProteinConsistencyBar').style.width=(pp||0)+'%'}
+function renderExpandedProgress(){renderNutritionConsistency();renderWorkoutConsistency();renderStrengthProgress();renderRecentPRs()}
+
+/* v89 personal Tips checklist */
+const customTipsKey='schmokefit_custom_daily_tips';
+function getCustomTips(){try{return JSON.parse(appStorage.getItem(customTipsKey)||'[]')||[]}catch(e){return[]}}
+function saveCustomTips(items){appStorage.setItem(customTipsKey,JSON.stringify(items))}
+function customTipsTodayKey(){const d=new Date(),pad=n=>String(n).padStart(2,'0');return `schmokefit_custom_tip_checks_${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function getCustomTipChecks(){try{return JSON.parse(appStorage.getItem(customTipsTodayKey())||'{}')||{}}catch(e){return{}}}
+function renderCustomTips(){
+ const host=document.getElementById('customTipsChecklist');if(!host)return;
+ const items=getCustomTips(),checks=getCustomTipChecks();
+ host.innerHTML=items.length?items.map(x=>`<label class="custom-tip-row"><input type="checkbox" ${checks[x.id]?'checked':''} onchange="toggleCustomTip('${x.id}',this.checked)"><span class="custom-tip-text">${escapeHtml(x.text)}</span><button class="custom-tip-delete" type="button" onclick="event.preventDefault();event.stopPropagation();deleteCustomTip('${x.id}')" aria-label="Delete reminder">×</button></label>`).join(''):'<div class="progress-empty">Add a personal habit or reminder you want to check off each day.</div>';
+}
+function addCustomTip(){
+ const input=document.getElementById('customTipInput'),text=String(input?.value||'').trim();if(!text)return;
+ const items=getCustomTips();items.push({id:'tip-'+Date.now(),text:text.slice(0,60)});saveCustomTips(items);input.value='';renderCustomTips();
+}
+function deleteCustomTip(id){saveCustomTips(getCustomTips().filter(x=>x.id!==id));renderCustomTips()}
+function toggleCustomTip(id,checked){const c=getCustomTipChecks();if(checked)c[id]=true;else delete c[id];appStorage.setItem(customTipsTodayKey(),JSON.stringify(c))}
+
 const appTourSteps = [
   {
     tabId: 'workoutTab',
-    title: 'WORKOUTS',
-    copy: 'Your training hub. Start workouts, log every set, review past or upcoming weeks, add optional workouts, and adjust your training focus or style as your goals change.'
+    title: 'YOUR PROGRAM',
+    copy: 'SchmokeFit combines your 18-week training plan and nutrition targets in one place. Follow the program, log what you do, and let your history build as you progress.'
+  },
+  {
+    tabId: 'workoutTab',
+    title: 'TRAIN & PROGRESS',
+    copy: 'Log your weights and reps as you train. SchmokeFit remembers your previous performance, and when a set beats your all-time best, 🏆 NEW BEST appears and that set lights up gold.'
+  },
+  {
+    tabId: 'workoutTab',
+    title: 'MAKE THE WORKOUT YOURS',
+    copy: 'Swap, reorder, add, or remove exercises when needed. Use 📝 NOTE for setup cues or reminders that should stay with a specific exercise, while keeping the structure of your SchmokeFit program.'
   },
   {
     tabId: 'historyTab',
-    title: 'HISTORY',
-    copy: 'Review your completed training sessions and the weights and reps you logged so you can see what you have done and continue progressing over time.'
+    title: 'SEE THE WORK YOU HAVE DONE',
+    copy: 'History keeps completed workouts and food logs together. Review what you trained, the weights and reps you used, and the nutrition consistency you are building over time.'
   },
   {
     tabId: 'macrosTab',
-    title: 'MACROS',
-    copy: 'Set personalized calorie and protein targets based on your bodyweight and current goal. You can also log your food directly inside SchmokeFit using the built-in barcode scanner, food lookup, or manual entry, making it easy to track your daily nutrition without leaving the app.'
+    title: 'NUTRITION',
+    copy: 'Nutrition is your home for both targets and food logging. SchmokeFit calculates your daily calorie and protein targets from your current bodyweight, program, and goal, then lets you log meals against those targets.'
+  },
+  {
+    tabId: 'macrosTab',
+    title: 'LOG FOOD FASTER',
+    copy: 'Search foods, scan barcodes, use recent foods or favorites, create custom foods and serving sizes, save an entire meal, copy yesterday’s matching meal, or quickly reuse foods you have already logged.'
   },
   {
     tabId: 'nutritionHistoryTab',
-    title: 'NUTRITION',
-    copy: 'Review your nutrition history and trends so you can see how consistently you are hitting your calorie and protein targets over time.'
+    title: 'PROGRESS',
+    copy: 'Progress turns your nutrition log into an easy visual check-in. Use the calorie and protein graphs to review your week, month, or quarter and see how consistently you are landing near your targets.'
   },
   {
     tabId: 'tipsTab',
-    title: 'TIPS',
-    copy: 'Find quick reminders and practical guidance for training, nutrition, recovery, and getting the most from your SchmokeFit program.'
+    title: 'TRAIN • FUEL • PROGRESS',
+    copy: 'You do not need a perfect day—you need enough consistent days stacked together to create progress. Follow the program. Hit your calories and protein. Train hard. Recover. Repeat.'
   }
 ];
 
@@ -10307,7 +10420,7 @@ function showAppTourStep() {
   document.getElementById('appTourCopy').innerText = step.copy;
   document.getElementById('appTourBack').style.visibility = appTourIndex === 0 ? 'hidden' : 'visible';
   document.getElementById('appTourNext').innerText =
-    appTourIndex === appTourSteps.length - 1 ? 'START USING SCHMOKEFIT →' : 'NEXT →';
+    appTourIndex === appTourSteps.length - 1 ? 'START SCHMOKEFIT →' : 'NEXT →';
 
   setTimeout(positionAppTour, 40);
 }
@@ -10483,6 +10596,8 @@ function finishAppTour() {
     <div class="phase-transition-copy" style="margin-bottom:14px;">This is a structured transition out of the deficit—not a requirement for everyone. Keep training hard and use your progress, hunger, recovery, and bodyweight trend as feedback.</div>
     <button class="btn btn-blue" type="button" style="width:100%;" onclick="closePhaseTransitionPopup()">START PHASE 2 →</button>
   </div>
+
+  
 </div>
 <script>
 /* v25: show compact totals only after the full totals have scrolled under the sticky header */
