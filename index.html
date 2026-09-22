@@ -2438,6 +2438,31 @@
 .playbook-footer{margin-top:14px;padding:15px;border-radius:12px;border:1px solid #35414d;background:#151d25;color:#aeb9c4;font-size:.82rem;line-height:1.55}
 .playbook-footer strong{color:#f4f6f8;letter-spacing:.08em}
 
+
+/* v91 — Custom Food Library */
+.food-logging-methods{grid-template-columns:1fr 1fr}
+.custom-food-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;border:1px solid #4b6b83;background:#142534;color:#8fd0ff;font-size:.56rem;font-weight:900;letter-spacing:.08em;vertical-align:middle}
+.custom-food-search-group{margin-bottom:10px}
+.custom-food-search-heading{font-size:.62rem;font-weight:900;letter-spacing:.12em;color:#8fd0ff;margin:0 0 7px}
+.custom-food-manager{position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.76);display:none;align-items:center;justify-content:center;padding:18px}
+.custom-food-manager.open{display:flex}
+.custom-food-manager-card{width:min(620px,100%);max-height:86vh;overflow:auto;background:#101821;border:1px solid #35414d;border-radius:16px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.55)}
+.custom-food-manager-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:5px}
+.custom-food-manager-title{font-weight:950;letter-spacing:.11em;color:#eef4f8;font-size:.88rem}
+.custom-food-manager-close{border:0;background:transparent;color:#9ba7b3;font-size:1.5rem;cursor:pointer}
+.custom-food-manager-copy{color:#8f9aa6;font-size:.76rem;line-height:1.45;margin-bottom:12px}
+.custom-food-manager-list{display:grid;gap:8px}
+.custom-food-manager-row{border:1px solid #2e3945;background:#151d25;border-radius:12px;padding:11px}
+.custom-food-manager-row-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.custom-food-manager-name{font-weight:850;color:#edf3f7;font-size:.88rem}
+.custom-food-manager-meta{color:#94a1ad;font-size:.72rem;line-height:1.4;margin-top:3px}
+.custom-food-manager-actions{display:flex;gap:6px;margin-top:9px}
+.custom-food-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.custom-food-edit-grid .full{grid-column:1/-1}
+.custom-food-edit-grid label{font-size:.58rem;color:#91a0ad;font-weight:800;letter-spacing:.06em}
+.custom-food-edit-grid input{width:100%;margin-top:3px;padding:9px;border-radius:8px;border:1px solid #35414d;background:#0e151c;color:#f4f6f8;font-size:16px}
+@media(max-width:390px){.food-logging-methods{grid-template-columns:1fr 1fr}.custom-food-edit-grid{grid-template-columns:1fr}}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3743,7 +3768,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="food-logging-methods" id="foodLoggingMethods">
 <button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('lookup')">🔎 FOOD LOOKUP</button>
 <button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('barcode')">📷 SCAN BARCODE</button>
-<button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('manual')">✏️ MANUAL FOOD</button>
+<button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('manual')">✏️ MANUAL FOOD</button><button class="btn btn-dark" type="button" onclick="openCustomFoodManager()">👤 MY FOODS</button>
 </div>
 <button class="btn btn-dark food-mode-back" id="foodModeBack" type="button" onclick="exitFoodLoggingMode()">← BACK TO QUICK ADD</button>
 <div class="food-lookup-panel" id="foodLookupPanel">
@@ -7293,7 +7318,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       }
 
       const servingText = manualUnit === 'serving' ? `1 ${customServingName}` : '';
-      const item = { name, grams, servingGrams, servingText, loggedUnit: manualUnit, loggedAmount: manualAmount, calories, protein, carbs, fat };
+      const item = { name, grams, servingGrams, servingText, loggedUnit: manualUnit, loggedAmount: manualAmount, calories, protein, carbs, fat, source:'custom', customFood:true };
+      saveCustomFoodFromManual(item, barcode);
       const log = getNutritionLog();
       if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
       log[activeNutritionMeal].push(item);
@@ -7411,7 +7437,8 @@ function onRepsEntered(exerciseIndex, repInput) {
         results.innerHTML = '<div class="nutrition-empty">Enter a food to search.</div>';
         return;
       }
-      results.innerHTML = '<div class="nutrition-empty">Searching USDA FoodData Central...</div>';
+      const customHtml = renderCustomFoodSearchResults(query);
+      results.innerHTML = customHtml + '<div class="nutrition-empty" id="usdaSearchStatus">Searching USDA FoodData Central...</div>';
       try {
         const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(USDA_API_KEY)}&query=${encodeURIComponent(query)}&pageSize=8`;
         const response = await fetch(url);
@@ -7420,10 +7447,10 @@ function onRepsEntered(exerciseIndex, repInput) {
         if (requestId !== liveFoodSearchRequestId) return;
         const foods = Array.isArray(data.foods) ? data.foods : [];
         if (!foods.length) {
-          results.innerHTML = '<div class="nutrition-empty">No matching foods found.</div>';
+          results.innerHTML = customHtml + (customHtml ? '' : '<div class="nutrition-empty">No matching foods found.</div>');
           return;
         }
-        results.innerHTML = foods.map((food, idx) => {
+        results.innerHTML = customHtml + foods.map((food, idx) => {
           const n = extractUsdaMacros(food.foodNutrients || []);
           const desc = food.description || food.lowercaseDescription || 'USDA Food';
           const brand = food.brandOwner || food.brandName || food.dataType || 'USDA';
@@ -7485,7 +7512,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         }).join('');
       } catch (err) {
         console.error(err);
-        results.innerHTML = '<div class="nutrition-empty">Food search could not connect. For a public release, route USDA requests through a small backend so your API key is not exposed.</div>';
+        results.innerHTML = customHtml + '<div class="nutrition-empty">USDA search could not connect. Your saved My Foods are still available above.</div>';
       }
     }
 
@@ -10320,6 +10347,95 @@ function addCustomTip(){
 function deleteCustomTip(id){saveCustomTips(getCustomTips().filter(x=>x.id!==id));renderCustomTips()}
 function toggleCustomTip(id,checked){const c=getCustomTipChecks();if(checked)c[id]=true;else delete c[id];appStorage.setItem(customTipsTodayKey(),JSON.stringify(c))}
 
+
+/* v91 — first-class custom food library */
+const customFoodLibraryKey='schmokefit_custom_food_library';
+
+function getCustomFoodLibrary(){
+  try{const x=JSON.parse(appStorage.getItem(customFoodLibraryKey)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}
+}
+function saveCustomFoodLibrary(items){appStorage.setItem(customFoodLibraryKey,JSON.stringify(items.slice(0,250)))}
+function customFoodId(){return 'cf-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
+function saveCustomFoodFromManual(item,barcode=''){
+  const lib=getCustomFoodLibrary();
+  const normalized=String(item.name||'').trim().toLowerCase();
+  const existing=lib.find(x=>String(x.name||'').trim().toLowerCase()===normalized);
+  const record={
+    id:existing?.id||customFoodId(),name:item.name,grams:Number(item.grams)||0,
+    servingGrams:Number(item.servingGrams)||0,servingText:item.servingText||'',
+    loggedUnit:item.loggedUnit||'g',loggedAmount:Number(item.loggedAmount)||0,
+    calories:Number(item.calories)||0,protein:Number(item.protein)||0,
+    carbs:Number(item.carbs)||0,fat:Number(item.fat)||0,barcode:String(barcode||existing?.barcode||'').trim(),
+    updatedAt:Date.now()
+  };
+  if(existing) Object.assign(existing,record); else lib.unshift(record);
+  saveCustomFoodLibrary(lib);
+}
+function customFoodServingLabel(f){
+  return formatLoggedFoodAmount ? formatLoggedFoodAmount(f) : `${round1(f.grams||0)} g`;
+}
+function renderCustomFoodSearchResults(query){
+  const q=String(query||'').trim().toLowerCase(); if(!q)return '';
+  const foods=getCustomFoodLibrary().filter(f=>String(f.name||'').toLowerCase().includes(q)).slice(0,6);
+  if(!foods.length)return '';
+  return `<div class="custom-food-search-group"><div class="custom-food-search-heading">MY FOODS</div>${foods.map(f=>`
+    <div class="search-result">
+      <div class="search-result-top"><div>
+        <div class="search-result-name">${escapeHtml(f.name)} <span class="custom-food-badge">MY FOOD</span></div>
+        <div class="search-result-meta">${escapeHtml(customFoodServingLabel(f))} • ${Math.round(f.calories||0)} kcal • ${round1(f.protein||0)}P • ${round1(f.carbs||0)}C • ${round1(f.fat||0)}F</div>
+      </div></div>
+      <div class="search-result-controls" style="grid-template-columns:1fr auto;">
+        <button class="btn btn-dark" style="margin-top:0;" type="button" onclick="editCustomFood('${f.id}')">EDIT</button>
+        <button class="btn btn-blue" style="margin-top:0;" type="button" onclick="addCustomFoodToMeal('${f.id}')">ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+function addCustomFoodToMeal(id){
+  if(!activeNutritionMeal)return;
+  const f=getCustomFoodLibrary().find(x=>x.id===id);if(!f)return;
+  const item={name:f.name,grams:Number(f.grams)||0,servingGrams:Number(f.servingGrams)||0,servingText:f.servingText||'',loggedUnit:f.loggedUnit||'g',loggedAmount:Number(f.loggedAmount)||0,calories:Number(f.calories)||0,protein:Number(f.protein)||0,carbs:Number(f.carbs)||0,fat:Number(f.fat)||0,source:'custom',customFood:true,customFoodId:f.id};
+  const log=getNutritionLog();if(!Array.isArray(log[activeNutritionMeal]))log[activeNutritionMeal]=[];log[activeNutritionMeal].push(item);saveNutritionLog(log);rememberQuickFood(item);updateNutritionDashboard();renderMealSections();
+  showQuickAddConfirmation(f.name,nutritionMealName(activeNutritionMeal));
+}
+function openCustomFoodManager(){renderCustomFoodManager();document.getElementById('customFoodManager')?.classList.add('open')}
+function closeCustomFoodManager(){document.getElementById('customFoodManager')?.classList.remove('open')}
+function renderCustomFoodManager(editId=''){
+  const host=document.getElementById('customFoodManagerList');if(!host)return;
+  const foods=getCustomFoodLibrary();
+  if(!foods.length){host.innerHTML='<div class="nutrition-empty">No custom foods yet. Create one with Manual Food and it will appear here.</div>';return}
+  host.innerHTML=foods.map(f=>`<div class="custom-food-manager-row">
+    <div class="custom-food-manager-row-top"><div><div class="custom-food-manager-name">${escapeHtml(f.name)} <span class="custom-food-badge">MY FOOD</span></div>
+    <div class="custom-food-manager-meta">${escapeHtml(customFoodServingLabel(f))} • ${Math.round(f.calories||0)} kcal • ${round1(f.protein||0)}P • ${round1(f.carbs||0)}C • ${round1(f.fat||0)}F</div></div></div>
+    ${editId===f.id?customFoodEditForm(f):`<div class="custom-food-manager-actions"><button class="btn btn-dark" type="button" onclick="renderCustomFoodManager('${f.id}')">EDIT</button><button class="btn btn-dark" type="button" onclick="deleteCustomFood('${f.id}')">DELETE</button></div>`}
+  </div>`).join('');
+}
+function customFoodEditForm(f){
+  return `<div class="custom-food-edit-grid">
+   <div class="full"><label>FOOD NAME<input id="cf-name-${f.id}" value="${escapeHtml(f.name)}"></label></div>
+   <div><label>CALORIES<input id="cf-cal-${f.id}" type="number" min="0" step="0.1" value="${Number(f.calories)||0}"></label></div>
+   <div><label>PROTEIN (G)<input id="cf-pro-${f.id}" type="number" min="0" step="0.1" value="${Number(f.protein)||0}"></label></div>
+   <div><label>CARBS (G)<input id="cf-carb-${f.id}" type="number" min="0" step="0.1" value="${Number(f.carbs)||0}"></label></div>
+   <div><label>FAT (G)<input id="cf-fat-${f.id}" type="number" min="0" step="0.1" value="${Number(f.fat)||0}"></label></div>
+   <div class="full custom-food-manager-actions"><button class="btn btn-blue" type="button" onclick="saveCustomFoodEdit('${f.id}')">SAVE CHANGES</button><button class="btn btn-dark" type="button" onclick="renderCustomFoodManager()">CANCEL</button></div>
+  </div>`;
+}
+function editCustomFood(id){openCustomFoodManager();renderCustomFoodManager(id)}
+function saveCustomFoodEdit(id){
+  const lib=getCustomFoodLibrary(),f=lib.find(x=>x.id===id);if(!f)return;
+  const name=document.getElementById(`cf-name-${id}`)?.value.trim();if(!name){alert('Please enter a food name.');return}
+  f.name=name;f.calories=numberOrZero(document.getElementById(`cf-cal-${id}`)?.value);f.protein=numberOrZero(document.getElementById(`cf-pro-${id}`)?.value);f.carbs=numberOrZero(document.getElementById(`cf-carb-${id}`)?.value);f.fat=numberOrZero(document.getElementById(`cf-fat-${id}`)?.value);f.updatedAt=Date.now();
+  saveCustomFoodLibrary(lib);
+  /* Keep existing logged meals/history unchanged by design. Update only reusable quick-food entries tied by old name is intentionally avoided. */
+  renderCustomFoodManager();
+  const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)searchUsdaFoods();
+}
+function deleteCustomFood(id){
+  const f=getCustomFoodLibrary().find(x=>x.id===id);if(!f)return;
+  if(!confirm(`Delete "${f.name}" from My Foods? Previously logged meals will not be changed.`))return;
+  saveCustomFoodLibrary(getCustomFoodLibrary().filter(x=>x.id!==id));renderCustomFoodManager();
+  const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)searchUsdaFoods();
+}
+
 const appTourSteps = [
   {
     tabId: 'workoutTab',
@@ -11526,6 +11642,18 @@ function saveExtraCardioActivity(){
       <button class="btn btn-dark" type="button" onclick="closeSaveMealModal()">CANCEL</button>
       <button class="btn btn-blue" type="button" onclick="saveCurrentMealAsShortcut()">SAVE MEAL</button>
     </div>
+  </div>
+</div>
+
+
+<div class="custom-food-manager" id="customFoodManager" onclick="if(event.target===this)closeCustomFoodManager()">
+  <div class="custom-food-manager-card">
+    <div class="custom-food-manager-head">
+      <div class="custom-food-manager-title">👤 MY FOODS</div>
+      <button class="custom-food-manager-close" type="button" onclick="closeCustomFoodManager()" aria-label="Close">×</button>
+    </div>
+    <div class="custom-food-manager-copy">Foods you create manually live here. Editing or deleting one changes future searches only—foods already logged in your history stay exactly as they were recorded.</div>
+    <div id="customFoodManagerList" class="custom-food-manager-list"></div>
   </div>
 </div>
 
