@@ -6845,6 +6845,22 @@ function onRepsEntered(exerciseIndex, repInput) {
       appStorage.setItem('schmokefit_barcode_foods', JSON.stringify(saved));
     }
 
+    function isLegacyCorruptedBarcodeFood(food) {
+      if (!food || food.savedSchemaVersion >= 2 || food.canonicalServing) return false;
+      const text = String(food.servingText || '');
+      const textGrams = text.match(/([\d.]+)\s*g\b/i);
+      const storedGrams = Number(food.servingGrams);
+      /* Strong signal from the old bug: the visible serving text says one gram
+         amount while the stored serving basis was overwritten by amount eaten. */
+      return !!(textGrams && storedGrams > 0 && Math.abs(Number(textGrams[1]) - storedGrams) > 0.5);
+    }
+
+    function removeSavedBarcodeFood(barcode) {
+      const cleanCode=String(barcode||'').trim(); if(!cleanCode)return;
+      const saved=getSavedBarcodeFoods(); delete saved[cleanCode];
+      appStorage.setItem('schmokefit_barcode_foods',JSON.stringify(saved));
+    }
+
     async function startBarcodeScanner() {
       hideManualFoodForm();
       document.getElementById('foodSearchResults').innerHTML = '';
@@ -7041,10 +7057,15 @@ function onRepsEntered(exerciseIndex, repInput) {
 
       if (saved[barcode]) {
         const cached = saved[barcode];
-        results.innerHTML = renderBarcodeFoodResult(cached, barcode, 'Saved on this device');
-        document.getElementById('barcodeStatus').innerText = 'Found a saved food for this barcode.';
-        showBarcodeResultArea();
-        return;
+        if (!isLegacyCorruptedBarcodeFood(cached)) {
+          results.innerHTML = renderBarcodeFoodResult(cached, barcode, 'Saved on this device');
+          document.getElementById('barcodeStatus').innerText = 'Found a saved food for this barcode.';
+          showBarcodeResultArea();
+          return;
+        }
+        /* v92 repairs old portion-size corruption by dropping the bad cache
+           and allowing this scan to refresh from Open Food Facts. */
+        removeSavedBarcodeFood(barcode);
       }
 
       results.innerHTML = '<div class="nutrition-empty">Looking up barcode in Open Food Facts…</div>';
@@ -7090,6 +7111,7 @@ function onRepsEntered(exerciseIndex, repInput) {
           return;
         }
 
+        saveBarcodeFood(barcode, {...food, canonicalServing:true, savedSchemaVersion:2});
         results.innerHTML = renderBarcodeFoodResult(food, barcode, 'Open Food Facts');
         showBarcodeResultArea();
       } catch (err) {
@@ -7212,12 +7234,15 @@ function onRepsEntered(exerciseIndex, repInput) {
         saveBarcodeFood(base.barcode, {
           name: base.name,
           brand: 'Saved from barcode scan',
-          servingText: base.servingText || `${grams} g`,
-          servingGrams: grams,
+          /* Keep the food definition independent from today's logged amount. */
+          servingText: base.servingText || `${round1(servingGrams)} g`,
+          servingGrams: servingGrams,
           caloriesPer100: numberOrZero(base.calories),
           proteinPer100: numberOrZero(base.protein),
           carbsPer100: numberOrZero(base.carbs),
-          fatPer100: numberOrZero(base.fat)
+          fatPer100: numberOrZero(base.fat),
+          canonicalServing: true,
+          savedSchemaVersion: 2
         });
       }
 
