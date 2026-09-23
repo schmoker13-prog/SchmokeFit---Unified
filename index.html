@@ -3881,7 +3881,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 
 <div class="card progress-metric-card">
 <div class="info-subtitle">NUTRITION CONSISTENCY</div>
-<div class="progress-metric-copy">How often your logged days land in SchmokeFit's target ranges.</div>
+<div class="progress-metric-copy">Your rolling 90-day consistency across days with food logged. No full week required.</div>
 <div class="consistency-row"><span>Calories on target</span><strong id="nutritionCalConsistency">—</strong></div>
 <div class="consistency-track"><div id="nutritionCalConsistencyBar" class="consistency-fill"></div></div>
 <div class="consistency-row"><span>Protein on target</span><strong id="nutritionProteinConsistency">—</strong></div>
@@ -10351,7 +10351,54 @@ function renderWorkoutConsistency(){const logs=progressWorkoutLogs(),req=require
 function strengthExerciseSeries(){const map={};progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>{let best=null;Object.values(sets||{}).forEach(s=>{const w=Number(s?.w),r=Number(s?.r);if(Number.isFinite(w)&&Number.isFinite(r)&&String(s?.w??'').trim()&&String(s?.r??'').trim()&&(!best||w>best.w||(w===best.w&&r>best.r)))best={w,r}});if(best)(map[name]??=[]).push(best)}));return map}
 function renderStrengthProgress(){const map=strengthExerciseSeries(),sel=document.getElementById('strengthProgressExercise'),chart=document.getElementById('strengthProgressChart'),stats=document.getElementById('strengthProgressStats'),names=Object.keys(map).sort(),old=sel.value;sel.innerHTML=names.length?names.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join(''):'<option>No exercise history yet</option>';if(names.includes(old))sel.value=old;const s=map[sel.value]||[];if(!s.length){chart.innerHTML='<div class="progress-empty">Log workouts to see strength progress.</div>';stats.innerHTML='';return}const max=Math.max(...s.map(x=>x.w),1);const visible=s.slice(-10);chart.style.justifyContent=visible.length<=3?'center':'flex-start';chart.innerHTML=visible.map((x,i)=>`<div class="strength-bar-wrap"><div class="strength-bar-value">${x.w}×${x.r}</div><div class="strength-bar" style="height:${Math.max(3,Math.round(x.w/max*100))}px"></div><div class="strength-bar-label">${i+1}</div></div>`).join('');let best=s[0];s.forEach(x=>{if(x.w>best.w||(x.w===best.w&&x.r>best.r))best=x});stats.innerHTML=`Starting: <strong>${s[0].w} × ${s[0].r}</strong> &nbsp; Latest: <strong>${s.at(-1).w} × ${s.at(-1).r}</strong> &nbsp; All-time: <strong>${best.w} × ${best.r}</strong> 🏆`}
 function renderRecentPRs(){const rec={},prs=[];progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>Object.entries(sets||{}).forEach(([sk,s])=>{const w=Number(s?.w),r=Number(s?.r);if(!Number.isFinite(w)||!Number.isFinite(r)||!String(s?.w??'').trim()||!String(s?.r??'').trim())return;const k=name+'::'+sk,p=rec[k];if(p&&(w>p.w||(w===p.w&&r>p.r)))prs.push({name,sk,w,r});if(!p||w>p.w||(w===p.w&&r>p.r))rec[k]={w,r}})));document.getElementById('recentPrList').innerHTML=prs.length?prs.slice(-6).reverse().map(p=>`<div class="recent-pr-item"><div><div class="recent-pr-name">${escapeHtml(p.name)}</div><div class="recent-pr-detail">${escapeHtml(p.sk.replace('set','Set '))} • ${p.w} × ${p.r}</div></div><div class="recent-pr-badge">🏆 PR</div></div>`).join(''):'<div class="progress-empty">New all-time bests will appear here as you build workout history.</div>'}
-function renderNutritionConsistency(){const days=[];for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k||!k.startsWith('schmokefit_unified_nutrition_'))continue;try{const d=JSON.parse(appStorage.getItem(k)||'null'),meals=d?.meals||d||{};let c=0,p=0;Object.values(meals).forEach(m=>(Array.isArray(m)?m:(m?.items||[])).forEach(x=>{c+=Number(x?.calories)||0;p+=Number(x?.protein)||0}));if(c||p)days.push({c,p,gc:Number(d?.calorieGoal||d?.targets?.calories||dailyCalories||0),gp:Number(d?.proteinGoal||d?.targets?.protein||dailyProtein||0)})}catch(e){}}const ce=days.filter(x=>x.gc),pe=days.filter(x=>x.gp),cp=ce.length?Math.round(ce.filter(x=>x.c/x.gc>=.85&&x.c/x.gc<=1.02).length/ce.length*100):null,pp=pe.length?Math.round(pe.filter(x=>x.p/x.gp>=.85&&x.p/x.gp<=1.30).length/pe.length*100):null;document.getElementById('nutritionCalConsistency').textContent=cp===null?'—':cp+'%';document.getElementById('nutritionProteinConsistency').textContent=pp===null?'—':pp+'%';document.getElementById('nutritionCalConsistencyBar').style.width=(cp||0)+'%';document.getElementById('nutritionProteinConsistencyBar').style.width=(pp||0)+'%'}
+function renderNutritionConsistency(){
+  /*
+    v93: use the same source of truth as the existing Progress graphs.
+    A day is eligible only when it actually contains a logged food item.
+    Goals are resolved for that specific date, so historical phase targets
+    and refeed-day calorie targets are respected.
+  */
+  const today=new Date();
+  const firstDate=new Date(today);
+  firstDate.setDate(firstDate.getDate()-89); // rolling 90-day consistency window
+  const days=[];
+
+  for(let d=new Date(firstDate); d<=today; d=addDays(d,1)){
+    const stamp=localDateStamp(d);
+    const log=getNutritionLogForDate(stamp) || {};
+    const hasFood=Object.values(log).some(items=>Array.isArray(items)&&items.length>0);
+    if(!hasFood) continue;
+
+    const row=periodDailyRow(d); // exact helper used by calorie/protein graphs
+    days.push(row);
+  }
+
+  const calorieDays=days.filter(x=>Number(x.calorieGoal)>0);
+  const proteinDays=days.filter(x=>Number(x.proteinGoal)>0);
+
+  const calorieHits=calorieDays.filter(x=>{
+    const ratio=Number(x.calories)/Number(x.calorieGoal);
+    return ratio>=0.85 && ratio<=1.02;
+  }).length;
+
+  const proteinHits=proteinDays.filter(x=>{
+    const ratio=Number(x.protein)/Number(x.proteinGoal);
+    return ratio>=0.85 && ratio<=1.30;
+  }).length;
+
+  const cp=calorieDays.length?Math.round(calorieHits/calorieDays.length*100):null;
+  const pp=proteinDays.length?Math.round(proteinHits/proteinDays.length*100):null;
+
+  const calText=document.getElementById('nutritionCalConsistency');
+  const proText=document.getElementById('nutritionProteinConsistency');
+  const calBar=document.getElementById('nutritionCalConsistencyBar');
+  const proBar=document.getElementById('nutritionProteinConsistencyBar');
+
+  if(calText) calText.textContent=cp===null?'—':`${cp}% (${calorieHits}/${calorieDays.length} days)`;
+  if(proText) proText.textContent=pp===null?'—':`${pp}% (${proteinHits}/${proteinDays.length} days)`;
+  if(calBar) calBar.style.width=`${cp||0}%`;
+  if(proBar) proBar.style.width=`${pp||0}%`;
+}
 function renderExpandedProgress(){renderNutritionConsistency();renderWorkoutConsistency();renderStrengthProgress();renderRecentPRs()}
 
 /* v89 personal Tips checklist */
