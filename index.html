@@ -5198,6 +5198,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(document.getElementById('cu
       if (liveState && typeof restoreLiveWorkoutEditorState === 'function') {
         restoreLiveWorkoutEditorState(liveState);
       }
+      refreshWorkoutPRVisuals();
       if (typeof saveCurrentWorkoutDraft === 'function') saveCurrentWorkoutDraft();
     }
 
@@ -5268,6 +5269,14 @@ document.addEventListener('DOMContentLoaded',()=>{if(document.getElementById('cu
 
     function checkFirstSetPR(idx) {
       checkSetPR(idx, 1);
+    }
+    function refreshWorkoutPRVisuals() {
+      /* Re-evaluate NEW BEST from the live/restored workout values against
+         completed workout history. This keeps the gold set label + trophy
+         visible after leaving the Workout tab, rerendering, or reopening a draft. */
+      (activeExercises || []).forEach((ex, idx) => {
+        workoutSetNumbersForExercise(idx).forEach(n => checkSetPR(idx, n));
+      });
     }
     function getPreviousExerciseSet(exName, setNum) {
       const setData = getPreviousExerciseSetData(exName, setNum);
@@ -9949,6 +9958,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       // This keeps completed exercise cards highlighted when an in-progress
       // workout is reopened after visiting another tab.
       (activeExercises || []).forEach((ex, idx) => checkExerciseCompletion(idx));
+      refreshWorkoutPRVisuals();
     }
 
     function draftProgressSummary(draft) {
