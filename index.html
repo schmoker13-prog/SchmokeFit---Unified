@@ -2474,10 +2474,10 @@
 .account-menu-item{display:block;width:100%;padding:9px 7px;border:0;border-radius:8px;background:transparent;color:#d8e0e8;text-align:left;font-family:inherit;font-size:.68rem;font-weight:900;letter-spacing:.035em;cursor:pointer}
 .account-menu-item:hover,.account-menu-item:active{background:#1b2733}
 .account-menu-item.danger{color:var(--danger)}
-.backup-sheet{display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.68);align-items:center;justify-content:center;padding:18px}
+.backup-sheet{display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto}
 .backup-sheet.open{display:flex}
-.backup-sheet-card{position:relative;width:min(390px,94vw);padding:20px;background:#111922;border:1px solid #35414d;border-radius:16px;box-shadow:0 20px 55px rgba(0,0,0,.68)}
-.backup-sheet-close{position:absolute;right:12px;top:9px;border:0;background:transparent;color:#9aa5b1;font-size:1.4rem;cursor:pointer}
+.backup-sheet-card{position:relative;width:min(390px,94vw);max-height:calc(100dvh - 48px);overflow-y:auto;padding:22px 20px 20px;background:#111922;border:1px solid #35414d;border-radius:16px;box-shadow:0 20px 55px rgba(0,0,0,.68);margin:auto}
+.backup-sheet-close{position:absolute;right:12px;top:10px;width:34px;height:34px;border:1px solid #35414d;border-radius:9px;background:#18232e;color:#d8e0e8;font-size:1.35rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
 .account-tools-copy{font-size:.72rem;color:#8f9aa6;line-height:1.45;margin:8px 0 12px}
 .account-tool-btn{width:100%;margin:7px 0 0!important;font-size:.7rem!important;padding:10px!important}
 </style>
@@ -3479,7 +3479,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="backup-sheet" id="backupSheet">
   <div class="backup-sheet-card">
     <button class="backup-sheet-close" type="button" onclick="closeBackupPanel()">×</button>
-    <div class="info-subtitle">DATA &amp; BACKUP</div>
+    <div class="info-subtitle" style="padding-right:46px">DATA &amp; BACKUP</div>
     <div class="account-tools-copy">Backup your SchmokeFit data before changing phones, browsers, or clearing site data.</div>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
@@ -10590,14 +10590,22 @@ function toggleAccountMenu(event){
 function closeAccountMenu(){document.getElementById('accountMenuPanel')?.classList.remove('open')}
 function openBackupPanel(){
   closeAccountMenu();
-  document.getElementById('backupSheet')?.classList.add('open');
+  const sheet=document.getElementById('backupSheet');
+  if(!sheet)return;
+  sheet.classList.add('open');sheet.scrollTop=0;
+  const card=sheet.querySelector('.backup-sheet-card');if(card)card.scrollTop=0;
+  document.body.style.overflow='hidden';
 }
-function closeBackupPanel(){document.getElementById('backupSheet')?.classList.remove('open')}
+function closeBackupPanel(){
+  document.getElementById('backupSheet')?.classList.remove('open');
+  document.body.style.overflow='';
+}
 document.addEventListener('click',e=>{
   const wrap=e.target.closest?.('.account-menu-wrap');
   if(!wrap)closeAccountMenu();
   if(e.target?.id==='backupSheet')closeBackupPanel();
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBackupPanel();});
 function isSchmokeFitStorageKey(k){return !!k&&(k.startsWith('schmokefit_')||k.startsWith('sf_'))}
 function schmokeFitBackupPayload(){
  const data={};
