@@ -206,8 +206,7 @@
       white-space: nowrap;
     }
 
-    .header-guide-btn,
-    .logout-btn {
+    .header-guide-btn {
       margin: 0;
       padding: 4px 7px;
       font-size: 0.56rem;
@@ -258,8 +257,7 @@
       .brand-title { font-size: 1.13rem; }
       .brand-subtitle { font-size: 0.57rem; letter-spacing: .8px; }
       .header-actions { max-width: 140px; right: 8px; top: 8px; gap: 4px; }
-      .header-guide-btn,
-      .logout-btn { font-size: .51rem; padding: 4px 6px; }
+      .header-guide-btn { font-size: .51rem; padding: 4px 6px; }
       .user-greeting { font-size: .56rem; }
     }
 
@@ -2463,6 +2461,25 @@
 .custom-food-edit-grid input{width:100%;margin-top:3px;padding:9px;border-radius:8px;border:1px solid #35414d;background:#0e151c;color:#f4f6f8;font-size:16px}
 @media(max-width:390px){.food-logging-methods{grid-template-columns:1fr 1fr}.custom-food-edit-grid{grid-template-columns:1fr}}
 
+
+/* v98 — compact account menu */
+.account-menu-wrap{width:100%;position:relative;display:flex;justify-content:flex-end}
+.user-greeting.account-menu-trigger{appearance:none;background:transparent;border:0;padding:2px 0;cursor:pointer;font-family:inherit}
+.account-menu-panel{display:none;position:absolute;right:0;top:25px;z-index:250;width:min(245px,78vw);padding:10px;background:#111922;border:1px solid #35414d;border-radius:12px;box-shadow:0 14px 38px rgba(0,0,0,.58);text-align:left}
+.account-menu-panel.open{display:block}
+.account-menu-identity{padding:3px 5px 8px}
+.account-menu-identity strong{display:block;color:#f3f6fa;font-size:.76rem;letter-spacing:.04em}
+.account-menu-identity span{display:block;margin-top:2px;color:var(--accent-blue);font-size:.59rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.account-menu-divider{height:1px;background:#2b3743;margin:2px 0 6px}
+.account-menu-item{display:block;width:100%;padding:9px 7px;border:0;border-radius:8px;background:transparent;color:#d8e0e8;text-align:left;font-family:inherit;font-size:.68rem;font-weight:900;letter-spacing:.035em;cursor:pointer}
+.account-menu-item:hover,.account-menu-item:active{background:#1b2733}
+.account-menu-item.danger{color:var(--danger)}
+.backup-sheet{display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.68);align-items:center;justify-content:center;padding:18px}
+.backup-sheet.open{display:flex}
+.backup-sheet-card{position:relative;width:min(390px,94vw);padding:20px;background:#111922;border:1px solid #35414d;border-radius:16px;box-shadow:0 20px 55px rgba(0,0,0,.68)}
+.backup-sheet-close{position:absolute;right:12px;top:9px;border:0;background:transparent;color:#9aa5b1;font-size:1.4rem;cursor:pointer}
+.account-tools-copy{font-size:.72rem;color:#8f9aa6;line-height:1.45;margin:8px 0 12px}
+.account-tool-btn{width:100%;margin:7px 0 0!important;font-size:.7rem!important;padding:10px!important}
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3444,10 +3461,30 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="brand-title">SCHMOKE<span>FIT</span></div>
 <div class="sf-program-badge" id="programBrandSubtitle">SCHMOKEFIT</div>
 <div class="header-actions">
-<div class="user-greeting" id="headerUserGreeting">ATHLETE</div>
+<div class="account-menu-wrap">
+  <button class="user-greeting account-menu-trigger" id="headerUserGreeting" type="button" onclick="toggleAccountMenu(event)">ATHLETE ▾</button>
+  <div class="account-menu-panel" id="accountMenuPanel">
+    <div class="account-menu-identity">
+      <strong id="accountMenuUsername">ATHLETE</strong>
+      <span id="accountMenuProgram">SCHMOKEFIT</span>
+    </div>
+    <div class="account-menu-divider"></div>
+    <button class="account-menu-item" type="button" onclick="openBackupPanel()">⚙ DATA &amp; BACKUP</button>
+    <button class="account-menu-item danger" type="button" onclick="handleLogout()">LOG OUT</button>
+  </div>
+</div>
 <button class="header-guide-btn" onclick="openProgramChooser()">PROGRAM</button>
 <button class="header-guide-btn" onclick="switchTab('introTab', null)">INTRO</button>
-<button class="logout-btn" onclick="handleLogout()">LOG OUT</button>
+<input id="schmokeFitBackupInput" type="file" accept=".json,application/json" hidden onchange="importSchmokeFitBackup(event)">
+<div class="backup-sheet" id="backupSheet">
+  <div class="backup-sheet-card">
+    <button class="backup-sheet-close" type="button" onclick="closeBackupPanel()">×</button>
+    <div class="info-subtitle">DATA &amp; BACKUP</div>
+    <div class="account-tools-copy">Backup your SchmokeFit data before changing phones, browsers, or clearing site data.</div>
+    <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
+    <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
+  </div>
+</div>
 </div>
 </div>
 <!-- TABS NAVIGATION -->
@@ -4656,7 +4693,9 @@ document.addEventListener('DOMContentLoaded',()=>{if(document.getElementById('cu
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('appContainer').style.display = 'flex';
       document.body.style.alignItems = 'flex-start';
-      document.getElementById('headerUserGreeting').innerText = `${username.toUpperCase()}`;
+      document.getElementById('headerUserGreeting').innerText = `${username.toUpperCase()} ▾`;
+      const accountName=document.getElementById('accountMenuUsername');
+      if(accountName) accountName.innerText=username.toUpperCase();
       applyUnifiedProgramUI();
       
       restoreTrainingFocus();
@@ -10535,6 +10574,59 @@ function deleteCustomFood(id){
   if(!confirm(`Delete "${f.name}" from My Foods? Previously logged meals will not be changed.`))return;
   saveCustomFoodLibrary(getCustomFoodLibrary().filter(x=>x.id!==id));renderCustomFoodManager();
   const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)searchUsdaFoods();
+}
+
+
+/* v97 — local beta backup / restore */
+function syncAccountMenuProgram(){
+  const src=document.getElementById('programBrandSubtitle'),dest=document.getElementById('accountMenuProgram');
+  if(src&&dest)dest.innerText=src.innerText||'SCHMOKEFIT';
+}
+function toggleAccountMenu(event){
+  syncAccountMenuProgram();
+  event?.stopPropagation();
+  document.getElementById('accountMenuPanel')?.classList.toggle('open');
+}
+function closeAccountMenu(){document.getElementById('accountMenuPanel')?.classList.remove('open')}
+function openBackupPanel(){
+  closeAccountMenu();
+  document.getElementById('backupSheet')?.classList.add('open');
+}
+function closeBackupPanel(){document.getElementById('backupSheet')?.classList.remove('open')}
+document.addEventListener('click',e=>{
+  const wrap=e.target.closest?.('.account-menu-wrap');
+  if(!wrap)closeAccountMenu();
+  if(e.target?.id==='backupSheet')closeBackupPanel();
+});
+function isSchmokeFitStorageKey(k){return !!k&&(k.startsWith('schmokefit_')||k.startsWith('sf_'))}
+function schmokeFitBackupPayload(){
+ const data={};
+ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSchmokeFitStorageKey(k))data[k]=localStorage.getItem(k)}
+ return {app:'SchmokeFit',format:'schmokefit-local-backup',version:1,exportedAt:new Date().toISOString(),data};
+}
+function exportSchmokeFitBackup(){
+ try{
+  const payload=schmokeFitBackupPayload(),blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a'),d=new Date(),pad=n=>String(n).padStart(2,'0');
+  a.href=url;a.download=`SchmokeFit-Backup-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  closeBackupPanel();
+ }catch(e){alert('SchmokeFit could not create the backup file. Please try again.')}
+}
+function importSchmokeFitBackup(event){
+ const input=event.target,file=input.files?.[0];if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  try{
+   const payload=JSON.parse(String(reader.result||''));
+   if(payload?.app!=='SchmokeFit'||payload?.format!=='schmokefit-local-backup'||!payload?.data||typeof payload.data!=='object')throw new Error('invalid');
+   const keys=Object.keys(payload.data).filter(isSchmokeFitStorageKey);if(!keys.length)throw new Error('empty');
+   const when=payload.exportedAt?new Date(payload.exportedAt).toLocaleString():'unknown date';
+   if(!confirm(`Restore SchmokeFit backup from ${when}?\n\nThis will replace the SchmokeFit data currently stored on this device.`)){input.value='';return}
+   const remove=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSchmokeFitStorageKey(k))remove.push(k)}
+   remove.forEach(k=>localStorage.removeItem(k));keys.forEach(k=>localStorage.setItem(k,String(payload.data[k])));
+   input.value='';alert('Backup restored successfully. SchmokeFit will reload now.');location.reload();
+  }catch(e){input.value='';alert('That file does not appear to be a valid SchmokeFit backup. No data was changed.')}
+ };
+ reader.onerror=()=>{input.value='';alert('SchmokeFit could not read that backup file.')};reader.readAsText(file);
 }
 
 const appTourSteps = [
