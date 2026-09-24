@@ -2474,7 +2474,7 @@
 .account-menu-item{display:block;width:100%;padding:9px 7px;border:0;border-radius:8px;background:transparent;color:#d8e0e8;text-align:left;font-family:inherit;font-size:.68rem;font-weight:900;letter-spacing:.035em;cursor:pointer}
 .account-menu-item:hover,.account-menu-item:active{background:#1b2733}
 .account-menu-item.danger{color:var(--danger)}
-.backup-sheet{display:none;position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto}
+.backup-sheet{display:none;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:7000;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));overflow-y:auto;box-sizing:border-box;transform:none!important}
 .backup-sheet.open{display:flex}
 .backup-sheet-card{position:relative;width:min(390px,94vw);max-height:calc(100dvh - 48px);overflow-y:auto;padding:22px 20px 20px;background:#111922;border:1px solid #35414d;border-radius:16px;box-shadow:0 20px 55px rgba(0,0,0,.68);margin:auto}
 .backup-sheet-close{position:absolute;right:12px;top:10px;width:34px;height:34px;border:1px solid #35414d;border-radius:9px;background:#18232e;color:#d8e0e8;font-size:1.35rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
@@ -10592,8 +10592,14 @@ function openBackupPanel(){
   closeAccountMenu();
   const sheet=document.getElementById('backupSheet');
   if(!sheet)return;
-  sheet.classList.add('open');sheet.scrollTop=0;
-  const card=sheet.querySelector('.backup-sheet-card');if(card)card.scrollTop=0;
+  /* The backup markup originates in the header. On mobile, header overflow/
+     transforms can trap position:fixed inside that header. Portal the modal
+     directly under <body> before opening so it always covers the viewport. */
+  if(sheet.parentElement!==document.body) document.body.appendChild(sheet);
+  sheet.classList.add('open');
+  sheet.scrollTop=0;
+  const card=sheet.querySelector('.backup-sheet-card');
+  if(card)card.scrollTop=0;
   document.body.style.overflow='hidden';
 }
 function closeBackupPanel(){
