@@ -2415,7 +2415,8 @@
 .app-tour-card{max-height:calc(100vh - 24px);overflow:auto;}
 .app-tour-title{letter-spacing:.015em;}
 
-.progress-category-title{margin:22px 0 10px;font-size:.78rem;font-weight:900;letter-spacing:.16em;color:#aeb8c4}.progress-metric-card{margin-top:12px}.progress-metric-copy{font-size:.82rem;color:#98a3af;margin:4px 0 14px}.consistency-row{display:flex;justify-content:space-between;font-size:.86rem;font-weight:800;margin:10px 0 6px}.consistency-track{height:9px;border-radius:999px;background:#252b32;overflow:hidden}.consistency-fill{height:100%;width:0;border-radius:999px}.progress-big-stat{font-size:1.7rem;font-weight:950;margin-bottom:12px}.progress-week-row,.recent-pr-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:.84rem}.progress-select{width:100%;margin:2px 0 14px;padding:10px;border-radius:10px;background:#171b20;color:#f4f6f8;border:1px solid #343b44}.strength-progress-chart{min-height:150px;display:flex;align-items:flex-end;gap:8px;padding:18px 4px 4px;border-bottom:1px solid #343b44;overflow-x:auto}.strength-bar-wrap{width:56px;min-width:56px;flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:130px}.strength-bar{width:32px;max-width:32px;min-height:3px;border-radius:6px 6px 2px 2px;background:#cbd5e1}.strength-bar-value{font-size:.66rem;font-weight:900}.strength-bar-label{font-size:.64rem;color:#8e9aa6;font-weight:800}.strength-progress-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:.76rem}.recent-pr-name{font-weight:900}.recent-pr-detail{font-size:.72rem;color:#98a3af}.recent-pr-badge{color:#facc15;font-weight:950}.progress-empty{font-size:.8rem;color:#7f8a96;padding:8px 0}#nutritionCalConsistencyBar{background:#60a5fa}#nutritionProteinConsistencyBar{background:#34d399}
+.progress-category-title{margin:22px 0 10px;font-size:.78rem;font-weight:900;letter-spacing:.16em;color:#aeb8c4}.progress-metric-card{margin-top:12px}.progress-metric-copy{font-size:.82rem;color:#98a3af;margin:4px 0 14px}.consistency-row{display:flex;justify-content:space-between;font-size:.86rem;font-weight:800;margin:10px 0 6px}.consistency-track{height:9px;border-radius:999px;background:#252b32;overflow:hidden}.consistency-fill{height:100%;width:0;border-radius:999px}.progress-big-stat{font-size:1.7rem;font-weight:950;margin-bottom:12px}.progress-week-row,.recent-pr-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:.84rem}
+.progress-week-row.complete{color:#86efac}.progress-week-row.complete strong{color:#22c55e}.workout-consistency-nav{display:grid;grid-template-columns:42px 1fr 42px;gap:8px;align-items:center;margin:4px 0 6px}.workout-consistency-nav button{min-height:34px;border:1px solid #343b44;border-radius:8px;background:#171b20;color:#e5e7eb;font-weight:900;cursor:pointer}.workout-consistency-nav button:disabled{opacity:.28;cursor:not-allowed}.workout-consistency-range{text-align:center;font-size:.68rem;font-weight:850;color:#98a3af}.progress-select{width:100%;margin:2px 0 14px;padding:10px;border-radius:10px;background:#171b20;color:#f4f6f8;border:1px solid #343b44}.strength-progress-chart{min-height:150px;display:flex;align-items:flex-end;gap:8px;padding:18px 4px 4px;border-bottom:1px solid #343b44;overflow-x:auto}.strength-bar-wrap{width:56px;min-width:56px;flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:130px}.strength-bar{width:32px;max-width:32px;min-height:3px;border-radius:6px 6px 2px 2px;background:#cbd5e1}.strength-bar-value{font-size:.66rem;font-weight:900}.strength-bar-label{font-size:.64rem;color:#8e9aa6;font-weight:800}.strength-progress-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:.76rem}.recent-pr-name{font-weight:900}.recent-pr-detail{font-size:.72rem;color:#98a3af}.recent-pr-badge{color:#facc15;font-weight:950}.progress-empty{font-size:.8rem;color:#7f8a96;padding:8px 0}#nutritionCalConsistencyBar{background:#60a5fa}#nutritionProteinConsistencyBar{background:#34d399}
 /* v89 — Tips Playbook + personal daily reminders */
 .tips-section-block{margin-top:18px;padding-top:4px}
 .tips-section-heading{font-size:.82rem;font-weight:950;letter-spacing:.14em;color:#dbe7f2;margin:10px 0 5px}
@@ -2480,6 +2481,27 @@
 .backup-sheet-close{position:absolute;right:12px;top:10px;width:34px;height:34px;border:1px solid #35414d;border-radius:9px;background:#18232e;color:#d8e0e8;font-size:1.35rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2}
 .account-tools-copy{font-size:.72rem;color:#8f9aa6;line-height:1.45;margin:8px 0 12px}
 .account-tool-btn{width:100%;margin:7px 0 0!important;font-size:.7rem!important;padding:10px!important}
+
+/* V104 — branded incomplete-week advance confirmation */
+.week-advance-overlay{display:none;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;z-index:21000;background:rgba(2,7,14,.84);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.week-advance-overlay.open{display:flex!important}
+.week-advance-card{width:min(410px,100%);max-height:calc(100dvh - 36px);overflow:auto;background:#111b25;border:1px solid #31465a;border-radius:18px;padding:22px;box-shadow:0 22px 60px rgba(0,0,0,.68)}
+.week-advance-kicker{color:var(--accent-blue);font-size:.65rem;font-weight:950;letter-spacing:.09em;margin-bottom:5px}
+.week-advance-card h2{margin:0 0 10px;color:#fff;font-size:1.35rem;line-height:1.1}
+.week-advance-card p{color:var(--text-muted);font-size:.72rem;line-height:1.5;margin:8px 0}
+.week-advance-missing{margin:13px 0;padding:11px 12px;background:#0b131b;border:1px solid #293947;border-radius:11px}
+.week-advance-missing-title{color:#fff;font-size:.62rem;font-weight:950;margin-bottom:6px}
+.week-advance-missing-item{color:#d9e2ea;font-size:.68rem;padding:3px 0}
+.week-advance-actions{display:grid;gap:9px;margin-top:16px}
+.week-advance-primary{width:100%;padding:13px;border:1px solid var(--accent-blue);border-radius:10px;background:var(--accent-blue);color:#fff;font-weight:950;font-size:.7rem;cursor:pointer}
+.week-advance-secondary{width:100%;padding:11px;border:0;background:transparent;color:#9da9b5;font-weight:900;font-size:.66rem;cursor:pointer}
+
+
+/* V105 — workout consistency display range */
+.workout-consistency-controls{display:flex;align-items:center;justify-content:flex-end;margin:8px 0 4px}
+.workout-consistency-count{background:#0b131b;border:1px solid #334454;color:#dbe4ec;border-radius:8px;padding:7px 9px;font-size:.62rem;font-weight:850;outline:none}
+.workout-consistency-count:focus{border-color:var(--accent-blue)}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3925,7 +3947,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="consistency-track"><div id="nutritionProteinConsistencyBar" class="consistency-fill"></div></div>
 </div>
 <div class="progress-category-title">TRAINING</div>
-<div class="card progress-metric-card"><div class="info-subtitle">WORKOUT CONSISTENCY</div><div class="progress-metric-copy">Scheduled workouts completed across your recent program weeks.</div><div id="workoutConsistencySummary" class="progress-big-stat">—</div><div id="workoutConsistencyRows"></div></div>
+<div class="card progress-metric-card"><div class="info-subtitle">WORKOUT CONSISTENCY</div><div class="progress-metric-copy">Scheduled workouts completed across your program weeks.</div><div class="workout-consistency-controls"><select id="workoutConsistencyCount" class="workout-consistency-count" onchange="setWorkoutConsistencyDisplayCount(this.value)" aria-label="Weeks to show"><option value="6">SHOW 6</option><option value="12">SHOW 12</option><option value="18">SHOW 18</option></select></div><div id="workoutConsistencySummary" class="progress-big-stat">—</div><div class="workout-consistency-nav"><button id="workoutConsistencyPrev" type="button" onclick="changeWorkoutConsistencyPage(1)" aria-label="View earlier weeks">←</button><div id="workoutConsistencyRange" class="workout-consistency-range"></div><button id="workoutConsistencyNext" type="button" onclick="changeWorkoutConsistencyPage(-1)" aria-label="View later weeks">→</button></div><div id="workoutConsistencyRows"></div></div>
 <div class="card progress-metric-card"><div class="info-subtitle">HEAVY SET PROGRESS</div><div class="progress-metric-copy">Track how your first heavy working set is progressing over time.</div><select id="strengthProgressExercise" class="progress-select" onchange="renderStrengthProgress()"></select><div id="strengthProgressChart" class="strength-progress-chart"></div><div id="strengthProgressStats" class="strength-progress-stats"></div></div>
 <div class="card progress-metric-card"><div class="info-subtitle">RECENT PRs</div><div class="progress-metric-copy">Your newest all-time set records from logged workouts.</div><div id="recentPrList"></div></div>
 </div>
@@ -4041,6 +4063,14 @@ document.addEventListener('click',function(e){
 
 
 document.addEventListener('DOMContentLoaded',()=>{if(document.getElementById('customTipsChecklist'))renderCustomTips();});
+
+document.addEventListener('click', e => {
+  if (e.target?.id === 'weekAdvanceOverlay') closeWeekAdvanceModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('weekAdvanceOverlay')?.classList.contains('open')) closeWeekAdvanceModal();
+});
+
 </script>
 <script>
     // ===== UNIFIED SCHMOKEFIT PROGRAM + STORAGE ROUTER =====
@@ -5323,6 +5353,8 @@ document.addEventListener('DOMContentLoaded',()=>{if(document.getElementById('cu
     }
 
     function switchTab(tabId, btn) {
+      const progressWasActive=document.getElementById('nutritionHistoryTab')?.classList.contains('active');
+      if(progressWasActive && tabId!=='nutritionHistoryTab' && typeof resetWorkoutConsistencyView==='function') resetWorkoutConsistencyView();
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
@@ -8983,21 +9015,10 @@ function onRepsEntered(exerciseIndex, repInput) {
       renderWorkoutDashboard();
     }
 
-    function advanceActiveWorkoutWeek() {
-      if (viewedWorkoutWeek !== currentWeek) {
-        viewedWorkoutWeek = currentWeek;
-        renderWorkoutDashboard();
-        return;
-      }
+    let pendingWeekAdvanceMissing = [];
 
-      const days = requiredWorkoutDays();
-      const missing = days.filter(day => !getWorkoutEntry(currentWeek, day, currentWorkoutCycle));
-      if (missing.length) {
-        const names = missing.map(day => day.charAt(0).toUpperCase() + day.slice(1)).join(', ');
-        const ok = confirm(`You completed ${requiredWorkoutCount() - missing.length} of ${requiredWorkoutCount()} workouts in Week ${currentWeek}.\n\nMissing: ${names}\n\nAdvance anyway? Missing workouts will be marked SKIPPED, but you can go back and log them later.`);
-        if (!ok) return;
-        missing.forEach(day => setWorkoutSkipped(currentWeek, day, true, currentWorkoutCycle));
-      }
+    function completeActiveWorkoutWeekAdvance(missing = []) {
+      missing.forEach(day => setWorkoutSkipped(currentWeek, day, true, currentWorkoutCycle));
 
       if (currentWeek >= 18) {
         markProgramResetPending();
@@ -9018,6 +9039,66 @@ function onRepsEntered(exerciseIndex, repInput) {
       renderWorkoutDashboard();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (currentWeek === 11) setTimeout(maybeShowPhaseTransitionPopup, 260);
+    }
+
+    function closeWeekAdvanceModal() {
+      const overlay = document.getElementById('weekAdvanceOverlay');
+      if (overlay) {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+      }
+      document.body.style.overflow = '';
+      pendingWeekAdvanceMissing = [];
+    }
+    window.closeWeekAdvanceModal = closeWeekAdvanceModal;
+
+    function openWeekAdvanceModal(missing) {
+      pendingWeekAdvanceMissing = [...missing];
+      const overlay = document.getElementById('weekAdvanceOverlay');
+      if (!overlay) return;
+      if (overlay.parentElement !== document.body) document.body.appendChild(overlay);
+
+      const completed = requiredWorkoutCount() - missing.length;
+      const nextWeek = Math.min(18, currentWeek + 1);
+      document.getElementById('weekAdvanceKicker').textContent = `WEEK ${currentWeek} INCOMPLETE`;
+      document.getElementById('weekAdvanceSummary').innerHTML =
+        `You've completed <strong>${completed} of ${requiredWorkoutCount()}</strong> scheduled workouts.`;
+
+      const missingBox = document.getElementById('weekAdvanceMissing');
+      missingBox.innerHTML = missing.map(day => {
+        const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+        const programName = getWorkoutProgramNames()?.[day] || '';
+        return `<div class="week-advance-missing-item"><strong>${dayName}</strong>${programName ? ` • ${programName}` : ''}</div>`;
+      }).join('');
+
+      const continueBtn = document.getElementById('weekAdvanceContinueBtn');
+      continueBtn.textContent = currentWeek >= 18 ? 'FINISH WEEK 18 ANYWAY →' : `START WEEK ${nextWeek} ANYWAY →`;
+      continueBtn.onclick = () => {
+        const toSkip = [...pendingWeekAdvanceMissing];
+        closeWeekAdvanceModal();
+        completeActiveWorkoutWeekAdvance(toSkip);
+      };
+
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function advanceActiveWorkoutWeek() {
+      if (viewedWorkoutWeek !== currentWeek) {
+        viewedWorkoutWeek = currentWeek;
+        renderWorkoutDashboard();
+        return;
+      }
+
+      const days = requiredWorkoutDays();
+      const missing = days.filter(day => !getWorkoutEntry(currentWeek, day, currentWorkoutCycle));
+      if (missing.length) {
+        openWeekAdvanceModal(missing);
+        return;
+      }
+
+      completeActiveWorkoutWeekAdvance([]);
     }
 
     function requestFullFreshStart() {
@@ -10396,7 +10477,21 @@ let appTourIndex = 0;
 let appTourResizeHandler = null;
 
 function progressWorkoutLogs(){try{return (JSON.parse(appStorage.getItem('schmokefit_history')||'[]')||[]).filter(x=>x&&x.type==='WORKOUT'&&x.structuredData)}catch(e){return[]}}
-function renderWorkoutConsistency(){const logs=progressWorkoutLogs(),req=requiredWorkoutDays(),by={};logs.forEach(l=>{if(typeof workoutEntryCycle==='function'&&workoutEntryCycle(l)!==Number(currentWorkoutCycle))return;const w=typeof inferWorkoutWeek==='function'?inferWorkoutWeek(l):Number(l.workoutWeek||l.week||l.weekNumber||0),d=typeof inferWorkoutDay==='function'?inferWorkoutDay(l):String(l.workoutDay||l.day||'').toLowerCase();if(w&&req.includes(d))(by[w]??=new Set()).add(d)});const ws=Object.keys(by).map(Number).sort((a,b)=>b-a).slice(0,6).reverse(),done=ws.reduce((n,w)=>n+Math.min(by[w].size,req.length),0),poss=ws.length*req.length,pct=poss?Math.round(done/poss*100):null;document.getElementById('workoutConsistencySummary').textContent=pct===null?'No completed weeks yet':pct+'% completed';document.getElementById('workoutConsistencyRows').innerHTML=ws.length?ws.map(w=>`<div class="progress-week-row"><span>Week ${w}</span><strong>${Math.min(by[w].size,req.length)}/${req.length}</strong></div>`).join(''):'<div class="progress-empty">Complete workouts to build your consistency history.</div>'}
+let workoutConsistencyPage=0;
+let workoutConsistencyDisplayCount=6;
+function setWorkoutConsistencyDisplayCount(value){
+  workoutConsistencyDisplayCount=[6,12,18].includes(Number(value))?Number(value):6;
+  workoutConsistencyPage=0;
+  renderWorkoutConsistency();
+}
+function resetWorkoutConsistencyView(){
+  workoutConsistencyDisplayCount=6;
+  workoutConsistencyPage=0;
+  const select=document.getElementById('workoutConsistencyCount');
+  if(select)select.value='6';
+}
+function changeWorkoutConsistencyPage(delta){workoutConsistencyPage=Math.max(0,workoutConsistencyPage+Number(delta||0));renderWorkoutConsistency()}
+function renderWorkoutConsistency(){const logs=progressWorkoutLogs(),req=requiredWorkoutDays(),by={};logs.forEach(l=>{if(typeof workoutEntryCycle==='function'&&workoutEntryCycle(l)!==Number(currentWorkoutCycle))return;const w=typeof inferWorkoutWeek==='function'?inferWorkoutWeek(l):Number(l.workoutWeek||l.week||l.weekNumber||0),d=typeof inferWorkoutDay==='function'?inferWorkoutDay(l):String(l.workoutDay||l.day||'').toLowerCase();if(w&&req.includes(d))(by[w]??=new Set()).add(d)});const loggedWeeks=Object.keys(by).map(Number).filter(Boolean),latest=Math.max(1,Number(currentWeek)||1,...loggedWeeks),count=workoutConsistencyDisplayCount,end=Math.max(1,latest-(workoutConsistencyPage*count)),start=Math.max(1,end-count+1),ws=Array.from({length:end-start+1},(_,i)=>start+i),done=ws.reduce((n,w)=>n+Math.min(by[w]?.size||0,req.length),0),poss=ws.length*req.length,pct=poss?Math.round(done/poss*100):null,hasAny=loggedWeeks.length>0;const select=document.getElementById('workoutConsistencyCount');if(select)select.value=String(count);document.getElementById('workoutConsistencySummary').textContent=!hasAny?'No completed weeks yet':pct+'% completed';const range=document.getElementById('workoutConsistencyRange');if(range)range.textContent=start===end?`Week ${start}`:`Weeks ${start}–${end}`;const prev=document.getElementById('workoutConsistencyPrev'),next=document.getElementById('workoutConsistencyNext');if(prev)prev.disabled=start<=1;if(next)next.disabled=workoutConsistencyPage<=0;document.getElementById('workoutConsistencyRows').innerHTML=hasAny?ws.map(w=>{const c=Math.min(by[w]?.size||0,req.length),complete=c===req.length;return `<div class="progress-week-row${complete?' complete':''}"><span>${complete?'✓ ':''}Week ${w}</span><strong>${c}/${req.length}</strong></div>`}).join(''):'<div class="progress-empty">Complete workouts to build your consistency history.</div>'}
 function strengthExerciseSeries(){
  const map={};
  progressWorkoutLogs().forEach((l,logIndex)=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>{
@@ -10418,7 +10513,7 @@ function renderStrengthProgress(){
  let best=s[0];s.forEach(x=>{if(score(x)>score(best))best=x});const first=score(s[0]),latest=score(s.at(-1)),change=first>0?((latest-first)/first*100):0,sign=change>0?'+':'',fmt=x=>isBodyweight?`${x.r} reps`:`${x.w} × ${x.r}`;
  stats.innerHTML=`<span>Starting: <strong>${fmt(s[0])}</strong></span><span>Latest: <strong>${fmt(s.at(-1))}</strong></span><span>Best heavy set: <strong>${fmt(best)}</strong> 🏆</span><span>${isBodyweight?'Rep change':'Strength change'}: <strong>${sign}${round1(change)}%</strong></span>`;
 }
-function renderRecentPRs(){const rec={},prs=[];progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>Object.entries(sets||{}).forEach(([sk,s])=>{const w=Number(s?.w),r=Number(s?.r);if(!Number.isFinite(w)||!Number.isFinite(r)||!String(s?.w??'').trim()||!String(s?.r??'').trim())return;const k=name+'::'+sk,p=rec[k];if(p&&(w>p.w||(w===p.w&&r>p.r)))prs.push({name,sk,w,r});if(!p||w>p.w||(w===p.w&&r>p.r))rec[k]={w,r}})));document.getElementById('recentPrList').innerHTML=prs.length?prs.slice(-6).reverse().map(p=>`<div class="recent-pr-item"><div><div class="recent-pr-name">${escapeHtml(p.name)}</div><div class="recent-pr-detail">${escapeHtml(p.sk.replace('set','Set '))} • ${p.w} × ${p.r}</div></div><div class="recent-pr-badge">🏆 PR</div></div>`).join(''):'<div class="progress-empty">New all-time bests will appear here as you build workout history.</div>'}
+function renderRecentPRs(){const rec={},prs=[];progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>Object.entries(sets||{}).forEach(([sk,s])=>{const w=Number(s?.w),r=Number(s?.r);if(!Number.isFinite(w)||!Number.isFinite(r)||!String(s?.w??'').trim()||!String(s?.r??'').trim())return;const k=name+'::'+sk,p=rec[k];if(p&&(w>p.w||(w===p.w&&r>p.r)))prs.push({name,sk,w,r,date:l.date||''});if(!p||w>p.w||(w===p.w&&r>p.r))rec[k]={w,r}})));document.getElementById('recentPrList').innerHTML=prs.length?prs.slice(-6).reverse().map(p=>{let d=p.date||'';if(d){const parsed=new Date(d);if(!Number.isNaN(parsed.getTime()))d=parsed.toLocaleDateString('en-US',{month:'short',day:'numeric'});}return `<div class="recent-pr-item"><div><div class="recent-pr-name">${escapeHtml(p.name)}</div><div class="recent-pr-detail">${d?escapeHtml(d)+' • ':''}${escapeHtml(p.sk.replace('set','Set '))} • ${p.w} × ${p.r}</div></div><div class="recent-pr-badge">🏆 PR</div></div>`}).join(''):'<div class="progress-empty">New all-time bests will appear here as you build workout history.</div>'}
 function renderNutritionConsistency(){
   /*
     v93: use the same source of truth as the existing Progress graphs.
@@ -11861,6 +11956,24 @@ function saveExtraCardioActivity(){
     </div>
     <div class="custom-food-manager-copy">Foods you create manually live here. Editing or deleting one changes future searches only—foods already logged in your history stay exactly as they were recorded.</div>
     <div id="customFoodManagerList" class="custom-food-manager-list"></div>
+  </div>
+</div>
+
+
+<div id="weekAdvanceOverlay" class="week-advance-overlay" aria-hidden="true">
+  <div class="week-advance-card" role="dialog" aria-modal="true" aria-labelledby="weekAdvanceTitle">
+    <div class="week-advance-kicker" id="weekAdvanceKicker">WEEK INCOMPLETE</div>
+    <h2 id="weekAdvanceTitle">READY TO MOVE ON?</h2>
+    <p id="weekAdvanceSummary"></p>
+    <div class="week-advance-missing">
+      <div class="week-advance-missing-title">STILL REMAINING</div>
+      <div id="weekAdvanceMissing"></div>
+    </div>
+    <p>If you continue, these workouts will be marked <strong>SKIPPED</strong>. You can still return and complete them later.</p>
+    <div class="week-advance-actions">
+      <button type="button" class="week-advance-primary" id="weekAdvanceContinueBtn">START NEXT WEEK ANYWAY →</button>
+      <button type="button" class="week-advance-secondary" onclick="closeWeekAdvanceModal()">GO BACK • FINISH THIS WEEK</button>
+    </div>
   </div>
 </div>
 
