@@ -2502,6 +2502,30 @@
 .workout-consistency-count{background:#0b131b;border:1px solid #334454;color:#dbe4ec;border-radius:8px;padding:7px 9px;font-size:.62rem;font-weight:850;outline:none}
 .workout-consistency-count:focus{border-color:var(--accent-blue)}
 
+
+/* v111 — Body Weight Trend (separate from program BW used for macro calculations) */
+.bw-progress-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 12px}
+.bw-progress-stat{background:#0b1218;border:1px solid #263544;border-radius:10px;padding:10px 5px;text-align:center}
+.bw-progress-stat strong{display:block;color:#fff;font-size:1.05rem}
+.bw-progress-stat span{display:block;margin-top:3px;color:#8e9aa6;font-size:.52rem;font-weight:900;text-transform:uppercase}
+.bw-log-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin:10px 0}
+.bw-log-field label{display:block;color:#8e9aa6;font-size:.55rem;font-weight:900;margin-bottom:5px;text-transform:uppercase}
+.bw-log-field input{width:100%;box-sizing:border-box;background:#0b1218;border:1px solid #344351;border-radius:9px;color:#fff;padding:10px;font-family:inherit;font-weight:850}
+.bw-log-btn{min-height:39px;padding:0 13px;border:0;border-radius:9px;background:var(--accent-blue);color:#031019;font-family:inherit;font-size:.62rem;font-weight:950;cursor:pointer}
+.bw-chart-wrap{margin-top:12px}
+.bw-chart-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.bw-chart-label{font-size:.6rem;color:#cbd5e1;font-weight:950;text-transform:uppercase}
+.bw-chart-note{font-size:.52rem;color:#7f8b97}
+.bw-chart{position:relative;height:170px;border:1px solid #263544;border-radius:11px;background:#0b1218;overflow:hidden}
+.bw-chart svg{display:block;width:100%;height:100%}
+.bw-empty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;color:#7f8b97;font-size:.65rem;line-height:1.45;box-sizing:border-box}
+.bw-history{margin-top:10px}
+.bw-history-row{display:flex;align-items:center;justify-content:space-between;padding:7px 2px;border-top:1px solid rgba(255,255,255,.055);font-size:.62rem}
+.bw-history-row:first-child{border-top:0}
+.bw-history-date{color:#8e9aa6}.bw-history-value{color:#fff;font-weight:900}
+.bw-history-delete{border:0;background:transparent;color:#69737d;font-size:.8rem;cursor:pointer;padding:2px 5px}
+.bw-program-note{margin-top:10px;padding:9px 10px;border:1px solid rgba(0,170,255,.2);border-radius:9px;background:rgba(0,170,255,.045);color:#9aa6b2;font-size:.57rem;line-height:1.45}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3946,6 +3970,27 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="consistency-row"><span>Protein on target</span><strong id="nutritionProteinConsistency">—</strong></div>
 <div class="consistency-track"><div id="nutritionProteinConsistencyBar" class="consistency-fill"></div></div>
 </div>
+
+<div class="card progress-metric-card" id="bodyWeightProgressCard">
+  <div class="info-subtitle">BODY WEIGHT</div>
+  <div class="progress-metric-copy">Track weigh-ins separately from the program body weight used to calculate your calorie and macro targets.</div>
+  <div class="bw-progress-grid">
+    <div class="bw-progress-stat"><strong id="bwTrendCurrent">—</strong><span>7-Day Avg</span></div>
+    <div class="bw-progress-stat"><strong id="bwTrendStart">—</strong><span>Starting</span></div>
+    <div class="bw-progress-stat"><strong id="bwTrendChange">—</strong><span>Change</span></div>
+  </div>
+  <div class="bw-log-row">
+    <div class="bw-log-field"><label for="bwProgressInput">Today's Weight (lb)</label><input id="bwProgressInput" type="number" inputmode="decimal" min="50" max="700" step="0.1" placeholder="e.g. 198.4"></div>
+    <button class="bw-log-btn" type="button" onclick="logProgressBodyWeight()">LOG TODAY</button>
+  </div>
+  <div class="bw-chart-wrap">
+    <div class="bw-chart-head"><div class="bw-chart-label">Weight Trend</div><div class="bw-chart-note">Dots = weigh-ins • Line = 7-day average</div></div>
+    <div id="bwTrendChart" class="bw-chart"></div>
+  </div>
+  <div id="bwRecentHistory" class="bw-history"></div>
+  <div class="bw-program-note">Your Nutrition-tab BW stays unchanged when you log a weigh-in here. That value remains your program weight for calorie and macro calculations.</div>
+</div>
+
 <div class="progress-category-title">TRAINING</div>
 <div class="card progress-metric-card"><div class="info-subtitle">WORKOUT CONSISTENCY</div><div class="progress-metric-copy">Scheduled workouts completed across your program weeks.</div><div class="workout-consistency-controls"><select id="workoutConsistencyCount" class="workout-consistency-count" onchange="setWorkoutConsistencyDisplayCount(this.value)" aria-label="Weeks to show"><option value="6">SHOW 6</option><option value="12">SHOW 12</option><option value="18">SHOW 18</option></select></div><div id="workoutConsistencySummary" class="progress-big-stat">—</div><div class="workout-consistency-nav"><button id="workoutConsistencyPrev" type="button" onclick="changeWorkoutConsistencyPage(1)" aria-label="View earlier weeks">←</button><div id="workoutConsistencyRange" class="workout-consistency-range"></div><button id="workoutConsistencyNext" type="button" onclick="changeWorkoutConsistencyPage(-1)" aria-label="View later weeks">→</button></div><div id="workoutConsistencyRows"></div></div>
 <div class="card progress-metric-card"><div class="info-subtitle">HEAVY SET PROGRESS</div><div class="progress-metric-copy">Track how your first heavy working set is progressing over time.</div><select id="strengthProgressExercise" class="progress-select" onchange="renderStrengthProgress()"></select><div id="strengthProgressChart" class="strength-progress-chart"></div><div id="strengthProgressStats" class="strength-progress-stats"></div></div>
@@ -10631,7 +10676,71 @@ function renderNutritionConsistency(){
   if(calBar) calBar.style.width=`${cp||0}%`;
   if(proBar) proBar.style.width=`${pp||0}%`;
 }
-function renderExpandedProgress(){renderNutritionConsistency();renderWorkoutConsistency();renderStrengthProgress();renderRecentPRs()}
+
+/* v111 Body Weight Trend — intentionally independent from macro/program BW */
+const bodyWeightProgressKey='schmokefit_body_weight_progress_v1';
+
+function getBodyWeightProgress(){
+ try{
+   const rows=JSON.parse(appStorage.getItem(bodyWeightProgressKey)||'[]');
+   return Array.isArray(rows)?rows.filter(x=>x&&x.date&&Number.isFinite(Number(x.weight))):[];
+ }catch(e){return[]}
+}
+function saveBodyWeightProgress(rows){
+ appStorage.setItem(bodyWeightProgressKey,JSON.stringify(rows));
+}
+function logProgressBodyWeight(){
+ const input=document.getElementById('bwProgressInput'),weight=Number(input?.value);
+ if(!Number.isFinite(weight)||weight<50||weight>700){alert('Enter a valid body weight.');return}
+ const date=localDateStamp(new Date()),rows=getBodyWeightProgress();
+ const existing=rows.find(x=>x.date===date);
+ if(existing)existing.weight=Math.round(weight*10)/10;
+ else rows.push({date,weight:Math.round(weight*10)/10});
+ rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ saveBodyWeightProgress(rows);
+ if(input)input.value='';
+ renderBodyWeightProgress();
+}
+function deleteProgressBodyWeight(date){
+ const rows=getBodyWeightProgress().filter(x=>x.date!==date);
+ saveBodyWeightProgress(rows);
+ renderBodyWeightProgress();
+}
+function bodyWeightRollingSeries(rows){
+ return rows.map((row,i)=>{
+   const end=new Date(row.date+'T12:00:00'),start=new Date(end);start.setDate(start.getDate()-6);
+   const vals=rows.filter(x=>{const d=new Date(x.date+'T12:00:00');return d>=start&&d<=end}).map(x=>Number(x.weight)).filter(Number.isFinite);
+   return {...row,avg:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:Number(row.weight)};
+ });
+}
+function renderBodyWeightProgress(){
+ const chart=document.getElementById('bwTrendChart');if(!chart)return;
+ const rows=getBodyWeightProgress().slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ const currentEl=document.getElementById('bwTrendCurrent'),startEl=document.getElementById('bwTrendStart'),changeEl=document.getElementById('bwTrendChange'),history=document.getElementById('bwRecentHistory');
+ if(!rows.length){
+   if(currentEl)currentEl.textContent='—';if(startEl)startEl.textContent='—';if(changeEl)changeEl.textContent='—';
+   chart.innerHTML='<div class="bw-empty">Log your first weigh-in to start building your body-weight trend.</div>';
+   if(history)history.innerHTML='';return;
+ }
+ const series=bodyWeightRollingSeries(rows),first=Number(rows[0].weight),latestAvg=series.at(-1).avg,change=latestAvg-first;
+ if(currentEl)currentEl.textContent=`${round1(latestAvg)} lb`;
+ if(startEl)startEl.textContent=`${round1(first)} lb`;
+ if(changeEl)changeEl.textContent=`${change>0?'+':''}${round1(change)} lb`;
+
+ const visible=series.slice(-90),allVals=visible.flatMap(x=>[Number(x.weight),Number(x.avg)]).filter(Number.isFinite);
+ let min=Math.min(...allVals),max=Math.max(...allVals);if(max===min){max+=1;min-=1}else{const pad=Math.max(.6,(max-min)*.15);max+=pad;min-=pad}
+ const W=600,H=170,padX=22,padY=18,span=Math.max(1,visible.length-1);
+ const x=i=>padX+(i/span)*(W-padX*2),y=v=>padY+((max-v)/(max-min))*(H-padY*2);
+ const avgPoints=visible.map((d,i)=>`${x(i).toFixed(1)},${y(d.avg).toFixed(1)}`).join(' ');
+ const dots=visible.map((d,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(Number(d.weight)).toFixed(1)}" r="3" fill="#cbd5e1" opacity=".65"><title>${escapeHtml(d.date)} • ${d.weight} lb</title></circle>`).join('');
+ const guides=[0,.5,1].map(p=>{const yy=(padY+p*(H-padY*2)).toFixed(1);return `<line x1="${padX}" y1="${yy}" x2="${W-padX}" y2="${yy}" stroke="#263544" stroke-width="1"/>`}).join('');
+ chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Body weight trend">${guides}${dots}<polyline points="${avgPoints}" fill="none" stroke="#00aaff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+ if(history){
+   history.innerHTML=rows.slice(-5).reverse().map(r=>{const d=new Date(r.date+'T12:00:00'),label=Number.isNaN(d.getTime())?r.date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'});return `<div class="bw-history-row"><span class="bw-history-date">${escapeHtml(label)}</span><span class="bw-history-value">${round1(Number(r.weight))} lb</span><button class="bw-history-delete" type="button" onclick="deleteProgressBodyWeight('${escapeHtml(r.date)}')" aria-label="Delete ${escapeHtml(label)} weigh-in">×</button></div>`}).join('');
+ }
+}
+function renderExpandedProgress(){renderNutritionConsistency();renderWorkoutConsistency();renderStrengthProgress();renderRecentPRs();renderBodyWeightProgress()}
 
 /* v89 personal Tips checklist */
 const customTipsKey='schmokefit_custom_daily_tips';
