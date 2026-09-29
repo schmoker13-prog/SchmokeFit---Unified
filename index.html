@@ -2417,6 +2417,21 @@
 
 .progress-category-title{margin:22px 0 10px;font-size:.78rem;font-weight:900;letter-spacing:.16em;color:#aeb8c4}.progress-metric-card{margin-top:12px}.progress-metric-copy{font-size:.82rem;color:#98a3af;margin:4px 0 14px}.consistency-row{display:flex;justify-content:space-between;font-size:.86rem;font-weight:800;margin:10px 0 6px}.consistency-track{height:9px;border-radius:999px;background:#252b32;overflow:hidden}.consistency-fill{height:100%;width:0;border-radius:999px}.progress-big-stat{font-size:1.7rem;font-weight:950;margin-bottom:12px}.progress-week-row,.recent-pr-item{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(255,255,255,.07);font-size:.84rem}
 .progress-week-row.complete{color:#86efac}.progress-week-row.complete strong{color:#22c55e}.workout-consistency-nav{display:grid;grid-template-columns:42px 1fr 42px;gap:8px;align-items:center;margin:4px 0 6px}.workout-consistency-nav button{min-height:34px;border:1px solid #343b44;border-radius:8px;background:#171b20;color:#e5e7eb;font-weight:900;cursor:pointer}.workout-consistency-nav button:disabled{opacity:.28;cursor:not-allowed}.workout-consistency-range{text-align:center;font-size:.68rem;font-weight:850;color:#98a3af}.progress-select{width:100%;margin:2px 0 14px;padding:10px;border-radius:10px;background:#171b20;color:#f4f6f8;border:1px solid #343b44}.strength-progress-chart{min-height:150px;display:flex;align-items:flex-end;gap:8px;padding:18px 4px 4px;border-bottom:1px solid #343b44;overflow-x:auto}.strength-bar-wrap{width:56px;min-width:56px;flex:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:130px}.strength-bar{width:32px;max-width:32px;min-height:3px;border-radius:6px 6px 2px 2px;background:#cbd5e1}.strength-bar-value{font-size:.66rem;font-weight:900}.strength-bar-label{font-size:.64rem;color:#8e9aa6;font-weight:800}.strength-progress-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:.76rem}.recent-pr-name{font-weight:900}.recent-pr-detail{font-size:.72rem;color:#98a3af}.recent-pr-badge{color:#facc15;font-weight:950}.progress-empty{font-size:.8rem;color:#7f8a96;padding:8px 0}#nutritionCalConsistencyBar{background:#60a5fa}#nutritionProteinConsistencyBar{background:#34d399}
+/* V112 — bodyweight logging + progress trend */
+.bodyweight-log-grid{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:8px;align-items:end;margin:10px 0 8px}
+.bodyweight-log-grid label{display:block;font-size:.60rem;font-weight:900;letter-spacing:.08em;color:#8f9aa6;margin-bottom:5px}
+.bodyweight-log-grid input{width:100%;min-height:42px;padding:9px 10px;border-radius:9px;border:1px solid #35414d;background:#171b20;color:#f4f6f8;font-size:16px;font-weight:850}
+.bodyweight-range-toggle{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 8px}
+.bodyweight-range-btn{min-height:34px;border:1px solid #343b44;border-radius:8px;background:#171b20;color:#98a3af;font-size:.62rem;font-weight:900;cursor:pointer}
+.bodyweight-range-btn.active{border-color:var(--accent-blue);background:rgba(0,170,255,.10);color:var(--accent-blue)}
+.bodyweight-chart{height:190px;margin-top:8px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:#0d141b;overflow:hidden}
+.bodyweight-chart svg{display:block;width:100%;height:100%}
+.bodyweight-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.bodyweight-stat{padding:9px 6px;border:1px solid #2e3945;border-radius:9px;background:#151d25;text-align:center}
+.bodyweight-stat strong{display:block;font-size:.90rem;color:#f4f6f8}.bodyweight-stat span{display:block;margin-top:2px;font-size:.52rem;font-weight:850;color:#8f9aa6;letter-spacing:.06em}
+.bodyweight-recent{margin-top:10px}.bodyweight-entry{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.07);font-size:.76rem}.bodyweight-entry-date{color:#98a3af}.bodyweight-entry-value{font-weight:900}.bodyweight-entry-delete{border:0;background:transparent;color:#7f8a96;font-size:1rem;cursor:pointer;padding:3px 5px}
+@media(max-width:390px){.bodyweight-log-grid{grid-template-columns:1fr}.bodyweight-stats{gap:5px}.bodyweight-stat strong{font-size:.82rem}}
+
 /* v89 — Tips Playbook + personal daily reminders */
 .tips-section-block{margin-top:18px;padding-top:4px}
 .tips-section-heading{font-size:.82rem;font-weight:950;letter-spacing:.14em;color:#dbe7f2;margin:10px 0 5px}
@@ -2519,6 +2534,26 @@
 }
 #addedExerciseSaveOverlay.open{display:flex !important;}
 #addedExerciseSaveOverlay .modal{margin:auto;max-height:calc(100dvh - 36px);overflow:auto;}
+
+
+/* V114 — backdated/editable weigh-ins */
+.bodyweight-log-grid-v114{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}
+.bodyweight-log-grid-v114 input[type="date"]{width:100%;box-sizing:border-box}
+.bodyweight-entry-edit{border:0;background:transparent;color:#00aaff;font-size:.62rem;font-weight:900;cursor:pointer;padding:6px 7px}
+.bodyweight-entry-actions{display:flex;align-items:center;gap:2px}
+@media(max-width:560px){
+  .bodyweight-log-grid-v114{grid-template-columns:1fr 1fr}
+  .bodyweight-log-grid-v114 .btn{grid-column:1/-1;width:100%}
+}
+
+
+/* V115 — restored PR progress features */
+.strength-bar-wrap.is-pr .strength-bar{background:#facc15}
+.strength-bar-wrap.is-pr .strength-bar-value,.strength-bar-wrap.is-pr .strength-bar-label{color:#facc15}
+.recent-pr-nav{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin-top:10px}
+.recent-pr-nav button{min-height:32px;padding:0 10px;border:1px solid #343b44;border-radius:8px;background:#171b20;color:#e5e7eb;font-size:.60rem;font-weight:900;cursor:pointer}
+.recent-pr-nav button:disabled{opacity:.28;cursor:not-allowed}
+.recent-pr-nav span{text-align:center;font-size:.62rem;font-weight:850;color:#8f9aa6}
 
 </style>
 <!-- iPhone / iPad -->
@@ -3964,10 +3999,32 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="consistency-row"><span>Protein on target</span><strong id="nutritionProteinConsistency">—</strong></div>
 <div class="consistency-track"><div id="nutritionProteinConsistencyBar" class="consistency-fill"></div></div>
 </div>
+<div class="progress-category-title">BODYWEIGHT</div>
+<div class="card progress-metric-card">
+<div class="info-subtitle">WEIGHT TREND</div>
+<div class="progress-metric-copy">Log weigh-ins here to follow your bodyweight trend over time. These entries are separate from the Current Bodyweight used to calculate your Nutrition targets.</div>
+<div class="bodyweight-log-grid bodyweight-log-grid-v114">
+  <div><label for="bodyweightLogInput">WEIGHT (LBS)</label><input id="bodyweightLogInput" type="number" inputmode="decimal" min="1" step="0.1" placeholder="Enter weight"/></div>
+  <div><label for="bodyweightLogDate">DATE</label><input id="bodyweightLogDate" type="date"/></div>
+  <button class="btn btn-blue" type="button" style="margin:0;min-height:42px" onclick="logBodyweight()">LOG WEIGHT</button>
+</div>
+<div class="bodyweight-range-toggle" role="group" aria-label="Bodyweight graph range">
+  <button class="bodyweight-range-btn active" id="bodyweightRange-30" type="button" onclick="setBodyweightRange('30')">1 MONTH</button>
+  <button class="bodyweight-range-btn" id="bodyweightRange-90" type="button" onclick="setBodyweightRange('90')">3 MONTHS</button>
+  <button class="bodyweight-range-btn" id="bodyweightRange-all" type="button" onclick="setBodyweightRange('all')">ALL</button>
+</div>
+<div id="bodyweightChart" class="bodyweight-chart"></div>
+<div class="bodyweight-stats">
+  <div class="bodyweight-stat"><strong id="bodyweightStartStat">—</strong><span>STARTING</span></div>
+  <div class="bodyweight-stat"><strong id="bodyweightLatestStat">—</strong><span>LATEST</span></div>
+  <div class="bodyweight-stat"><strong id="bodyweightChangeStat">—</strong><span>CHANGE</span></div>
+</div>
+<div id="bodyweightRecent" class="bodyweight-recent"></div>
+</div>
 <div class="progress-category-title">TRAINING</div>
 <div class="card progress-metric-card"><div class="info-subtitle">WORKOUT CONSISTENCY</div><div class="progress-metric-copy">Scheduled workouts completed across your program weeks.</div><div class="workout-consistency-controls"><select id="workoutConsistencyCount" class="workout-consistency-count" onchange="setWorkoutConsistencyDisplayCount(this.value)" aria-label="Weeks to show"><option value="6">SHOW 6</option><option value="12">SHOW 12</option><option value="18">SHOW 18</option></select></div><div id="workoutConsistencySummary" class="progress-big-stat">—</div><div class="workout-consistency-nav"><button id="workoutConsistencyPrev" type="button" onclick="changeWorkoutConsistencyPage(1)" aria-label="View earlier weeks">←</button><div id="workoutConsistencyRange" class="workout-consistency-range"></div><button id="workoutConsistencyNext" type="button" onclick="changeWorkoutConsistencyPage(-1)" aria-label="View later weeks">→</button></div><div id="workoutConsistencyRows"></div></div>
 <div class="card progress-metric-card"><div class="info-subtitle">HEAVY SET PROGRESS</div><div class="progress-metric-copy">Track how your first heavy working set is progressing over time.</div><select id="strengthProgressExercise" class="progress-select" onchange="renderStrengthProgress()"></select><div id="strengthProgressChart" class="strength-progress-chart"></div><div id="strengthProgressStats" class="strength-progress-stats"></div></div>
-<div class="card progress-metric-card"><div class="info-subtitle">RECENT PRs</div><div class="progress-metric-copy">Your newest all-time set records from logged workouts.</div><div id="recentPrList"></div></div>
+<div class="card progress-metric-card"><div class="info-subtitle">RECENT PRs</div><div class="progress-metric-copy">Your newest all-time set records from logged workouts.</div><div id="recentPrList"></div><div id="recentPrNav" class="recent-pr-nav"><button id="recentPrPrev" type="button" onclick="changeRecentPrPage(1)" aria-label="View older PRs">← OLDER</button><span id="recentPrRange"></span><button id="recentPrNext" type="button" onclick="changeRecentPrPage(-1)" aria-label="View newer PRs">NEWER →</button></div></div>
 </div>
 <!-- 05. PROGRESS TIPS TAB -->
 <div class="tab-content" id="tipsTab">
@@ -4135,7 +4192,7 @@ document.addEventListener('keydown', e => {
 
     const sharedStorageSuffixes = new Set([
       'master_unlocked','user','pass','has_logged_in_before','tour_completed',
-      'bodyweight','meal_definitions','barcode_foods','quick_food_library'
+      'bodyweight','bodyweight_history','meal_definitions','barcode_foods','quick_food_library'
     ]);
 
     function routedStorageKey(key) {
@@ -10527,11 +10584,50 @@ function renderStrengthProgress(){
  const s=map[sel.value]||[];if(!s.length){chart.style.justifyContent='center';chart.innerHTML='<div class="progress-empty">Complete this exercise to start tracking your heavy Set 1.</div>';stats.innerHTML='';return}
  const isBodyweight=s.every(x=>Number(x.w)===0),score=x=>isBodyweight?Number(x.r):Number(x.w)*(1+Number(x.r)/30),visible=s.slice(-10),scores=visible.map(score),max=Math.max(...scores,1),min=Math.min(...scores);
  chart.style.justifyContent=visible.length<=3?'center':'flex-start';
- chart.innerHTML=visible.map((x,i)=>{const sc=score(x),normalized=max===min?82:36+((sc-min)/(max-min))*64,week=s.length-visible.length+i+1,valueLabel=isBodyweight?`${x.r} reps`:`${x.w}×${x.r}`;return `<div class="strength-bar-wrap"><div class="strength-bar-value">${valueLabel}</div><div class="strength-bar" style="height:${Math.max(28,Math.round(normalized))}px"></div><div class="strength-bar-label">W${week}</div></div>`}).join('');
+
+ /* A gold bar means that week's heavy Set 1 established a new all-time best
+    versus every earlier heavy Set 1 for this exercise. The first data point is
+    the baseline, so it is not labeled as a PR. */
+ let runningBest=null;
+ const prIndexes=new Set();
+ s.forEach((x,i)=>{const sc=score(x);if(runningBest!==null&&sc>runningBest)prIndexes.add(i);if(runningBest===null||sc>runningBest)runningBest=sc});
+ const offset=s.length-visible.length;
+ chart.innerHTML=visible.map((x,i)=>{const sc=score(x),normalized=max===min?82:36+((sc-min)/(max-min))*64,week=offset+i+1,valueLabel=isBodyweight?`${x.r} reps`:`${x.w}×${x.r}`,isPr=prIndexes.has(offset+i);return `<div class="strength-bar-wrap${isPr?' is-pr':''}"><div class="strength-bar-value">${valueLabel}${isPr?' 🏆':''}</div><div class="strength-bar" style="height:${Math.max(28,Math.round(normalized))}px"></div><div class="strength-bar-label">W${week}</div></div>`}).join('');
  let best=s[0];s.forEach(x=>{if(score(x)>score(best))best=x});const first=score(s[0]),latest=score(s.at(-1)),change=first>0?((latest-first)/first*100):0,sign=change>0?'+':'',fmt=x=>isBodyweight?`${x.r} reps`:`${x.w} × ${x.r}`;
  stats.innerHTML=`<span>Starting: <strong>${fmt(s[0])}</strong></span><span>Latest: <strong>${fmt(s.at(-1))}</strong></span><span>Best heavy set: <strong>${fmt(best)}</strong> 🏆</span><span>${isBodyweight?'Rep change':'Strength change'}: <strong>${sign}${round1(change)}%</strong></span>`;
 }
-function renderRecentPRs(){const rec={},prs=[];progressWorkoutLogs().forEach(l=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>Object.entries(sets||{}).forEach(([sk,s])=>{const w=Number(s?.w),r=Number(s?.r);if(!Number.isFinite(w)||!Number.isFinite(r)||!String(s?.w??'').trim()||!String(s?.r??'').trim())return;const k=name+'::'+sk,p=rec[k];if(p&&(w>p.w||(w===p.w&&r>p.r)))prs.push({name,sk,w,r,date:l.date||''});if(!p||w>p.w||(w===p.w&&r>p.r))rec[k]={w,r}})));document.getElementById('recentPrList').innerHTML=prs.length?prs.slice(-6).reverse().map(p=>{let d=p.date||'';if(d){const parsed=new Date(d);if(!Number.isNaN(parsed.getTime()))d=parsed.toLocaleDateString('en-US',{month:'short',day:'numeric'});}return `<div class="recent-pr-item"><div><div class="recent-pr-name">${escapeHtml(p.name)}</div><div class="recent-pr-detail">${d?escapeHtml(d)+' • ':''}${escapeHtml(p.sk.replace('set','Set '))} • ${p.w} × ${p.r}</div></div><div class="recent-pr-badge">🏆 PR</div></div>`}).join(''):'<div class="progress-empty">New all-time bests will appear here as you build workout history.</div>'}
+
+let recentPrPage=0;
+const recentPrPageSize=6;
+function getAllProgressPRs(){
+ const rec={},prs=[];
+ progressWorkoutLogs().forEach((l,logIndex)=>Object.entries(l.structuredData||{}).forEach(([name,sets])=>Object.entries(sets||{}).forEach(([sk,s])=>{
+   const w=Number(s?.w),r=Number(s?.r);
+   if(!Number.isFinite(w)||!Number.isFinite(r)||!String(s?.w??'').trim()||!String(s?.r??'').trim())return;
+   const k=name+'::'+sk,p=rec[k];
+   if(p&&(w>p.w||(w===p.w&&r>p.r)))prs.push({name,sk,w,r,date:l.date||'',logIndex});
+   if(!p||w>p.w||(w===p.w&&r>p.r))rec[k]={w,r};
+ })));
+ /* Newest PRs first. Date is primary; log order breaks same-day ties. */
+ return prs.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.logIndex-a.logIndex);
+}
+function changeRecentPrPage(delta){
+ const prs=getAllProgressPRs(),pages=Math.max(1,Math.ceil(prs.length/recentPrPageSize));
+ recentPrPage=Math.max(0,Math.min(pages-1,recentPrPage+Number(delta||0)));
+ renderRecentPRs();
+}
+function renderRecentPRs(){
+ const prs=getAllProgressPRs(),list=document.getElementById('recentPrList'),nav=document.getElementById('recentPrNav'),range=document.getElementById('recentPrRange'),older=document.getElementById('recentPrPrev'),newer=document.getElementById('recentPrNext');
+ if(!list)return;
+ const pages=Math.max(1,Math.ceil(prs.length/recentPrPageSize));
+ if(recentPrPage>pages-1)recentPrPage=pages-1;
+ const start=recentPrPage*recentPrPageSize,shown=prs.slice(start,start+recentPrPageSize);
+ list.innerHTML=shown.length?shown.map(p=>{let d=p.date||'';if(d){const parsed=new Date(d+'T12:00:00');if(!Number.isNaN(parsed.getTime()))d=parsed.toLocaleDateString('en-US',{month:'short',day:'numeric'});}return `<div class="recent-pr-item"><div><div class="recent-pr-name">${escapeHtml(p.name)}</div><div class="recent-pr-detail">${d?escapeHtml(d)+' • ':''}${escapeHtml(p.sk.replace('set','Set '))} • ${p.w} × ${p.r}</div></div><div class="recent-pr-badge">🏆 PR</div></div>`}).join(''):'<div class="progress-empty">New all-time bests will appear here as you build workout history.</div>';
+ if(nav)nav.style.display=prs.length>recentPrPageSize?'grid':'none';
+ if(range)range.textContent=prs.length?`${start+1}–${Math.min(start+recentPrPageSize,prs.length)} of ${prs.length}`:'';
+ if(older)older.disabled=start+recentPrPageSize>=prs.length;
+ if(newer)newer.disabled=recentPrPage===0;
+}
 function renderNutritionConsistency(){
   /*
     v93: use the same source of truth as the existing Progress graphs.
@@ -10580,7 +10676,98 @@ function renderNutritionConsistency(){
   if(calBar) calBar.style.width=`${cp||0}%`;
   if(proBar) proBar.style.width=`${pp||0}%`;
 }
-function renderExpandedProgress(){renderNutritionConsistency();renderWorkoutConsistency();renderStrengthProgress();renderRecentPRs()}
+function renderExpandedProgress(){renderNutritionConsistency();renderBodyweightProgress();renderWorkoutConsistency();renderStrengthProgress();renderRecentPRs()}
+
+/* V112 bodyweight history */
+const bodyweightHistoryKey='schmokefit_bodyweight_history';
+let bodyweightRange='30';
+function getBodyweightHistory(){
+  try{
+    const rows=JSON.parse(appStorage.getItem(bodyweightHistoryKey)||'[]');
+    if(!Array.isArray(rows))return [];
+    return rows.filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(String(x.date||''))&&Number(x.weight)>0)
+      .map(x=>({date:String(x.date),weight:Math.round(Number(x.weight)*10)/10,loggedAt:String(x.loggedAt||'')}))
+      .sort((a,b)=>a.date.localeCompare(b.date)||(a.loggedAt||'').localeCompare(b.loggedAt||''));
+  }catch(e){return []}
+}
+function saveBodyweightHistory(rows){appStorage.setItem(bodyweightHistoryKey,JSON.stringify(rows))}
+function resetBodyweightLogDate(){
+  const dateInput=document.getElementById('bodyweightLogDate');
+  if(dateInput)dateInput.value=localDateStamp(new Date());
+}
+function logBodyweight(){
+  const input=document.getElementById('bodyweightLogInput');
+  const dateInput=document.getElementById('bodyweightLogDate');
+  const weight=Math.round(Number(input?.value)*10)/10;
+  if(!Number.isFinite(weight)||weight<=0){alert('Enter a valid bodyweight first.');return}
+  const date=String(dateInput?.value||localDateStamp(new Date()));
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('Choose a valid weigh-in date.');return}
+  const rows=getBodyweightHistory().filter(x=>x.date!==date);
+  rows.push({date,weight,loggedAt:new Date().toISOString()});
+  saveBodyweightHistory(rows);
+  /* Progress weigh-ins remain independent from Nutrition target bodyweight. */
+  if(input)input.value='';
+  resetBodyweightLogDate();
+  renderBodyweightProgress();
+}
+function editBodyweightEntry(date){
+  const rows=getBodyweightHistory();
+  const row=rows.find(x=>x.date===date);
+  if(!row)return;
+  const weightRaw=prompt('Edit weight (lbs):',String(row.weight));
+  if(weightRaw===null)return;
+  const weight=Math.round(Number(weightRaw)*10)/10;
+  if(!Number.isFinite(weight)||weight<=0){alert('Enter a valid bodyweight.');return}
+  const dateRaw=prompt('Edit date (YYYY-MM-DD):',row.date);
+  if(dateRaw===null)return;
+  const newDate=String(dateRaw).trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(newDate)||Number.isNaN(new Date(newDate+'T12:00:00').getTime())){
+    alert('Enter a valid date in YYYY-MM-DD format.');
+    return;
+  }
+  const updated=rows.filter(x=>x.date!==date&&x.date!==newDate);
+  updated.push({date:newDate,weight,loggedAt:row.loggedAt||new Date().toISOString()});
+  saveBodyweightHistory(updated);
+  renderBodyweightProgress();
+}
+function deleteBodyweightEntry(date){
+  if(!confirm('Delete this weigh-in?'))return;
+  saveBodyweightHistory(getBodyweightHistory().filter(x=>x.date!==date));
+  renderBodyweightProgress();
+}
+function setBodyweightRange(range){
+  bodyweightRange=String(range);
+  document.querySelectorAll('.bodyweight-range-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`bodyweightRange-${bodyweightRange}`)?.classList.add('active');
+  renderBodyweightProgress();
+}
+function bodyweightRowsInRange(rows){
+  if(bodyweightRange==='all'||!rows.length)return rows;
+  const days=Number(bodyweightRange)||30,end=new Date(),start=new Date();start.setHours(0,0,0,0);start.setDate(start.getDate()-(days-1));
+  const startStamp=localDateStamp(start),endStamp=localDateStamp(end);
+  return rows.filter(x=>x.date>=startStamp&&x.date<=endStamp);
+}
+function renderBodyweightProgress(){
+  const all=getBodyweightHistory(),rows=bodyweightRowsInRange(all),chart=document.getElementById('bodyweightChart');
+  const logInput=document.getElementById('bodyweightLogInput');
+  if(logInput&&!logInput.value)logInput.placeholder='Enter weigh-in';
+  const logDate=document.getElementById('bodyweightLogDate');
+  if(logDate&&!logDate.value)logDate.value=localDateStamp(new Date());
+  const start=document.getElementById('bodyweightStartStat'),latest=document.getElementById('bodyweightLatestStat'),change=document.getElementById('bodyweightChangeStat');
+  if(start)start.textContent=all.length?`${all[0].weight} lb`:'—';
+  if(latest)latest.textContent=all.length?`${all.at(-1).weight} lb`:'—';
+  if(change)change.textContent=all.length>1?`${all.at(-1).weight-all[0].weight>0?'+':''}${Math.round((all.at(-1).weight-all[0].weight)*10)/10} lb`:'—';
+  const recent=document.getElementById('bodyweightRecent');
+  if(recent)recent.innerHTML=all.length?'<div style="font-size:.60rem;font-weight:900;letter-spacing:.08em;color:#8f9aa6;margin-bottom:3px">RECENT WEIGH-INS</div>'+all.slice(-5).reverse().map(x=>`<div class="bodyweight-entry"><span class="bodyweight-entry-date">${new Date(x.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span><span class="bodyweight-entry-value">${x.weight} lb</span><span class="bodyweight-entry-actions"><button class="bodyweight-entry-edit" type="button" onclick="editBodyweightEntry('${x.date}')" aria-label="Edit weigh-in">EDIT</button><button class="bodyweight-entry-delete" type="button" onclick="deleteBodyweightEntry('${x.date}')" aria-label="Delete weigh-in">×</button></span></div>`).join(''):'<div class="progress-empty">No weigh-ins logged yet.</div>';
+  if(!chart)return;
+  if(!rows.length){chart.innerHTML='<div class="progress-empty" style="padding:78px 12px;text-align:center">Log your first weigh-in to start the trend graph.</div>';return}
+  const W=420,H=188,pad={l:42,r:14,t:18,b:30},vals=rows.map(x=>x.weight),rawMin=Math.min(...vals),rawMax=Math.max(...vals),spread=Math.max(2,rawMax-rawMin),min=Math.floor((rawMin-spread*.22)*2)/2,max=Math.ceil((rawMax+spread*.22)*2)/2,range=Math.max(1,max-min);
+  const x=i=>rows.length===1?(pad.l+(W-pad.l-pad.r)/2):pad.l+i*(W-pad.l-pad.r)/(rows.length-1),y=v=>pad.t+(max-v)*(H-pad.t-pad.b)/range;
+  const grid=[0,.25,.5,.75,1].map(t=>{const v=max-t*range,yy=pad.t+t*(H-pad.t-pad.b);return `<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="rgba(148,163,184,.14)" stroke-dasharray="3 4"/><text x="${pad.l-6}" y="${yy+3}" text-anchor="end" fill="#7f8a96" font-size="9">${v.toFixed(1)}</text>`}).join('');
+  const pts=rows.map((r,i)=>`${x(i)},${y(r.weight)}`).join(' '),dots=rows.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.weight)}" r="3.6" fill="#00aaff"><title>${r.date}: ${r.weight} lb</title></circle>`).join('');
+  const firstLabel=new Date(rows[0].date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}),lastLabel=new Date(rows.at(-1).date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bodyweight trend"><g>${grid}</g>${rows.length>1?`<polyline points="${pts}" fill="none" stroke="#00aaff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:''}${dots}<text x="${pad.l}" y="${H-9}" fill="#7f8a96" font-size="9">${firstLabel}</text><text x="${W-pad.r}" y="${H-9}" text-anchor="end" fill="#7f8a96" font-size="9">${lastLabel}</text></svg>`;
+}
 
 /* v89 personal Tips checklist */
 const customTipsKey='schmokefit_custom_daily_tips';
