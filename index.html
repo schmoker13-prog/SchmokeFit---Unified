@@ -2555,6 +2555,50 @@
 .recent-pr-nav button:disabled{opacity:.28;cursor:not-allowed}
 .recent-pr-nav span{text-align:center;font-size:.62rem;font-weight:850;color:#8f9aa6}
 
+
+/* V118 — per-day dynamic nutrition goal lines */
+.nutrition-day-goal-segment{
+  position:absolute;
+  height:0;
+  border-top:2px dashed rgba(34,197,94,.9);
+  z-index:2;
+  pointer-events:none;
+  /* Match one equal-width chart column. */
+  width:calc(100% / var(--goal-columns, 7));
+}
+.nutrition-day-goal-label{
+  position:absolute;
+  right:1px;
+  bottom:3px;
+  font-size:.46rem;
+  font-weight:900;
+  color:#22c55e;
+  background:rgba(9,13,22,.92);
+  padding:1px 3px;
+  border-radius:3px;
+  white-space:nowrap;
+}
+
+
+/* V120 — nutrition goal reference stays visible above chart bars */
+.nutrition-day-goal-segment{
+  z-index:12 !important;
+  pointer-events:none;
+}
+.nutrition-day-goal-label{
+  z-index:13 !important;
+  background:rgba(7,12,20,.94) !important;
+  box-shadow:0 0 0 2px rgba(7,12,20,.72);
+  padding:2px 4px;
+}
+.weekly-bar-col{
+  z-index:3;
+}
+.weekly-bar-fill{
+  position:relative;
+  z-index:4;
+}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -6442,17 +6486,42 @@ function onRepsEntered(exerciseIndex, repInput) {
       }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
     }
 
+    function roundNutritionCalories(value) {
+      const n = Number(value) || 0;
+      return n > 0 ? Math.round(n / 10) * 10 : 0;
+    }
+
+    function roundNutritionProtein(value) {
+      const n = Number(value) || 0;
+      return n > 0 ? Math.round(n / 5) * 5 : 0;
+    }
+
+    function normalizeNutritionGoals(goals) {
+      return {
+        ...(goals || {}),
+        calories: roundNutritionCalories(goals?.calories),
+        protein: roundNutritionProtein(goals?.protein)
+      };
+    }
+
     function getNutritionGoals(dateStamp = selectedNutritionDateStamp || localDateStamp(new Date())) {
       const bw = parseFloat(document.getElementById('bodyWeightInput')?.value || '0');
       const isToday = dateStamp === localDateStamp(new Date());
       const scheduledPhase = isToday && currentWeek >= 11;
       const multiplier = scheduledPhase ? PROGRAM_CONFIG[currentProgram].macro.cut : currentMacroMultiplier;
-      const baseCalories = bw > 0 ? Math.round(bw * multiplier) : 0;
+
+      /* V117: establish the user-facing base targets first:
+         calories round to nearest 10; protein rounds to nearest 5.
+         Program/refeed calorie additions are then applied to that same rounded
+         target so every Nutrition and Progress view shares one source of truth. */
+      const baseCalories = bw > 0 ? roundNutritionCalories(bw * multiplier) : 0;
+      const baseProtein = bw > 0 ? roundNutritionProtein(bw * PROGRAM_CONFIG[currentProgram].proteinMultiplier) : 0;
       const phaseAdjustment = scheduledPhase && baseCalories > 0 ? programNutritionAdjustment(currentWeek) : 0;
-      return {
+
+      return normalizeNutritionGoals({
         calories: baseCalories + phaseAdjustment + (baseCalories > 0 && isRefeedDay(dateStamp) ? REFEED_CALORIE_BONUS : 0),
-        protein: bw > 0 ? Math.round(bw * PROGRAM_CONFIG[currentProgram].proteinMultiplier) : 0
-      };
+        protein: baseProtein
+      });
     }
 
     function getNutritionTotals() {
@@ -7973,7 +8042,7 @@ function onRepsEntered(exerciseIndex, repInput) {
 
       try {
         const meta = JSON.parse(appStorage.getItem(nutritionMetaKey(dateStamp)) || 'null');
-        if (meta?.goals) return meta.goals;
+        if (meta?.goals) return normalizeNutritionGoals(meta.goals);
       } catch (e) {}
       return getNutritionGoals(dateStamp);
     }
@@ -8249,16 +8318,16 @@ function onRepsEntered(exerciseIndex, repInput) {
       proteinChart.classList.add(`period-${nutritionHistoryView}`);
 
       const currentGoals = getNutritionGoals(localDateStamp(new Date()));
-      const allStamps = rows.flatMap(r => r.sourceStamps || [r.stamp]).filter(Boolean);
-      const savedGoals = allStamps
-        .map(stamp => getNutritionGoalsForDate(stamp))
-        .filter(g => g && (Number(g.calories) > 0 || Number(g.protein) > 0));
 
-      const calorieGoal = savedGoals.find(g => Number(g.calories) > 0)?.calories || currentGoals.calories || 1600;
-      const proteinGoal = savedGoals.find(g => Number(g.protein) > 0)?.protein || currentGoals.protein || 100;
+      /* V118: the Progress graph no longer picks the first saved target in the
+         displayed period and stretches that number across every day.
+         Each row already carries its correct per-day historical/live target.
+         The fallback is used only if a row has no target at all. */
+      const calorieGoal = Number(currentGoals.calories) || 1600;
+      const proteinGoal = Number(currentGoals.protein) || 100;
 
-      renderWeeklyNutritionBars(calorieChart, rows, 'calories', Number(calorieGoal));
-      renderWeeklyNutritionBars(proteinChart, rows, 'protein', Number(proteinGoal));
+      renderWeeklyNutritionBars(calorieChart, rows, 'calories', calorieGoal);
+      renderWeeklyNutritionBars(proteinChart, rows, 'protein', proteinGoal);
     }
 
     function niceCeiling(value, step) {
@@ -8303,8 +8372,17 @@ function onRepsEntered(exerciseIndex, repInput) {
       );
 
       const tickValues = [maxValue, maxValue * 0.75, maxValue * 0.5, maxValue * 0.25, 0];
-      const goalPct = goal > 0 ? Math.min(100, Math.max(0, goal / maxValue * 100)) : 0;
       const yTitle = metric === 'calories' ? 'Calories' : 'Protein (g)';
+
+      /* One goal segment per displayed day/bucket. This keeps old days tied to
+         their historical target while today's segment uses the live Nutrition
+         target. Adjacent equal goals visually form one continuous dashed line. */
+      const goalSegments = rows.map((row,index) => {
+        const rowGoal = Number(metric === 'calories' ? row.calorieGoal : row.proteinGoal) || goal || 0;
+        const pct = rowGoal > 0 ? Math.min(100, Math.max(0, rowGoal / maxValue * 100)) : 0;
+        return { rowGoal, pct, index };
+      });
+      const uniqueGoals = [...new Set(goalSegments.map(x=>x.rowGoal).filter(x=>x>0))];
 
       const yAxisHtml = `
         <div class="nutrition-y-axis">
@@ -8322,10 +8400,40 @@ function onRepsEntered(exerciseIndex, repInput) {
       const gridHtml = `
         <div class="nutrition-plot-lines">
           ${[0,25,50,75,100].map(p => `<div class="nutrition-grid-line" style="bottom:${p}%"></div>`).join('')}
-          ${goal > 0 ? `<div class="nutrition-goal-line" style="bottom:${goalPct}%"></div>
-            <div class="nutrition-goal-label" style="bottom:${goalPct}%">GOAL ${metric === 'calories' ? Math.round(goal).toLocaleString() : `${round1(goal)}g`}</div>` : ''}
         </div>
       `;
+
+      /* V119: group adjacent days by the DISPLAYED rounded goal. This prevents
+         duplicate labels or tiny visual breaks when two raw historical targets
+         resolve to the same user-facing target (for example 2,198 and 2,202
+         both displaying as GOAL 2,200). */
+      const displayedGoal = value => metric === 'calories'
+        ? roundNutritionCalories(value)
+        : roundNutritionProtein(value);
+
+      const goalRuns = [];
+      goalSegments.forEach(seg => {
+        const shownGoal = displayedGoal(seg.rowGoal);
+        if (!(shownGoal > 0)) return;
+        const previousRun = goalRuns[goalRuns.length-1];
+        if (previousRun && previousRun.goal === shownGoal) {
+          previousRun.end = seg.index;
+        } else {
+          goalRuns.push({ goal: shownGoal, start: seg.index, end: seg.index });
+        }
+      });
+
+      const goalSegmentsHtml = goalRuns.map((run,runIndex) => {
+        const pct = Math.min(100, Math.max(0, run.goal / maxValue * 100));
+        const left = (run.start / goalSegments.length) * 100;
+        const width = ((run.end - run.start + 1) / goalSegments.length) * 100;
+        const label = metric === 'calories'
+          ? Math.round(run.goal).toLocaleString()
+          : `${round1(run.goal)}g`;
+        return `<div class="nutrition-day-goal-segment" style="left:${left}%;width:${width}%;bottom:${pct}%">
+          <span class="nutrition-day-goal-label">GOAL ${label}</span>
+        </div>`;
+      }).join('');
 
       const barsHtml = rows.map(row => {
         const value = Number(row[metric]) || 0;
@@ -8364,6 +8472,7 @@ function onRepsEntered(exerciseIndex, repInput) {
           ${yAxisHtml}
           <div class="nutrition-bars-area" style="grid-template-columns:repeat(${rows.length},minmax(0,1fr));">
             ${gridHtml}
+            ${goalSegmentsHtml}
             ${barsHtml}
           </div>
         </div>
