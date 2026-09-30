@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT</title>
+<title>SCHMOKEFIT • V126</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -3614,12 +3614,17 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
       <span id="accountMenuProgram">SCHMOKEFIT</span>
     </div>
     <div class="account-menu-divider"></div>
+    <div class="account-menu-section-label">CURRENT PROGRAM</div>
+    <div class="account-menu-current-program" id="accountMenuCurrentProgram">SCHMOKEFIT</div>
+    <button class="account-menu-item account-menu-program-btn" type="button" onclick="closeAccountMenu(); openProgramChooser()">↻ CHANGE PROGRAM</button>
+    <div class="account-menu-divider account-menu-divider-spaced"></div>
+    <button class="account-menu-item" type="button" onclick="closeAccountMenu(); switchTab('introTab', null); window.scrollTo({top:0,behavior:'smooth'});">▶ INTRO / APP TOUR</button>
+    <button class="account-menu-item" type="button" onclick="closeAccountMenu(); switchTab('tipsTab', null); window.scrollTo({top:0,behavior:'smooth'});">💡 TIPS &amp; GUIDE</button>
     <button class="account-menu-item" type="button" onclick="openBackupPanel()">⚙ DATA &amp; BACKUP</button>
+    <div class="account-menu-divider account-menu-divider-spaced"></div>
     <button class="account-menu-item danger" type="button" onclick="handleLogout()">LOG OUT</button>
   </div>
 </div>
-<button class="header-guide-btn" onclick="openProgramChooser()">PROGRAM</button>
-<button class="header-guide-btn" onclick="switchTab('introTab', null)">INTRO</button>
 <input id="schmokeFitBackupInput" type="file" accept=".json,application/json" hidden onchange="importSchmokeFitBackup(event)">
 <div class="backup-sheet" id="backupSheet">
   <div class="backup-sheet-card">
@@ -3633,13 +3638,98 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 </div>
 <!-- TABS NAVIGATION -->
-<div class="nav-tabs">
+<div class="nav-tabs bottom-nav">
+<button class="tab-btn" id="tabBtn-todayTab" onclick="switchTab('todayTab', this)">TODAY</button>
 <button class="tab-btn" id="tabBtn-workoutTab" onclick="switchTab('workoutTab', this)">WORKOUT</button>
 <button class="tab-btn" id="tabBtn-historyTab" onclick="switchTab('historyTab', this)">HISTORY</button>
 <button class="tab-btn" id="tabBtn-macrosTab" onclick="switchTab('macrosTab', this)">NUTRITION</button>
 <button class="tab-btn" id="tabBtn-nutritionHistoryTab" onclick="switchTab('nutritionHistoryTab', this)">PROGRESS</button>
-<button class="tab-btn" id="tabBtn-tipsTab" onclick="switchTab('tipsTab', this)">TIPS</button>
 </div>
+
+<!-- V124: TODAY DASHBOARD -->
+<div class="tab-content" id="todayTab">
+  <div class="section-title-banner">TODAY</div>
+
+  <div class="today-hero card">
+    <div class="today-hero-top">
+      <div>
+        <div class="today-kicker" id="todayWeekLabel">TRAINING • WEEK 1</div>
+        <div class="today-workout-title" id="todayWorkoutTitle">0 OF 3 WORKOUTS COMPLETE</div>
+        <div class="today-training-progress"><div class="today-training-progress-fill" id="todayTrainingFill"></div></div>
+        <div class="today-workout-meta" id="todayWorkoutMeta">Next up when you are ready.</div>
+      </div>
+      <div class="today-phase-pill" id="todayPhasePill">PHASE 1</div>
+    </div>
+    <div class="today-next-up" id="todayNextUp">
+      <span>NEXT UP</span>
+      <strong id="todayNextWorkoutName">YOUR NEXT WORKOUT</strong>
+      <small id="todayNextWorkoutSlot">Workout 1 of 3</small>
+    </div>
+    <button class="btn btn-orange today-primary-btn" id="todayStartWorkoutBtn" type="button" onclick="todayOpenWorkout()">OPEN NEXT WORKOUT →</button>
+  </div>
+
+  <div class="today-macro-grid">
+    <button class="today-stat-card" type="button" onclick="todayOpenNutrition()">
+      <div class="today-stat-head"><span>🔥 CALORIES</span><strong id="todayCaloriesText">—</strong></div>
+      <div class="today-progress-track"><div class="today-progress-fill calories" id="todayCaloriesFill"></div></div>
+      <div class="today-stat-foot" id="todayCaloriesSub">Set your bodyweight in Nutrition</div>
+    </button>
+    <button class="today-stat-card" type="button" onclick="todayOpenNutrition()">
+      <div class="today-stat-head"><span>💪 PROTEIN</span><strong id="todayProteinText">—</strong></div>
+      <div class="today-progress-track"><div class="today-progress-fill protein" id="todayProteinFill"></div></div>
+      <div class="today-stat-foot" id="todayProteinSub">Set your bodyweight in Nutrition</div>
+    </button>
+  </div>
+
+  <button class="today-week-card card" type="button" onclick="todayOpenProgress()">
+    <div class="today-card-row">
+      <div>
+        <div class="today-card-kicker">THIS WEEK</div>
+        <div class="today-card-title">CONSISTENCY</div>
+      </div>
+      <div class="today-link">VIEW PROGRESS ›</div>
+    </div>
+    <div class="today-week-grid">
+      <div class="today-week-stat"><strong id="todayWorkoutCount">0 / 3</strong><span>WORKOUTS</span></div>
+      <div class="today-week-stat"><strong id="todayCalorieDays">0 / 0</strong><span>CALORIE DAYS</span></div>
+      <div class="today-week-stat"><strong id="todayProteinDays">0 / 0</strong><span>PROTEIN DAYS</span></div>
+    </div>
+    <div class="today-week-note" id="todayWeekNote">Keep stacking consistent days.</div>
+  </button>
+
+
+  <div class="today-bodyweight-card card">
+    <div class="today-card-row">
+      <div>
+        <div class="today-card-kicker">⚖ BODYWEIGHT</div>
+        <div class="today-card-title">WEIGHT TREND</div>
+      </div>
+      <button class="today-link today-link-button" type="button" onclick="todayOpenBodyweightProgress()">PROGRESS ›</button>
+    </div>
+    <div class="today-bodyweight-grid">
+      <div><strong id="todayWeightLatest">—</strong><span id="todayWeightLatestLabel">LATEST</span></div>
+      <div><strong id="todayWeightAverage">—</strong><span>7-DAY AVG</span></div>
+    </div>
+    <div class="today-weight-trend" id="todayWeightTrend">Log weigh-ins to begin seeing your trend.</div>
+    <div id="todayWeightLogged" class="today-weight-logged" style="display:none;"></div>
+    <div id="todayWeightLogger" class="today-weight-logger">
+      <input id="todayWeightInput" type="number" inputmode="decimal" min="1" step="0.1" placeholder="Today's weight"/>
+      <button type="button" onclick="logTodayBodyweight()">LOG TODAY'S WEIGHT</button>
+    </div>
+  </div>
+
+  <div class="today-goal-card card">
+    <div class="today-card-row">
+      <div>
+        <div class="today-card-kicker">🎯 NEXT GOAL</div>
+        <div class="today-card-title" id="todayGoalTitle">PROGRESS ONE THING</div>
+      </div>
+    </div>
+    <div class="today-goal-copy" id="todayGoalCopy">When you train, aim to beat at least one previous set by a rep or a small amount of weight while keeping solid form.</div>
+    <button class="today-secondary-btn" type="button" onclick="todayOpenWorkout()">OPEN WORKOUT →</button>
+  </div>
+</div>
+
 <!-- 00. INTRO TAB -->
 <div class="tab-content active" id="introTab">
 <div class="section-title-banner">00. SCHMOKEFIT PROGRAM</div>
@@ -4089,11 +4179,13 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   <button class="bodyweight-range-btn" id="bodyweightRange-all" type="button" onclick="setBodyweightRange('all')">ALL</button>
 </div>
 <div id="bodyweightChart" class="bodyweight-chart"></div>
-<div class="bodyweight-stats">
-  <div class="bodyweight-stat"><strong id="bodyweightStartStat">—</strong><span>STARTING</span></div>
+<div class="bodyweight-stats bodyweight-stats-v125">
   <div class="bodyweight-stat"><strong id="bodyweightLatestStat">—</strong><span>LATEST</span></div>
-  <div class="bodyweight-stat"><strong id="bodyweightChangeStat">—</strong><span>CHANGE</span></div>
+  <div class="bodyweight-stat bodyweight-stat-featured"><strong id="bodyweightAverageStat">—</strong><span>7-DAY AVG</span></div>
+  <div class="bodyweight-stat"><strong id="bodyweightStartStat">—</strong><span>STARTING</span></div>
+  <div class="bodyweight-stat"><strong id="bodyweightChangeStat">—</strong><span>TOTAL CHANGE</span></div>
 </div>
+<div id="bodyweightTrendSummary" class="bodyweight-trend-summary">Log several weigh-ins to begin seeing your 7-day trend.</div>
 <div id="bodyweightRecent" class="bodyweight-recent"></div>
 </div>
 <div class="progress-category-title">TRAINING</div>
@@ -4910,8 +5002,8 @@ document.addEventListener('keydown', e => {
         appStorage.setItem('schmokefit_has_logged_in_before', 'true');
         switchTab('introTab', null);
       } else {
-        const workoutTabBtn = document.getElementById('tabBtn-workoutTab');
-        switchTab('workoutTab', workoutTabBtn);
+        const todayTabBtn = document.getElementById('tabBtn-todayTab');
+        switchTab('todayTab', todayTabBtn);
       }
       if (needsUnifiedProgramChoice) setTimeout(openProgramChooser, 120);
     }
@@ -5517,6 +5609,9 @@ document.addEventListener('keydown', e => {
       document.getElementById(tabId).classList.add('active');
       if (btn) btn.classList.add('active');
 
+      if(tabId === 'todayTab') {
+        renderTodayDashboard();
+      }
       if(tabId === 'historyTab') {
         renderHistory();
       }
@@ -12646,6 +12741,505 @@ function saveExtraCardioActivity(){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',closeAtStartup,{once:true});
   else closeAtStartup();
+})();
+</script>
+
+
+<style>
+/* ===== V124 TODAY DASHBOARD ===== */
+#todayTab { gap:10px; }
+.today-hero {
+  border:1px solid rgba(0,170,255,.52);
+  background:linear-gradient(145deg,#0d1725,#0a111c 72%);
+  box-shadow:0 8px 24px rgba(0,0,0,.28),0 0 18px rgba(0,170,255,.06);
+}
+.today-hero-top,.today-card-row {
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+}
+.today-kicker,.today-card-kicker {
+  font-size:.58rem;font-weight:950;letter-spacing:.09em;color:var(--text-muted);
+  text-transform:uppercase;
+}
+.today-workout-title {
+  margin-top:4px;font-size:1.05rem;line-height:1.08;font-weight:950;color:#fff;
+  text-transform:uppercase;
+}
+.today-workout-meta { margin-top:5px;font-size:.65rem;color:#94a3b8;line-height:1.35; }
+.today-phase-pill {
+  flex-shrink:0;border:1px solid rgba(245,158,11,.5);background:rgba(245,158,11,.08);
+  color:var(--accent-orange);border-radius:999px;padding:4px 7px;font-size:.51rem;
+  font-weight:950;letter-spacing:.04em;text-transform:uppercase;
+}
+.today-training-progress{height:7px;border-radius:999px;background:#090d16;border:1px solid #1e293b;overflow:hidden;margin-top:9px;min-width:190px;}
+.today-training-progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent-blue),#38bdf8);border-radius:999px;transition:width .25s ease;}
+.today-next-up{margin-top:11px;padding:9px 10px;border:1px solid #203247;border-radius:9px;background:rgba(0,170,255,.045);display:flex;flex-direction:column;gap:2px;}
+.today-next-up span{font-size:.49rem;font-weight:950;letter-spacing:.08em;color:var(--accent-blue);}
+.today-next-up strong{font-size:.72rem;font-weight:950;color:#fff;text-transform:uppercase;}
+.today-next-up small{font-size:.54rem;color:#8190a5;}
+.today-primary-btn { width:100%;margin-top:12px;min-height:44px;font-size:.72rem; }
+.today-primary-btn:disabled { opacity:.48;cursor:not-allowed; }
+
+.today-macro-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.today-stat-card {
+  min-width:0;text-align:left;border:1px solid #223247;border-radius:12px;
+  padding:11px;background:#0d1522;color:#fff;cursor:pointer;
+}
+.today-stat-head { display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:.58rem;font-weight:900; }
+.today-stat-head strong { font-size:.69rem;color:#fff;white-space:nowrap; }
+.today-progress-track {
+  height:7px;border-radius:999px;background:#090d16;border:1px solid #1e293b;
+  overflow:hidden;margin:9px 0 6px;
+}
+.today-progress-fill { height:100%;width:0;border-radius:999px;transition:width .25s ease; }
+.today-progress-fill.calories { background:linear-gradient(90deg,#f59e0b,#fb923c); }
+.today-progress-fill.protein { background:linear-gradient(90deg,#10b981,#34d399); }
+.today-stat-foot { font-size:.53rem;color:#7f8da3;line-height:1.3; }
+
+.today-week-card {
+  width:100%;text-align:left;color:#fff;cursor:pointer;background:#0d1522;
+}
+.today-card-title { margin-top:2px;font-size:.78rem;font-weight:950;color:#fff; }
+.today-link { font-size:.51rem;font-weight:900;color:var(--accent-blue);white-space:nowrap;margin-top:2px; }
+.today-week-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:11px; }
+.today-week-stat {
+  min-width:0;text-align:center;border:1px solid #1f3042;border-radius:9px;
+  background:#0a111b;padding:9px 4px;
+}
+.today-week-stat strong { display:block;color:var(--accent-blue);font-size:.9rem;font-weight:950; }
+.today-week-stat span { display:block;margin-top:3px;color:#8795a8;font-size:.48rem;font-weight:850;letter-spacing:.03em; }
+.today-week-note { margin-top:8px;font-size:.56rem;color:#718096;text-align:center; }
+
+.today-goal-card { background:#0d1522; }
+.today-goal-copy { margin-top:8px;font-size:.67rem;line-height:1.48;color:#a8b3c4; }
+.today-secondary-btn {
+  width:100%;min-height:38px;margin-top:10px;border:1px solid rgba(0,170,255,.45);
+  border-radius:8px;background:rgba(0,170,255,.05);color:var(--accent-blue);
+  font-size:.6rem;font-weight:950;cursor:pointer;
+}
+@media(max-width:420px){
+  .nav-tabs{gap:2px;padding-left:3px;padding-right:3px;}
+  .tab-btn{font-size:.53rem;letter-spacing:.15px;padding-left:0;padding-right:0;}
+  .today-macro-grid{grid-template-columns:1fr 1fr;}
+  .today-stat-card{padding:10px 8px;}
+  .today-stat-head{font-size:.53rem;}
+  .today-stat-head strong{font-size:.61rem;}
+}
+</style>
+
+<script>
+/* ===== V124 TODAY DASHBOARD ===== */
+let todayDashboardWorkoutDay = null;
+
+function todaySwitchTo(tabId){
+  const btn=document.getElementById(`tabBtn-${tabId}`);
+  switchTab(tabId,btn);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function todayOpenNutrition(){ todaySwitchTo('macrosTab'); }
+function todayOpenProgress(){ todaySwitchTo('nutritionHistoryTab'); }
+function todayOpenWorkout(){
+  todaySwitchTo('workoutTab');
+  if(todayDashboardWorkoutDay){
+    setTimeout(()=>openWorkoutDetail(todayDashboardWorkoutDay),80);
+  }
+}
+function todayNextWorkoutDay(){
+  const days=requiredWorkoutDays();
+  return days.find(day=>!getWorkoutEntry(currentWeek,day)) || null;
+}
+function todayPercent(value,goal){
+  return goal>0 ? Math.max(0,Math.min(100,(Number(value)||0)/goal*100)) : 0;
+}
+function todayNutritionConsistency(){
+  const today=localDateStamp(new Date());
+  let loggedDays=0, calorieDays=0, proteinDays=0;
+  for(let i=0;i<7;i++){
+    const stamp=addDaysToStamp(today,-i);
+    const log=getNutritionLogForDate(stamp);
+    const totals=nutritionTotalsFromLog(log);
+    const hasFood=Object.values(log||{}).some(arr=>Array.isArray(arr)&&arr.length);
+    if(!hasFood) continue;
+    const goals=getNutritionGoalsForDate(stamp);
+    loggedDays++;
+    // Match the Progress tab's nutrition consistency rules exactly.
+    if(goals.calories>0){
+      const ratio=totals.calories/goals.calories;
+      if(ratio>=0.85 && ratio<=1.02) calorieDays++;
+    }
+    if(goals.protein>0){
+      const ratio=totals.protein/goals.protein;
+      if(ratio>=0.85 && ratio<=1.30) proteinDays++;
+    }
+  }
+  return {loggedDays,calorieDays,proteinDays};
+}
+function renderTodayDashboard(){
+  if(!document.getElementById('todayTab')) return;
+
+  const nextDay=todayNextWorkoutDay();
+  todayDashboardWorkoutDay=nextDay;
+  const completed=workoutCompletionCount(currentWeek);
+  const total=requiredWorkoutCount();
+  const phase=currentWeek<=10 ? PROGRAM_CONFIG[currentProgram].phase1 : PROGRAM_CONFIG[currentProgram].phase2;
+  const programNames=(typeof getWorkoutProgramNames==='function') ? getWorkoutProgramNames() : {};
+  const slot=nextDay ? (workoutSlotNumbers?.[nextDay] || requiredWorkoutDays().indexOf(nextDay)+1) : null;
+  const customName=nextDay && typeof getWorkoutDayName==='function' ? getWorkoutDayName(currentWeek,nextDay,currentWorkoutCycle) : '';
+  const programName=nextDay ? (programNames?.[nextDay] || 'Scheduled Workout') : '';
+
+  document.getElementById('todayWeekLabel').textContent=`TRAINING • WEEK ${currentWeek}`;
+  document.getElementById('todayPhasePill').textContent=phase || (currentWeek<=10?'PHASE 1':'PHASE 2');
+
+  const title=document.getElementById('todayWorkoutTitle');
+  const meta=document.getElementById('todayWorkoutMeta');
+  const start=document.getElementById('todayStartWorkoutBtn');
+  const nextUp=document.getElementById('todayNextUp');
+  const nextName=document.getElementById('todayNextWorkoutName');
+  const nextSlot=document.getElementById('todayNextWorkoutSlot');
+  const trainingFill=document.getElementById('todayTrainingFill');
+  trainingFill.style.width=`${total ? Math.min(100,(completed/total)*100) : 0}%`;
+
+  if(nextDay){
+    title.textContent=`${completed} OF ${total} WORKOUTS COMPLETE`;
+    meta.textContent='Train on the days that fit your week. Your next session is ready whenever you are.';
+    nextUp.style.display='flex';
+    nextName.textContent=programName;
+    nextSlot.textContent=`Workout ${slot} of ${total}${customName ? ` • ${customName}` : ''}`;
+    start.disabled=false;
+    start.textContent='OPEN NEXT WORKOUT →';
+  }else{
+    title.textContent='WEEK COMPLETE ✓';
+    meta.textContent=`${total} OF ${total} WORKOUTS COMPLETE • Great work. Recover, keep nutrition consistent, and review your progress.`;
+    nextUp.style.display='none';
+    start.disabled=false;
+    start.textContent='VIEW WORKOUTS →';
+  }
+
+  const todayStamp=localDateStamp(new Date());
+  const totals=nutritionTotalsFromLog(getNutritionLogForDate(todayStamp));
+  const goals=getNutritionGoalsForDate(todayStamp);
+  const cal=Math.round(Number(totals.calories)||0);
+  const pro=Math.round((Number(totals.protein)||0)*10)/10;
+
+  document.getElementById('todayCaloriesText').textContent=goals.calories>0?`${cal.toLocaleString()} / ${Number(goals.calories).toLocaleString()}`:'—';
+  document.getElementById('todayProteinText').textContent=goals.protein>0?`${pro} / ${goals.protein}g`:'—';
+  document.getElementById('todayCaloriesFill').style.width=`${todayPercent(cal,goals.calories)}%`;
+  document.getElementById('todayProteinFill').style.width=`${todayPercent(pro,goals.protein)}%`;
+
+  const calRemain=Math.round((goals.calories||0)-cal);
+  const proRemain=Math.round(((goals.protein||0)-pro)*10)/10;
+  document.getElementById('todayCaloriesSub').textContent=goals.calories>0?(calRemain>=0?`${calRemain.toLocaleString()} calories remaining`:`${Math.abs(calRemain).toLocaleString()} calories over target`):'Set your bodyweight in Nutrition';
+  document.getElementById('todayProteinSub').textContent=goals.protein>0?(proRemain>=0?`${proRemain}g protein remaining`:`Protein target reached ✓`):'Set your bodyweight in Nutrition';
+
+  const consistency=todayNutritionConsistency();
+  document.getElementById('todayWorkoutCount').textContent=`${completed} / ${total}`;
+  document.getElementById('todayCalorieDays').textContent=`${consistency.calorieDays} / ${consistency.loggedDays}`;
+  document.getElementById('todayProteinDays').textContent=`${consistency.proteinDays} / ${consistency.loggedDays}`;
+  document.getElementById('todayWeekNote').textContent=consistency.loggedDays
+    ? `Nutrition consistency uses your last 7 days with food logged.`
+    : `Log food in Nutrition to begin building your consistency picture.`;
+
+  renderTodayBodyweight();
+
+  document.getElementById('todayGoalTitle').textContent=nextDay ? `WORKOUT ${slot} • ${programName}` : 'RECOVER & REVIEW';
+  document.getElementById('todayGoalCopy').textContent=nextDay
+    ? `Progress one thing today. Use the previous-performance numbers inside your workout and aim to add a rep or a small amount of weight to at least one set with solid form.`
+    : `Your scheduled training is complete for Week ${currentWeek}. Use Progress to review the week, keep nutrition consistent, and recover for what comes next.`;
+}
+
+/* Keep Today synchronized when the existing systems update. */
+(function(){
+  const oldNutrition=window.updateNutritionDashboard;
+  if(typeof oldNutrition==='function'){
+    window.updateNutritionDashboard=function(){
+      const result=oldNutrition.apply(this,arguments);
+      if(document.getElementById('todayTab')?.classList.contains('active')) renderTodayDashboard();
+      return result;
+    };
+  }
+  const oldWorkout=window.renderWorkoutDashboard;
+  if(typeof oldWorkout==='function'){
+    window.renderWorkoutDashboard=function(){
+      const result=oldWorkout.apply(this,arguments);
+      if(document.getElementById('todayTab')?.classList.contains('active')) renderTodayDashboard();
+      return result;
+    };
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderTodayDashboard,250),{once:true});
+})();
+</script>
+
+
+<style>
+/* ===== V124 MOBILE BOTTOM NAVIGATION ===== */
+.header-card {
+  position:relative !important;
+  top:auto !important;
+  z-index:20 !important;
+  border-radius:16px !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+.nav-tabs.bottom-nav {
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:max(8px, env(safe-area-inset-bottom)) !important;
+  top:auto !important;
+  transform:translateX(-50%);
+  z-index:4000 !important;
+  width:min(calc(100% - 20px), 460px);
+  grid-template-columns:repeat(5,1fr) !important;
+  gap:3px;
+  margin:0 !important;
+  padding:5px !important;
+  border:1px solid #243247;
+  border-radius:14px;
+  background:rgba(7,11,18,.97) !important;
+  box-shadow:0 -5px 24px rgba(0,0,0,.46),0 0 18px rgba(0,170,255,.05);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.nav-tabs.bottom-nav .tab-btn {
+  min-width:0;
+  min-height:46px;
+  padding:7px 1px;
+  border-radius:9px;
+  font-size:.55rem;
+  letter-spacing:.12px;
+  line-height:1.1;
+}
+.nav-tabs.bottom-nav .tab-btn.active {
+  background:var(--accent-blue);
+  color:#fff;
+  box-shadow:0 0 10px rgba(0,170,255,.32);
+}
+.app-container {
+  padding-bottom:calc(92px + env(safe-area-inset-bottom)) !important;
+}
+@media(max-width:420px){
+  .nav-tabs.bottom-nav {
+    width:calc(100% - 14px);
+    bottom:max(6px, env(safe-area-inset-bottom)) !important;
+    padding:4px !important;
+  }
+  .nav-tabs.bottom-nav .tab-btn {
+    font-size:.50rem;
+    min-height:45px;
+  }
+}
+</style>
+
+
+<style>
+/* ===== V125 BODYWEIGHT TREND UPGRADE ===== */
+.bodyweight-stats.bodyweight-stats-v125{grid-template-columns:repeat(4,1fr)}
+.bodyweight-stat-featured{border-color:rgba(0,170,255,.52);background:rgba(0,170,255,.06)}
+.bodyweight-stat-featured strong{color:var(--accent-blue)}
+.bodyweight-trend-summary{
+  margin-top:9px;padding:9px 10px;border:1px solid #263544;border-radius:9px;
+  background:#0e151d;color:#9eabba;font-size:.64rem;line-height:1.4;
+}
+.bodyweight-chart-legend{
+  display:flex;justify-content:center;gap:14px;margin-top:7px;color:#8996a8;
+  font-size:.53rem;font-weight:850;
+}
+.bodyweight-chart-legend span{display:inline-flex;align-items:center;gap:5px}
+.bodyweight-legend-dot{width:7px;height:7px;border-radius:50%;background:#00aaff}
+.bodyweight-legend-line{width:16px;height:3px;border-radius:999px;background:#f59e0b}
+
+.today-bodyweight-card{background:#0d1522}
+.today-link-button{border:0;background:transparent;padding:3px 0;cursor:pointer}
+.today-bodyweight-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.today-bodyweight-grid>div{
+  padding:10px 8px;border:1px solid #223247;border-radius:9px;background:#0a111b;text-align:center;
+}
+.today-bodyweight-grid strong{display:block;font-size:1rem;color:#fff;font-weight:950}
+.today-bodyweight-grid span{display:block;margin-top:3px;font-size:.49rem;font-weight:850;color:#7f8da3;letter-spacing:.05em}
+.today-weight-trend{margin-top:8px;font-size:.59rem;color:#9aa8ba;line-height:1.4}
+.today-weight-logger{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:9px}
+.today-weight-logger input{
+  min-width:0;min-height:39px;padding:8px 9px;border-radius:8px;border:1px solid #35414d;
+  background:#111923;color:#fff;font-size:16px;font-weight:850;
+}
+.today-weight-logger button{
+  min-height:39px;border:1px solid rgba(0,170,255,.5);border-radius:8px;
+  background:rgba(0,170,255,.09);color:var(--accent-blue);font-size:.55rem;font-weight:950;padding:0 9px;cursor:pointer;
+}
+.today-weight-logged{
+  margin-top:9px;padding:8px 9px;border-radius:8px;border:1px solid rgba(16,185,129,.35);
+  background:rgba(16,185,129,.06);color:#6ee7b7;font-size:.59rem;font-weight:850;text-align:center;
+}
+@media(max-width:390px){
+  .bodyweight-stats.bodyweight-stats-v125{grid-template-columns:repeat(2,1fr)}
+  .today-weight-logger{grid-template-columns:1fr}
+}
+</style>
+
+<script>
+/* ===== V125 BODYWEIGHT TREND LOGIC ===== */
+function bodyweightAverageBetween(rows,startStamp,endStamp){
+  const inRange=rows.filter(r=>r.date>=startStamp&&r.date<=endStamp);
+  if(!inRange.length)return null;
+  return Math.round((inRange.reduce((s,r)=>s+Number(r.weight),0)/inRange.length)*10)/10;
+}
+function bodyweightTrendMetrics(rows=getBodyweightHistory()){
+  const today=localDateStamp(new Date());
+  const currentStart=addDaysToStamp(today,-6);
+  const previousEnd=addDaysToStamp(today,-7);
+  const previousStart=addDaysToStamp(today,-13);
+  const currentAvg=bodyweightAverageBetween(rows,currentStart,today);
+  const previousAvg=bodyweightAverageBetween(rows,previousStart,previousEnd);
+  const delta=(currentAvg!==null&&previousAvg!==null)?Math.round((currentAvg-previousAvg)*10)/10:null;
+  const todayRow=rows.find(r=>r.date===today)||null;
+  return {today,currentAvg,previousAvg,delta,todayRow};
+}
+function bodyweightRollingAverageAt(rows,index){
+  const end=rows[index].date,start=addDaysToStamp(end,-6);
+  const windowRows=rows.filter((r,i)=>i<=index&&r.date>=start&&r.date<=end);
+  if(!windowRows.length)return null;
+  return windowRows.reduce((s,r)=>s+Number(r.weight),0)/windowRows.length;
+}
+function bodyweightTrendText(metrics){
+  if(metrics.currentAvg===null)return 'Log weigh-ins to begin seeing your 7-day trend.';
+  if(metrics.previousAvg===null)return 'Keep logging weigh-ins to compare this 7-day average with the previous 7 days.';
+  const d=metrics.delta;
+  if(Math.abs(d)<0.2)return '→ Bodyweight is relatively stable versus the previous 7-day average.';
+  return `${d<0?'↓':'↑'} ${Math.abs(d).toFixed(1)} lb vs previous 7-day average.`;
+}
+
+function renderBodyweightProgress(){
+  const all=getBodyweightHistory(),rows=bodyweightRowsInRange(all),chart=document.getElementById('bodyweightChart');
+  const logInput=document.getElementById('bodyweightLogInput');
+  if(logInput&&!logInput.value)logInput.placeholder='Enter weigh-in';
+  const logDate=document.getElementById('bodyweightLogDate');
+  if(logDate&&!logDate.value)logDate.value=localDateStamp(new Date());
+
+  const metrics=bodyweightTrendMetrics(all);
+  const start=document.getElementById('bodyweightStartStat');
+  const latest=document.getElementById('bodyweightLatestStat');
+  const avg=document.getElementById('bodyweightAverageStat');
+  const change=document.getElementById('bodyweightChangeStat');
+  const trend=document.getElementById('bodyweightTrendSummary');
+
+  if(start)start.textContent=all.length?`${all[0].weight} lb`:'—';
+  if(latest)latest.textContent=all.length?`${all.at(-1).weight} lb`:'—';
+  if(avg)avg.textContent=metrics.currentAvg!==null?`${metrics.currentAvg.toFixed(1)} lb`:'—';
+  if(change)change.textContent=all.length>1?`${all.at(-1).weight-all[0].weight>0?'+':''}${Math.round((all.at(-1).weight-all[0].weight)*10)/10} lb`:'—';
+  if(trend)trend.textContent=bodyweightTrendText(metrics);
+
+  const recent=document.getElementById('bodyweightRecent');
+  if(recent)recent.innerHTML=all.length?'<div style="font-size:.60rem;font-weight:900;letter-spacing:.08em;color:#8f9aa6;margin-bottom:3px">RECENT WEIGH-INS</div>'+all.slice(-5).reverse().map(x=>`<div class="bodyweight-entry"><span class="bodyweight-entry-date">${new Date(x.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span><span class="bodyweight-entry-value">${x.weight} lb</span><span class="bodyweight-entry-actions"><button class="bodyweight-entry-edit" type="button" onclick="editBodyweightEntry('${x.date}')" aria-label="Edit weigh-in">EDIT</button><button class="bodyweight-entry-delete" type="button" onclick="deleteBodyweightEntry('${x.date}')" aria-label="Delete weigh-in">×</button></span></div>`).join(''):'<div class="progress-empty">No weigh-ins logged yet.</div>';
+
+  if(!chart)return;
+  if(!rows.length){chart.innerHTML='<div class="progress-empty" style="padding:78px 12px;text-align:center">Log your first weigh-in to start the trend graph.</div>';return}
+
+  const W=420,H=188,pad={l:42,r:14,t:18,b:30};
+  const rolling=rows.map((r,i)=>bodyweightRollingAverageAt(rows,i));
+  const vals=rows.map(x=>x.weight).concat(rolling.filter(v=>v!==null));
+  const rawMin=Math.min(...vals),rawMax=Math.max(...vals),spread=Math.max(2,rawMax-rawMin);
+  const min=Math.floor((rawMin-spread*.22)*2)/2,max=Math.ceil((rawMax+spread*.22)*2)/2,range=Math.max(1,max-min);
+  const x=i=>rows.length===1?(pad.l+(W-pad.l-pad.r)/2):pad.l+i*(W-pad.l-pad.r)/(rows.length-1);
+  const y=v=>pad.t+(max-v)*(H-pad.t-pad.b)/range;
+  const grid=[0,.25,.5,.75,1].map(t=>{const v=max-t*range,yy=pad.t+t*(H-pad.t-pad.b);return `<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="rgba(148,163,184,.14)" stroke-dasharray="3 4"/><text x="${pad.l-6}" y="${yy+3}" text-anchor="end" fill="#7f8a96" font-size="9">${v.toFixed(1)}</text>`}).join('');
+  const pts=rows.map((r,i)=>`${x(i)},${y(r.weight)}`).join(' ');
+  const avgPts=rolling.map((v,i)=>v===null?null:`${x(i)},${y(v)}`).filter(Boolean).join(' ');
+  const dots=rows.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.weight)}" r="3.4" fill="#00aaff"><title>${r.date}: ${r.weight} lb</title></circle>`).join('');
+  const firstLabel=new Date(rows[0].date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const lastLabel=new Date(rows.at(-1).date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bodyweight and seven-day average trend"><g>${grid}</g>${rows.length>1?`<polyline points="${pts}" fill="none" stroke="#00aaff" stroke-width="1.5" stroke-opacity=".55" stroke-linejoin="round" stroke-linecap="round"/>`:''}${dots}${rolling.length>1?`<polyline points="${avgPts}" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`:''}<text x="${pad.l}" y="${H-9}" fill="#7f8a96" font-size="9">${firstLabel}</text><text x="${W-pad.r}" y="${H-9}" text-anchor="end" fill="#7f8a96" font-size="9">${lastLabel}</text></svg><div class="bodyweight-chart-legend"><span><i class="bodyweight-legend-dot"></i>Daily weight</span><span><i class="bodyweight-legend-line"></i>7-day average</span></div>`;
+}
+
+function todayOpenBodyweightProgress(){
+  todayOpenProgress();
+  setTimeout(()=>document.querySelector('.progress-category-title:nth-of-type(2)')?.scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+function renderTodayBodyweight(){
+  const latestEl=document.getElementById('todayWeightLatest');
+  if(!latestEl)return;
+  const rows=getBodyweightHistory(),m=bodyweightTrendMetrics(rows);
+  const avgEl=document.getElementById('todayWeightAverage');
+  const trendEl=document.getElementById('todayWeightTrend');
+  const logger=document.getElementById('todayWeightLogger');
+  const logged=document.getElementById('todayWeightLogged');
+  const label=document.getElementById('todayWeightLatestLabel');
+
+  latestEl.textContent=rows.length?`${rows.at(-1).weight} lb`:'—';
+  avgEl.textContent=m.currentAvg!==null?`${m.currentAvg.toFixed(1)} lb`:'—';
+  trendEl.textContent=bodyweightTrendText(m);
+
+  if(m.todayRow){
+    label.textContent='TODAY';
+    latestEl.textContent=`${m.todayRow.weight} lb`;
+    logger.style.display='none';
+    logged.style.display='block';
+    logged.textContent=`✓ ${m.todayRow.weight} LB LOGGED TODAY`;
+  }else{
+    label.textContent='LATEST';
+    logger.style.display='grid';
+    logged.style.display='none';
+  }
+}
+function logTodayBodyweight(){
+  const input=document.getElementById('todayWeightInput');
+  const weight=Math.round(Number(input?.value)*10)/10;
+  if(!Number.isFinite(weight)||weight<=0){alert('Enter a valid bodyweight first.');return}
+  const date=localDateStamp(new Date());
+  const rows=getBodyweightHistory().filter(x=>x.date!==date);
+  rows.push({date,weight,loggedAt:new Date().toISOString()});
+  saveBodyweightHistory(rows);
+  if(input)input.value='';
+  renderBodyweightProgress();
+  renderTodayBodyweight();
+}
+
+/* Ensure bodyweight edits/logs also refresh Today when it is visible. */
+(function(){
+  const oldSave=window.saveBodyweightHistory;
+  if(typeof oldSave==='function'){
+    window.saveBodyweightHistory=function(rows){
+      const result=oldSave(rows);
+      setTimeout(()=>{if(document.getElementById('todayTab')?.classList.contains('active'))renderTodayBodyweight()},0);
+      return result;
+    };
+  }
+})();
+</script>
+
+
+<style>
+/* ===== V126 CLEAN HEADER + ACCOUNT PROGRAM CONTROLS ===== */
+.header-card{grid-template-columns:auto 1fr auto !important}
+.header-actions{justify-self:end}
+.account-menu-wrap{width:auto}
+.account-menu-panel{width:min(265px,84vw)}
+.account-menu-section-label{
+  padding:5px 7px 1px;color:#77869a;font-size:.51rem;font-weight:950;
+  letter-spacing:.09em;text-transform:uppercase;
+}
+.account-menu-current-program{
+  padding:2px 7px 5px;color:#f4f7fa;font-size:.72rem;font-weight:950;
+  letter-spacing:.025em;line-height:1.25;
+}
+.account-menu-program-btn{color:var(--accent-blue)}
+.account-menu-divider-spaced{margin-top:5px}
+</style>
+<script>
+/* ===== V126 KEEP CURRENT PROGRAM VISIBLE INSIDE ACCOUNT MENU ===== */
+(function(){
+  function syncV126ProgramMenu(){
+    const source=document.getElementById('accountMenuProgram');
+    const target=document.getElementById('accountMenuCurrentProgram');
+    if(source&&target) target.textContent=source.textContent||'SCHMOKEFIT';
+  }
+  const oldToggle=window.toggleAccountMenu;
+  if(typeof oldToggle==='function'){
+    window.toggleAccountMenu=function(){
+      syncV126ProgramMenu();
+      return oldToggle.apply(this,arguments);
+    };
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(syncV126ProgramMenu,200),{once:true});
+  window.syncV126ProgramMenu=syncV126ProgramMenu;
 })();
 </script>
 
