@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V126</title>
+<title>SCHMOKEFIT • V127</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -11316,6 +11316,11 @@ function importSchmokeFitBackup(event){
 
 const appTourSteps = [
   {
+    tabId: 'todayTab',
+    title: 'YOUR DAILY HOME BASE',
+    copy: 'Today is your quick check-in for SchmokeFit. See where you are in this week’s three workouts, open the next workout when you are ready to train, check today’s calories and protein, review consistency, log or view bodyweight, and see your next progression goal—all in one place.'
+  },
+  {
     tabId: 'workoutTab',
     title: 'YOUR PROGRAM',
     copy: 'SchmokeFit combines your 18-week training plan and nutrition targets in one place. Follow the program, log what you do, and let your history build as you progress.'
@@ -11363,7 +11368,7 @@ function appTourTabButton(tabId) {
 }
 
 function continueFromIntro() {
-  switchTab('workoutTab', appTourTabButton('workoutTab'));
+  switchTab('todayTab', appTourTabButton('todayTab'));
   window.scrollTo({top:0, behavior:'smooth'});
   if (appStorage.getItem(appTourCompletedKey) !== 'true') {
     setTimeout(() => startAppTour(false), 260);
