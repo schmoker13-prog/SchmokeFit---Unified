@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V127</title>
+<title>SCHMOKEFIT • V128</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -3669,19 +3669,19 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   </div>
 
   <div class="today-macro-grid">
-    <button class="today-stat-card" type="button" onclick="todayOpenNutrition()">
+    <button class="today-stat-card" type="button" onclick="todayOpenNutritionMetric('calories')">
       <div class="today-stat-head"><span>🔥 CALORIES</span><strong id="todayCaloriesText">—</strong></div>
       <div class="today-progress-track"><div class="today-progress-fill calories" id="todayCaloriesFill"></div></div>
       <div class="today-stat-foot" id="todayCaloriesSub">Set your bodyweight in Nutrition</div>
     </button>
-    <button class="today-stat-card" type="button" onclick="todayOpenNutrition()">
+    <button class="today-stat-card" type="button" onclick="todayOpenNutritionMetric('protein')">
       <div class="today-stat-head"><span>💪 PROTEIN</span><strong id="todayProteinText">—</strong></div>
       <div class="today-progress-track"><div class="today-progress-fill protein" id="todayProteinFill"></div></div>
       <div class="today-stat-foot" id="todayProteinSub">Set your bodyweight in Nutrition</div>
     </button>
   </div>
 
-  <button class="today-week-card card" type="button" onclick="todayOpenProgress()">
+  <button class="today-week-card card" type="button" onclick="todayOpenConsistencyProgress()">
     <div class="today-card-row">
       <div>
         <div class="today-card-kicker">THIS WEEK</div>
@@ -3989,7 +3989,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   <button class="refeed-btn" id="refeedDayBtn" type="button" onclick="toggleRefeedDay()">MAKE TODAY A REFEED DAY • +600 CAL</button>
 </div>
 </div>
-<div class="card">
+<div class="card" id="nutritionDailyTrackerCard">
 <div style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); margin-bottom:4px;">DAILY NUTRITION TRACKER</div>
 <div class="nutrition-date-picker">
 <button aria-label="Previous day" class="nutrition-date-arrow" onclick="changeNutritionDate(-1)" type="button">←</button>
@@ -4008,12 +4008,12 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="nutrition-stat"><div class="nutrition-stat-value" id="nutritionFat">0g</div><div class="nutrition-stat-label">Fat</div><div class="nutrition-stat-percent" id="nutritionFatPercent">0% of calories</div></div>
 </div>
 <div class="macro-progress-wrap">
-<div class="macro-progress-row">
+<div class="macro-progress-row" id="nutritionCaloriesDestination">
 <span class="macro-progress-label">Calories</span>
 <span class="macro-progress-numbers"><strong id="calorieConsumedText">0 consumed</strong> • <span id="calorieRemainingText">2,340 remaining</span></span>
 </div>
 <div class="macro-progress-track"><div class="macro-progress-fill" id="calorieProgressFill"></div></div>
-<div class="macro-progress-row" style="margin-top:8px;">
+<div class="macro-progress-row" id="nutritionProteinDestination" style="margin-top:8px;">
 <span class="macro-progress-label">Protein</span>
 <span class="macro-progress-numbers"><strong id="proteinConsumedText">0g consumed</strong> • <span id="proteinRemainingText">148g remaining</span></span>
 </div>
@@ -4156,7 +4156,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="weekly-bar-chart" id="proteinWeeklyChart"></div>
 </div>
 
-<div class="card progress-metric-card">
+<div class="card progress-metric-card" id="progressNutritionConsistencyCard">
 <div class="info-subtitle">NUTRITION CONSISTENCY</div>
 <div class="progress-metric-copy">Your rolling 90-day consistency across days with food logged. No full week required.</div>
 <div class="consistency-row"><span>Calories on target</span><strong id="nutritionCalConsistency">—</strong></div>
@@ -4165,7 +4165,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="consistency-track"><div id="nutritionProteinConsistencyBar" class="consistency-fill"></div></div>
 </div>
 <div class="progress-category-title">BODYWEIGHT</div>
-<div class="card progress-metric-card">
+<div class="card progress-metric-card" id="progressBodyweightCard">
 <div class="info-subtitle">WEIGHT TREND</div>
 <div class="progress-metric-copy">Log weigh-ins here to follow your bodyweight trend over time. These entries are separate from the Current Bodyweight used to calculate your Nutrition targets.</div>
 <div class="bodyweight-log-grid bodyweight-log-grid-v114">
@@ -13155,8 +13155,7 @@ function renderBodyweightProgress(){
 }
 
 function todayOpenBodyweightProgress(){
-  todayOpenProgress();
-  setTimeout(()=>document.querySelector('.progress-category-title:nth-of-type(2)')?.scrollIntoView({behavior:'smooth',block:'start'}),120);
+  todayOpenTarget('nutritionHistoryTab','progressBodyweightCard');
 }
 function renderTodayBodyweight(){
   const latestEl=document.getElementById('todayWeightLatest');
@@ -13246,6 +13245,53 @@ function logTodayBodyweight(){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(syncV126ProgramMenu,200),{once:true});
   window.syncV126ProgramMenu=syncV126ProgramMenu;
 })();
+</script>
+
+
+<style>
+/* ===== V128 TODAY DEEP-LINK DESTINATIONS ===== */
+.schmokefit-target-flash{
+  animation:schmokefitTargetFlash 1.35s ease-out;
+  position:relative;
+}
+@keyframes schmokefitTargetFlash{
+  0%{box-shadow:0 0 0 2px rgba(0,170,255,.88),0 0 24px rgba(0,170,255,.32);background-color:rgba(0,170,255,.10)}
+  55%{box-shadow:0 0 0 1px rgba(0,170,255,.45),0 0 13px rgba(0,170,255,.16)}
+  100%{box-shadow:none;background-color:transparent}
+}
+#nutritionCaloriesDestination,#nutritionProteinDestination{
+  border-radius:7px;padding:4px 5px;margin-left:-5px;margin-right:-5px;
+}
+</style>
+
+<script>
+/* ===== V128 TODAY → SPECIFIC CARD NAVIGATION ===== */
+function schmokeFitFocusTarget(targetId){
+  const target=document.getElementById(targetId);
+  if(!target)return;
+  target.scrollIntoView({behavior:'smooth',block:'center'});
+  target.classList.remove('schmokefit-target-flash');
+  void target.offsetWidth;
+  target.classList.add('schmokefit-target-flash');
+  setTimeout(()=>target.classList.remove('schmokefit-target-flash'),1450);
+}
+function todayOpenTarget(tabId,targetId,afterOpen){
+  const btn=document.getElementById(`tabBtn-${tabId}`);
+  switchTab(tabId,btn);
+  if(typeof afterOpen==='function') afterOpen();
+  // Allow the existing tab renderer to finish before scrolling.
+  setTimeout(()=>schmokeFitFocusTarget(targetId),180);
+}
+function todayOpenNutritionMetric(metric){
+  const target=metric==='protein'?'nutritionProteinDestination':'nutritionCaloriesDestination';
+  todayOpenTarget('macrosTab',target,()=>{
+    // Today metrics always represent today, so land on today's nutrition log.
+    if(typeof goToTodayNutrition==='function') goToTodayNutrition();
+  });
+}
+function todayOpenConsistencyProgress(){
+  todayOpenTarget('nutritionHistoryTab','progressNutritionConsistencyCard');
+}
 </script>
 
 </body>
