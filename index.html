@@ -2599,6 +2599,32 @@
   z-index:4;
 }
 
+
+/* V121 — unmistakable unknown-barcode/manual-entry state */
+.manual-barcode-alert{
+  border:1px solid rgba(245,158,11,.62);
+  background:rgba(245,158,11,.09);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:12px;
+}
+.manual-barcode-alert-title{font-weight:900;color:#f59e0b;font-size:.82rem;letter-spacing:.06em;margin-bottom:5px}
+.manual-barcode-alert-copy{color:var(--text-muted);font-size:.76rem;line-height:1.45;margin-top:5px}
+.manual-food-validation{
+  margin-top:7px;padding:8px 10px;border-radius:8px;
+  border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.08);
+  color:#fca5a5;font-size:.72rem;font-weight:800;
+}
+.manual-food-missing{border-color:#ef4444 !important;box-shadow:0 0 0 1px rgba(239,68,68,.28)}
+
+
+/* V123 — compact mobile My Foods actions */
+.compact-my-food-row{position:relative;padding-right:38px}
+.custom-food-delete-x{position:absolute;top:8px;right:8px;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--text-muted);font-size:1.25rem;line-height:28px;font-weight:700;cursor:pointer;z-index:2}
+.custom-food-delete-x:hover,.custom-food-delete-x:focus{color:#f87171;background:rgba(239,68,68,.08);outline:none}
+.compact-my-food-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+.compact-my-food-actions .btn{margin:0;white-space:nowrap}
+
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -3943,7 +3969,12 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <button class="btn btn-dark" onclick="stopBarcodeScanner()" style="width:100%; margin-top:8px;">STOP CAMERA</button>
 </div>
 <div class="manual-food-panel" id="manualFoodPanel">
-<div class="select-label" style="color:var(--accent-orange);">ADD FOOD MANUALLY</div>
+<div id="manualBarcodeAlert" class="manual-barcode-alert" style="display:none;">
+  <div class="manual-barcode-alert-title">⚠ BARCODE NOT FOUND</div>
+  <div><strong>ENTER FOOD DETAILS</strong></div>
+  <div class="manual-barcode-alert-copy">We couldn't find this barcode in the food database. Enter the nutrition information from the package below. SchmokeFit will save it to this barcode for future scans.</div>
+</div>
+<div class="select-label" id="manualFoodHeading" style="color:var(--accent-orange);">ADD FOOD MANUALLY</div>
 <div class="manual-food-grid">
 <div class="full">
 <label for="manualFoodName">Food Name</label>
@@ -3992,7 +4023,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <input class="custom-select" id="manualFoodBarcode" inputmode="numeric" placeholder="Save for future scans" type="text"/>
 </div>
 </div>
-<button class="btn btn-blue" onclick="saveManualFood()">ADD TO MEAL</button>
+<button class="btn btn-blue" id="manualFoodSaveBtn" onclick="saveManualFood()">ADD TO MEAL</button><div id="manualFoodValidation" class="manual-food-validation" style="display:none;"></div>
 <button class="btn btn-dark" onclick="hideManualFoodForm()" style="width:100%; margin-top:6px;">CANCEL</button>
 </div>
 <button class="btn btn-dark" onclick="closeFoodSearch()" style="width:100%; margin-top:8px;">CLOSE</button>
@@ -4137,6 +4168,13 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <div class="food-edit-sub" id="foodEditServingNote" style="margin-top:6px;"></div>
 <div class="food-edit-sub" id="foodEditPreview" style="margin-top:8px;"></div>
+<div id="manualBarcodeEditFields" class="manual-food-grid" style="display:none;margin-top:10px;">
+  <div class="full"><div class="select-label" style="color:var(--accent-orange);">MANUAL FOOD NUTRITION</div><div class="nutrition-note">Correct the nutrition for this logged serving. If it came from a barcode, the saved barcode will be updated too.</div></div>
+  <div><label>Calories</label><input class="custom-select" id="foodEditCalories" min="0" step="1" type="number"></div>
+  <div><label>Protein (g)</label><input class="custom-select" id="foodEditProtein" min="0" step="0.1" type="number"></div>
+  <div><label>Carbs (g)</label><input class="custom-select" id="foodEditCarbs" min="0" step="0.1" type="number"></div>
+  <div><label>Fat (g)</label><input class="custom-select" id="foodEditFat" min="0" step="0.1" type="number"></div>
+</div>
 <div class="food-copy-today" id="foodCopyTodayPanel" style="display:none;">
 <div class="food-copy-today-title">HAVE IT AGAIN TODAY?</div>
 <div class="food-edit-sub" style="margin:0 0 8px;">Copy this exact logged serving to today's food log. The original entry will stay on this day.</div>
@@ -7512,16 +7550,44 @@ function onRepsEntered(exerciseIndex, repInput) {
       }
     }
 
+    function setManualFoodBarcodeMode(isBarcode) {
+      const alertBox = document.getElementById('manualBarcodeAlert');
+      const heading = document.getElementById('manualFoodHeading');
+      const saveBtn = document.getElementById('manualFoodSaveBtn');
+      if (alertBox) alertBox.style.display = isBarcode ? 'block' : 'none';
+      if (heading) heading.innerText = isBarcode ? 'MANUAL BARCODE ENTRY' : 'ADD FOOD MANUALLY';
+      if (saveBtn) saveBtn.innerText = isBarcode
+        ? `SAVE FOOD & ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}`
+        : 'ADD TO MEAL';
+      document.getElementById('manualFoodPanel')?.classList.toggle('barcode-manual-mode', !!isBarcode);
+    }
+
     function showManualFoodForm(barcode = '') {
       stopBarcodeScanner();
       const panel = document.getElementById('manualFoodPanel');
       panel.classList.add('open');
       if (barcode) document.getElementById('manualFoodBarcode').value = barcode;
+      setManualFoodBarcodeMode(!!barcode);
+      clearManualFoodValidation();
       document.getElementById('manualFoodName').focus();
     }
 
     function hideManualFoodForm() {
       document.getElementById('manualFoodPanel')?.classList.remove('open');
+      setManualFoodBarcodeMode(false);
+      clearManualFoodValidation();
+    }
+
+    function clearManualFoodValidation() {
+      document.getElementById('manualFoodValidation')?.style.setProperty('display','none');
+      ['manualFoodName','manualFoodCalories','manualFoodServing'].forEach(id=>document.getElementById(id)?.classList.remove('manual-food-missing'));
+    }
+
+    function showManualFoodValidation(message, ids=[]) {
+      const box=document.getElementById('manualFoodValidation');
+      if(box){box.textContent=message;box.style.display='block';}
+      ids.forEach(id=>document.getElementById(id)?.classList.add('manual-food-missing'));
+      document.getElementById(ids[0]||'manualFoodPanel')?.scrollIntoView({behavior:'smooth',block:'center'});
     }
 
     function numberOrZero(value) {
@@ -7552,6 +7618,25 @@ function onRepsEntered(exerciseIndex, repInput) {
       const servingGrams = manualUnit === 'serving' ? customServingGrams : 0;
       const grams = amountToGrams(manualAmount, manualUnit, servingGrams);
       const barcode = document.getElementById('manualFoodBarcode').value.trim();
+      const caloriesRaw = document.getElementById('manualFoodCalories').value.trim();
+      const servingRaw = document.getElementById('manualFoodServing').value.trim();
+      clearManualFoodValidation();
+
+      /* V121: unknown barcode entries must be intentionally completed.
+         An explicit 0 calorie value is allowed; a blank calorie field is not. */
+      const missing = [];
+      if (!name) missing.push('manualFoodName');
+      if (!servingRaw || !(Number(servingRaw) > 0)) missing.push('manualFoodServing');
+      if (barcode && caloriesRaw === '') missing.push('manualFoodCalories');
+      if (missing.length) {
+        showManualFoodValidation(
+          barcode
+            ? 'Finish entering the food name, serving amount, and calories before saving this barcode. Enter 0 only when the label actually says 0.'
+            : 'Finish the required food details before adding this food.',
+          missing
+        );
+        return;
+      }
 
       if (!name) {
         alert('Please enter a food name.');
@@ -7567,7 +7652,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       }
 
       const servingText = manualUnit === 'serving' ? `1 ${customServingName}` : '';
-      const item = { name, grams, servingGrams, servingText, loggedUnit: manualUnit, loggedAmount: manualAmount, calories, protein, carbs, fat, source:'custom', customFood:true };
+      const item = { name, grams, servingGrams, servingText, loggedUnit: manualUnit, loggedAmount: manualAmount, calories, protein, carbs, fat, source:'custom', customFood:true, barcode: barcode || '', manualBarcodeFood: !!barcode };
       saveCustomFoodFromManual(item, barcode);
       const log = getNutritionLog();
       if (!Array.isArray(log[activeNutritionMeal])) log[activeNutritionMeal] = [];
@@ -7585,7 +7670,9 @@ function onRepsEntered(exerciseIndex, repInput) {
           caloriesPer100: calories * scaleTo100,
           proteinPer100: protein * scaleTo100,
           carbsPer100: carbs * scaleTo100,
-          fatPer100: fat * scaleTo100
+          fatPer100: fat * scaleTo100,
+          canonicalServing: true,
+          savedSchemaVersion: 2
         });
       }
 
@@ -7882,6 +7969,17 @@ function onRepsEntered(exerciseIndex, repInput) {
           : 'Serving size is not available for this food; use grams or ounces.';
       }
 
+      const macroFields=document.getElementById('manualBarcodeEditFields');
+      const editableMacros=!!(item.manualBarcodeFood || item.customFood);
+      if(macroFields) macroFields.style.display=editableMacros?'grid':'none';
+      if(editableMacros){
+        const set=(id,val)=>{const el=document.getElementById(id);if(el)el.value=Number(val)||0;};
+        set('foodEditCalories',item.calories);
+        set('foodEditProtein',item.protein);
+        set('foodEditCarbs',item.carbs);
+        set('foodEditFat',item.fat);
+      }
+
       updateFoodEditPreview();
 
       const todayStamp = localDateStamp(new Date());
@@ -7902,6 +8000,9 @@ function onRepsEntered(exerciseIndex, repInput) {
         amountInput.oninput = updateFoodEditPreview;
         setTimeout(() => amountInput.focus(), 50);
       }
+      ['foodEditCalories','foodEditProtein','foodEditCarbs','foodEditFat'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.oninput=updateFoodEditPreview;
+      });
     }
 
     function updateFoodEditPreview() {
@@ -7917,9 +8018,14 @@ function onRepsEntered(exerciseIndex, repInput) {
       const newGrams = amountToGrams(amount, unit, servingGrams);
       const scale = newGrams / oldGrams;
 
+      const editableMacros=!!(item.manualBarcodeFood || item.customFood);
+      const baseCalories=editableMacros ? numberOrZero(document.getElementById('foodEditCalories')?.value) : (Number(item.calories)||0);
+      const baseProtein=editableMacros ? numberOrZero(document.getElementById('foodEditProtein')?.value) : (Number(item.protein)||0);
+      const baseCarbs=editableMacros ? numberOrZero(document.getElementById('foodEditCarbs')?.value) : (Number(item.carbs)||0);
+      const baseFat=editableMacros ? numberOrZero(document.getElementById('foodEditFat')?.value) : (Number(item.fat)||0);
       const preview = document.getElementById('foodEditPreview');
       if (preview) {
-        preview.innerText = `${Math.round((Number(item.calories) || 0) * scale)} kcal • ${round1((Number(item.protein) || 0) * scale)}g protein • ${round1((Number(item.carbs) || 0) * scale)}g carbs • ${round1((Number(item.fat) || 0) * scale)}g fat`;
+        preview.innerText = `${Math.round(baseCalories * scale)} kcal • ${round1(baseProtein * scale)}g protein • ${round1(baseCarbs * scale)}g carbs • ${round1(baseFat * scale)}g fat`;
       }
     }
 
@@ -7940,13 +8046,37 @@ function onRepsEntered(exerciseIndex, repInput) {
       const newGrams = amountToGrams(amount, unit, servingGrams);
       const scale = newGrams / oldGrams;
 
-      item.calories = (Number(item.calories) || 0) * scale;
-      item.protein = (Number(item.protein) || 0) * scale;
-      item.carbs = (Number(item.carbs) || 0) * scale;
-      item.fat = (Number(item.fat) || 0) * scale;
+      const editableMacros=!!(item.manualBarcodeFood || item.customFood);
+      const baseCalories=editableMacros ? numberOrZero(document.getElementById('foodEditCalories')?.value) : (Number(item.calories)||0);
+      const baseProtein=editableMacros ? numberOrZero(document.getElementById('foodEditProtein')?.value) : (Number(item.protein)||0);
+      const baseCarbs=editableMacros ? numberOrZero(document.getElementById('foodEditCarbs')?.value) : (Number(item.carbs)||0);
+      const baseFat=editableMacros ? numberOrZero(document.getElementById('foodEditFat')?.value) : (Number(item.fat)||0);
+
+      item.calories = baseCalories * scale;
+      item.protein = baseProtein * scale;
+      item.carbs = baseCarbs * scale;
+      item.fat = baseFat * scale;
       item.grams = newGrams;
       item.loggedUnit = unit;
       item.loggedAmount = amount;
+
+      /* If this was manually tied to a barcode, correct the reusable barcode
+         definition at the same time so the next scan uses the fixed values. */
+      if(item.manualBarcodeFood && item.barcode && newGrams>0){
+        const per100=100/newGrams;
+        saveBarcodeFood(item.barcode,{
+          name:item.name,
+          brand:'Custom food',
+          servingText:item.servingText || `${round1(newGrams)} g`,
+          servingGrams:Number(item.servingGrams)>0?Number(item.servingGrams):newGrams,
+          caloriesPer100:item.calories*per100,
+          proteinPer100:item.protein*per100,
+          carbsPer100:item.carbs*per100,
+          fatPer100:item.fat*per100,
+          canonicalServing:true,
+          savedSchemaVersion:2
+        });
+      }
 
       saveNutritionLog(log);
       updateNutritionDashboard();
@@ -10971,16 +11101,28 @@ function addCustomFoodToMeal(id){
   const log=getNutritionLog();if(!Array.isArray(log[activeNutritionMeal]))log[activeNutritionMeal]=[];log[activeNutritionMeal].push(item);saveNutritionLog(log);rememberQuickFood(item);updateNutritionDashboard();renderMealSections();
   showQuickAddConfirmation(f.name,nutritionMealName(activeNutritionMeal));
 }
+/* V122 — My Foods can be logged directly to the currently selected meal */
+function addCustomFoodFromManager(id,button){
+  const mealName=nutritionMealName(activeNutritionMeal);
+  addCustomFoodToMeal(id);
+  if(button){
+    const original='ADD TO MEAL';
+    button.disabled=true;
+    button.textContent=`✓ ADDED TO ${mealName.toUpperCase()}`;
+    setTimeout(()=>{button.disabled=false;button.textContent=original;},700);
+  }
+}
 function openCustomFoodManager(){renderCustomFoodManager();document.getElementById('customFoodManager')?.classList.add('open')}
 function closeCustomFoodManager(){document.getElementById('customFoodManager')?.classList.remove('open')}
 function renderCustomFoodManager(editId=''){
   const host=document.getElementById('customFoodManagerList');if(!host)return;
   const foods=getCustomFoodLibrary();
   if(!foods.length){host.innerHTML='<div class="nutrition-empty">No custom foods yet. Create one with Manual Food and it will appear here.</div>';return}
-  host.innerHTML=foods.map(f=>`<div class="custom-food-manager-row">
+  host.innerHTML=foods.map(f=>`<div class="custom-food-manager-row compact-my-food-row">
+    <button class="custom-food-delete-x" type="button" onclick="deleteCustomFood('${f.id}')" aria-label="Delete ${escapeHtml(f.name)}" title="Delete">×</button>
     <div class="custom-food-manager-row-top"><div><div class="custom-food-manager-name">${escapeHtml(f.name)} <span class="custom-food-badge">MY FOOD</span></div>
     <div class="custom-food-manager-meta">${escapeHtml(customFoodServingLabel(f))} • ${Math.round(f.calories||0)} kcal • ${round1(f.protein||0)}P • ${round1(f.carbs||0)}C • ${round1(f.fat||0)}F</div></div></div>
-    ${editId===f.id?customFoodEditForm(f):`<div class="custom-food-manager-actions"><button class="btn btn-dark" type="button" onclick="renderCustomFoodManager('${f.id}')">EDIT</button><button class="btn btn-dark" type="button" onclick="deleteCustomFood('${f.id}')">DELETE</button></div>`}
+    ${editId===f.id?customFoodEditForm(f):`<div class="custom-food-manager-actions compact-my-food-actions"><button class="btn btn-blue" type="button" onclick="addCustomFoodFromManager('${f.id}', this)">ADD TO MEAL</button><button class="btn btn-dark" type="button" onclick="renderCustomFoodManager('${f.id}')">EDIT</button></div>`}
   </div>`).join('');
 }
 function customFoodEditForm(f){
