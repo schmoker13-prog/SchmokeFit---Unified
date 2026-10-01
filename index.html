@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V128</title>
+<title>SCHMOKEFIT • V129</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -3639,11 +3639,11 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <!-- TABS NAVIGATION -->
 <div class="nav-tabs bottom-nav">
-<button class="tab-btn" id="tabBtn-todayTab" onclick="switchTab('todayTab', this)">TODAY</button>
-<button class="tab-btn" id="tabBtn-workoutTab" onclick="switchTab('workoutTab', this)">WORKOUT</button>
-<button class="tab-btn" id="tabBtn-historyTab" onclick="switchTab('historyTab', this)">HISTORY</button>
-<button class="tab-btn" id="tabBtn-macrosTab" onclick="switchTab('macrosTab', this)">NUTRITION</button>
-<button class="tab-btn" id="tabBtn-nutritionHistoryTab" onclick="switchTab('nutritionHistoryTab', this)">PROGRESS</button>
+<button class="tab-btn" id="tabBtn-todayTab" onclick="switchTab('todayTab', this)" aria-label="Today"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.8 12 3l9 7.8v9.7a.5.5 0 0 1-.5.5H15v-6H9v6H3.5a.5.5 0 0 1-.5-.5z"/></svg><span class="nav-label">Today</span></button>
+<button class="tab-btn" id="tabBtn-workoutTab" onclick="switchTab('workoutTab', this)" aria-label="Workout"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg><span class="nav-label">Workout</span></button>
+<button class="tab-btn" id="tabBtn-historyTab" onclick="switchTab('historyTab', this)" aria-label="History"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v15H5V6a2 2 0 0 1 2-2Z"/><path d="M9 2h6v4H9zM8 10h8M8 14h8M8 18h5"/></svg><span class="nav-label">History</span></button>
+<button class="tab-btn" id="tabBtn-macrosTab" onclick="switchTab('macrosTab', this)" aria-label="Nutrition"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8c-2.1-2.4-6.3-1.7-7.4 1.7-1.5 4.6 2.4 10.3 7.4 11.3 5-1 8.9-6.7 7.4-11.3C18.3 6.3 14.1 5.6 12 8Z"/><path d="M12 8c-.1-2.8 1.5-4.7 4.2-5.4M12.2 6.2c-1.6-1.5-3.3-1.9-5.1-1.2"/></svg><span class="nav-label">Nutrition</span></button>
+<button class="tab-btn" id="tabBtn-nutritionHistoryTab" onclick="switchTab('nutritionHistoryTab', this)" aria-label="Progress"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V6M16 20V9M22 20V3"/></svg><span class="nav-label">Progress</span></button>
 </div>
 
 <!-- V124: TODAY DASHBOARD -->
@@ -13294,5 +13294,17 @@ function todayOpenConsistencyProgress(){
 }
 </script>
 
+<style>
+/* ===== V129 ICON + LABEL BOTTOM NAVIGATION ===== */
+.nav-tabs.bottom-nav{gap:4px!important;padding:5px 6px!important;min-height:66px;border-radius:16px;background:rgba(7,11,18,.985)!important}
+.nav-tabs.bottom-nav .tab-btn{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:54px;padding:5px 2px!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#7f8b9d!important;box-shadow:none!important;transition:color .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .12s ease}
+.nav-tabs.bottom-nav .tab-btn:active{transform:translateY(1px)}
+.nav-tabs.bottom-nav .nav-icon{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.nav-tabs.bottom-nav .nav-label{display:block;font-size:.55rem;line-height:1;font-weight:900;letter-spacing:0;text-transform:none;white-space:nowrap}
+.nav-tabs.bottom-nav .tab-btn.active{color:var(--accent-blue)!important;border-color:rgba(0,170,255,.56)!important;background:linear-gradient(180deg,rgba(0,170,255,.15),rgba(0,170,255,.07))!important;box-shadow:inset 0 0 14px rgba(0,170,255,.07),0 0 13px rgba(0,170,255,.14)!important}
+.nav-tabs.bottom-nav .tab-btn.active .nav-icon{filter:drop-shadow(0 0 4px rgba(0,170,255,.34))}
+.app-container{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+@media(max-width:390px){.nav-tabs.bottom-nav{width:calc(100% - 12px)!important;min-height:64px;padding:4px!important;gap:2px!important}.nav-tabs.bottom-nav .tab-btn{min-height:53px;gap:3px}.nav-tabs.bottom-nav .nav-icon{width:21px;height:21px}.nav-tabs.bottom-nav .nav-label{font-size:.50rem}}
+</style>
 </body>
 </html>
