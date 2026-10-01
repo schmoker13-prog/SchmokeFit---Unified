@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V153</title>
+<title>SCHMOKEFIT • V154</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -13923,6 +13923,95 @@ function todayOpenConsistencyProgress(){
 }
 </style>
 
+
+<style>
+/* ===== V154 RESPONSIVE HEADER USERNAME ===== */
+.header-actions{
+  min-width:0 !important;
+  width:clamp(78px, 22vw, 180px) !important;
+}
+.header-account-trigger{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+.header-account-trigger .user-greeting{
+  display:block !important;
+  width:100% !important;
+  max-width:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  text-align:right !important;
+  transform-origin:right center !important;
+}
+</style>
+
+
+<script>
+/* ===== V154 RESPONSIVE HEADER USERNAME ===== */
+(function(){
+  const MAX_PX = 16;
+  const MIN_PX = 9;
+
+  function fitHeaderUsername(){
+    const el = document.getElementById('headerUserGreeting');
+    if(!el) return;
+
+    // Preserve the existing label exactly; only change its presentation.
+    el.style.fontSize = MAX_PX + 'px';
+    el.style.letterSpacing = '';
+    el.style.transform = 'none';
+
+    const host = el.closest('.header-account-trigger') || el.parentElement;
+    if(!host) return;
+
+    const available = Math.max(1, host.clientWidth - 2);
+    let size = MAX_PX;
+
+    while(el.scrollWidth > available && size > MIN_PX){
+      size -= 0.5;
+      el.style.fontSize = size + 'px';
+    }
+
+    // Very long usernames: retain the full name rather than ever showing "...".
+    if(el.scrollWidth > available){
+      const scale = Math.max(0.78, available / el.scrollWidth);
+      el.style.transform = 'scaleX(' + scale + ')';
+    }
+  }
+
+  function scheduleFit(){
+    requestAnimationFrame(function(){
+      requestAnimationFrame(fitHeaderUsername);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', scheduleFit);
+  window.addEventListener('resize', scheduleFit);
+  window.addEventListener('orientationchange', scheduleFit);
+
+  // Existing app code updates this node when login/program state changes.
+  // Observe those updates so the new username is fitted immediately.
+  const startObserver = function(){
+    const el = document.getElementById('headerUserGreeting');
+    if(!el) return;
+    new MutationObserver(scheduleFit).observe(el, {
+      childList:true,
+      characterData:true,
+      subtree:true
+    });
+    scheduleFit();
+  };
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
+})();
+</script>
+
 </body>
 </html>
 <!-- V149: Bahama Mama and Aesthetic Athlete header artwork rebuilt from the exact Greek Physique/blue master geometry. -->
@@ -13930,3 +14019,5 @@ function todayOpenConsistencyProgress(){
 <!-- V152: login branding visually integrated into card background; V151 functionality preserved. -->
 
 <!-- V153: tightly cropped login SCHMOKEFIT wordmark to remove excess vertical image canvas. -->
+
+<!-- V154: full responsive header usernames; ellipsis removed; V153 functionality preserved. -->
