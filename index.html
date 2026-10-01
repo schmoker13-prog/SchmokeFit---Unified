@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V129</title>
+<title>SCHMOKEFIT • V130</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -4775,6 +4775,8 @@ document.addEventListener('keydown', e => {
       document.body.classList.toggle('program-bahama', currentProgram === 'bahama');
       document.body.classList.toggle('program-athlete', currentProgram === 'athlete');
       const brand=document.getElementById('programBrandSubtitle'); if(brand) brand.innerText=cfg.brand;
+      const accountProgram=document.getElementById('accountMenuProgram'); if(accountProgram) accountProgram.innerText=cfg.brand;
+      const accountCurrentProgram=document.getElementById('accountMenuCurrentProgram'); if(accountCurrentProgram) accountCurrentProgram.innerText=cfg.brand;
       const intro=document.getElementById('introTab'); if(intro) intro.innerHTML = currentProgram === 'bahama' ? bahamaIntroHtml : (currentProgram === 'athlete' ? athleteIntroHtml : greekIntroHtml);
 
       const satCard=document.getElementById('workoutCard-saturday');
@@ -11250,8 +11252,12 @@ function deleteCustomFood(id){
 
 /* v97 — local beta backup / restore */
 function syncAccountMenuProgram(){
-  const src=document.getElementById('programBrandSubtitle'),dest=document.getElementById('accountMenuProgram');
-  if(src&&dest)dest.innerText=src.innerText||'SCHMOKEFIT';
+  const cfg=PROGRAM_CONFIG?.[currentProgram];
+  const label=cfg?.brand||'SCHMOKEFIT';
+  const dest=document.getElementById('accountMenuProgram');
+  const current=document.getElementById('accountMenuCurrentProgram');
+  if(dest)dest.innerText=label;
+  if(current)current.innerText=label;
 }
 function toggleAccountMenu(event){
   syncAccountMenuProgram();
@@ -13227,25 +13233,7 @@ function logTodayBodyweight(){
 .account-menu-program-btn{color:var(--accent-blue)}
 .account-menu-divider-spaced{margin-top:5px}
 </style>
-<script>
-/* ===== V126 KEEP CURRENT PROGRAM VISIBLE INSIDE ACCOUNT MENU ===== */
-(function(){
-  function syncV126ProgramMenu(){
-    const source=document.getElementById('accountMenuProgram');
-    const target=document.getElementById('accountMenuCurrentProgram');
-    if(source&&target) target.textContent=source.textContent||'SCHMOKEFIT';
-  }
-  const oldToggle=window.toggleAccountMenu;
-  if(typeof oldToggle==='function'){
-    window.toggleAccountMenu=function(){
-      syncV126ProgramMenu();
-      return oldToggle.apply(this,arguments);
-    };
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(syncV126ProgramMenu,200),{once:true});
-  window.syncV126ProgramMenu=syncV126ProgramMenu;
-})();
-</script>
+
 
 
 <style>
