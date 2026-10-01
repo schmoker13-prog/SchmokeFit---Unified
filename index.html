@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V136</title>
+<title>SCHMOKEFIT • V137</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -8710,8 +8710,8 @@ function onRepsEntered(exerciseIndex, repInput) {
         const label = metric === 'calories'
           ? Math.round(run.shownGoal).toLocaleString()
           : `${round1(run.shownGoal)}g`;
-        const plotTopPx = 16 + (170 * (1 - pct / 100));
-        return `<div class="nutrition-day-goal-segment" style="left:${left}%;width:${width}%;top:${plotTopPx}px;bottom:auto">
+        const plotBottomPx = 14 + 18 + (170 * pct / 100);
+        return `<div class="nutrition-day-goal-segment" style="left:${left}%;width:${width}%;bottom:${plotBottomPx}px">
           <span class="nutrition-day-goal-label">GOAL ${label}</span>
         </div>`;
       }).join('');
@@ -13429,10 +13429,19 @@ function todayOpenConsistencyProgress(){
 
 
 <style>
-/* ===== V136 SHARED CHART COORDINATE SYSTEM =====
-   Goal segments now use the same 170px plot height as the bars. */
+/* ===== V136 superseded by V137 chart geometry repair ===== */
+</style>
+
+
+<style>
+/* ===== V137 NUTRITION CHART GEOMETRY REPAIR =====
+   Bars, grid lines and goal segments now share the same top origin.
+   This also restores month/quarter layouts after the V136 positioning change. */
+.weekly-bar-col{
+  align-items:start !important;
+}
 .nutrition-day-goal-segment{
-  bottom:auto !important;
+  top:auto !important;
 }
 </style>
 
