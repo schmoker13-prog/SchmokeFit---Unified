@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V130</title>
+<title>SCHMOKEFIT • V134</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -3603,15 +3603,16 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="avatar-wrapper">
 <img alt="SchmokeFit" class="sf-brand-mark" id="schmokefitHeaderIcon" src="schmokefit-icon.png" onerror="this.src='avatar-greek-physique.jpg'"/>
 </div>
-<div class="brand-title">SCHMOKE<span>FIT</span></div>
-<div class="sf-program-badge" id="programBrandSubtitle">SCHMOKEFIT</div>
+<div class="brand-title"><span class="brand-schmoke">SCHMOKE</span><span class="brand-fit">FIT</span></div>
 <div class="header-actions">
 <div class="account-menu-wrap">
-  <button class="user-greeting account-menu-trigger" id="headerUserGreeting" type="button" onclick="toggleAccountMenu(event)">ATHLETE ▾</button>
+  <button class="header-account-trigger" type="button" onclick="toggleAccountMenu(event)" aria-label="Open account menu">
+    <span class="user-greeting account-menu-trigger" id="headerUserGreeting">ATHLETE ▾</span>
+    <span class="header-program-name" id="programBrandSubtitle">SCHMOKEFIT</span>
+  </button>
   <div class="account-menu-panel" id="accountMenuPanel">
     <div class="account-menu-identity">
       <strong id="accountMenuUsername">ATHLETE</strong>
-      <span id="accountMenuProgram">SCHMOKEFIT</span>
     </div>
     <div class="account-menu-divider"></div>
     <div class="account-menu-section-label">CURRENT PROGRAM</div>
@@ -6326,16 +6327,25 @@ function onRepsEntered(exerciseIndex, repInput) {
       const bwInput = document.getElementById('bodyWeightInput');
       const bw = parseFloat(bwInput.value);
       if (!isNaN(bw) && bw > 0) {
+        const previousBw = parseFloat(appStorage.getItem('schmokefit_bodyweight') || '0');
+        const bodyweightChanged = Number.isFinite(previousBw) && previousBw > 0 && Math.abs(previousBw - bw) > 0.0001;
+
+        // Freeze elapsed dates using the PREVIOUS bodyweight before the new
+        // value is stored. Today and future dates then use the new value.
+        if (bodyweightChanged) archiveElapsedNutritionGoalsBeforeChange(previousBw);
+
         appStorage.setItem('schmokefit_bodyweight', bwInput.value);
         const todayStamp = localDateStamp(new Date());
         const todayGoals = getNutritionGoals(todayStamp);
         appStorage.setItem(nutritionMetaKey(todayStamp), JSON.stringify({
           goals: todayGoals,
           refeed: isRefeedDay(todayStamp),
-          savedAt: new Date().toISOString()
+          savedAt: new Date().toISOString(),
+          effectiveBodyweight: bw
         }));
         updateProgramNutritionPhaseUI();
         updateNutritionDashboard();
+        if (document.getElementById('calorieWeeklyChart')) renderNutritionHistoryWeek();
       }
     }
 
@@ -6639,24 +6649,71 @@ function onRepsEntered(exerciseIndex, repInput) {
       };
     }
 
-    function getNutritionGoals(dateStamp = selectedNutritionDateStamp || localDateStamp(new Date())) {
-      const bw = parseFloat(document.getElementById('bodyWeightInput')?.value || '0');
-      const isToday = dateStamp === localDateStamp(new Date());
-      const scheduledPhase = isToday && currentWeek >= 11;
-      const multiplier = scheduledPhase ? PROGRAM_CONFIG[currentProgram].macro.cut : currentMacroMultiplier;
+    /* V133: resolve any calendar date to the program week it belongs to.
+       The active calendar week is currentWeek; adjacent calendar weeks map
+       backward/forward from there. This lets Progress render the full week's
+       programmed target even for days that have not become "today" yet. */
+    function programWeekForNutritionDate(dateStamp) {
+      const today = new Date();
+      const target = new Date(`${dateStamp}T12:00:00`);
+      if (Number.isNaN(target.getTime())) return Math.min(18, Math.max(1, Number(currentWeek) || 1));
 
-      /* V117: establish the user-facing base targets first:
-         calories round to nearest 10; protein rounds to nearest 5.
-         Program/refeed calorie additions are then applied to that same rounded
-         target so every Nutrition and Progress view shares one source of truth. */
+      const todayWeekStart = getWeekStart(today);
+      const targetWeekStart = getWeekStart(target);
+      const weekOffset = Math.round((targetWeekStart.getTime() - todayWeekStart.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      return Math.min(18, Math.max(1, (Number(currentWeek) || 1) + weekOffset));
+    }
+
+    function nutritionGoalsForBodyweight(dateStamp, bodyweight, macroMultiplierOverride = null) {
+      const bw = Number(bodyweight) || 0;
+      const programWeek = programWeekForNutritionDate(dateStamp);
+      const scheduledPhase = programWeek >= 11;
+      const multiplier = scheduledPhase
+        ? PROGRAM_CONFIG[currentProgram].macro.cut
+        : (macroMultiplierOverride ?? currentMacroMultiplier);
+
       const baseCalories = bw > 0 ? roundNutritionCalories(bw * multiplier) : 0;
       const baseProtein = bw > 0 ? roundNutritionProtein(bw * PROGRAM_CONFIG[currentProgram].proteinMultiplier) : 0;
-      const phaseAdjustment = scheduledPhase && baseCalories > 0 ? programNutritionAdjustment(currentWeek) : 0;
+      const phaseAdjustment = scheduledPhase && baseCalories > 0 ? programNutritionAdjustment(programWeek) : 0;
 
       return normalizeNutritionGoals({
         calories: baseCalories + phaseAdjustment + (baseCalories > 0 && isRefeedDay(dateStamp) ? REFEED_CALORIE_BONUS : 0),
         protein: baseProtein
       });
+    }
+
+    function getNutritionGoals(dateStamp = selectedNutritionDateStamp || localDateStamp(new Date())) {
+      const bw = parseFloat(document.getElementById('bodyWeightInput')?.value || '0');
+      return nutritionGoalsForBodyweight(dateStamp, bw);
+    }
+
+    /* V134: before a manual bodyweight change becomes effective, freeze every
+       elapsed program date that does not already have archived goals. This
+       makes manual recalculations forward-only while preserving scheduled
+       program-week adjustments such as Week 15's +600 calories. */
+    function archiveElapsedNutritionGoalsBeforeChange(previousBodyweight) {
+      const bw = Number(previousBodyweight);
+      if (!Number.isFinite(bw) || bw <= 0) return;
+
+      const todayStamp = localDateStamp(new Date());
+      const currentWeekStart = getWeekStart(new Date());
+      const programStart = new Date(currentWeekStart);
+      programStart.setDate(programStart.getDate() - (Math.max(1, Number(currentWeek) || 1) - 1) * 7);
+
+      for (let d = new Date(programStart); localDateStamp(d) < todayStamp; d.setDate(d.getDate() + 1)) {
+        const stamp = localDateStamp(d);
+        let existing = null;
+        try { existing = JSON.parse(appStorage.getItem(nutritionMetaKey(stamp)) || 'null'); } catch(e) {}
+        if (existing?.goals && (Number(existing.goals.calories) > 0 || Number(existing.goals.protein) > 0)) continue;
+
+        const goals = nutritionGoalsForBodyweight(stamp, bw);
+        appStorage.setItem(nutritionMetaKey(stamp), JSON.stringify({
+          goals,
+          refeed: isRefeedDay(stamp),
+          savedAt: new Date().toISOString(),
+          archivedBy: 'bodyweight-change'
+        }));
+      }
     }
 
     function getNutritionTotals() {
@@ -8405,15 +8462,9 @@ function onRepsEntered(exerciseIndex, repInput) {
     function nutritionGraphGoalsForDate(stamp) {
       const todayStamp = localDateStamp(new Date());
 
-      // For TODAY, always use the exact same live goal calculation shown on the
-      // Nutrition dashboard. This prevents an older saved/meta target from
-      // overriding today's +600 refeed target in the graph.
-      if (stamp === todayStamp) {
-        return { ...(getNutritionGoals(stamp) || {}) };
-      }
-
-      // Past dates use their saved historical goal. The refeed flag remains
-      // available independently so archived refeed days retain their identity.
+      // Today is always live. Other dates keep archived goals when they exist;
+      // otherwise V133 calculates the target from that date's mapped program week.
+      if (stamp === todayStamp) return { ...(getNutritionGoals(stamp) || {}) };
       return { ...(getNutritionGoalsForDate(stamp) || {}) };
     }
 
@@ -13294,5 +13345,61 @@ function todayOpenConsistencyProgress(){
 .app-container{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(max-width:390px){.nav-tabs.bottom-nav{width:calc(100% - 12px)!important;min-height:64px;padding:4px!important;gap:2px!important}.nav-tabs.bottom-nav .tab-btn{min-height:53px;gap:3px}.nav-tabs.bottom-nav .nav-icon{width:21px;height:21px}.nav-tabs.bottom-nav .nav-label{font-size:.50rem}}
 </style>
+
+<style>
+/* ===== V132 REFINED BRAND HEADER ===== */
+.header-card{
+  grid-template-columns:auto minmax(0,1fr) auto !important;
+  column-gap:12px !important;
+}
+.brand-title{
+  align-self:center;
+  font-size:1.58rem !important;
+  line-height:1 !important;
+  letter-spacing:.025em !important;
+  white-space:nowrap;
+}
+.brand-title .brand-schmoke{color:#f4f7fa !important}
+.brand-title .brand-fit{color:var(--accent-blue) !important}
+.header-actions{align-self:center;justify-self:end}
+.header-account-trigger{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:4px;
+  padding:7px 0 7px 8px;
+  border:0;
+  background:transparent;
+  color:inherit;
+  cursor:pointer;
+  font:inherit;
+  text-align:right;
+}
+.header-account-trigger .user-greeting{
+  padding:0 !important;
+  margin:0 !important;
+  line-height:1.05;
+}
+.header-program-name{
+  display:block;
+  max-width:150px;
+  color:var(--accent-blue);
+  font-size:.55rem;
+  line-height:1.1;
+  font-weight:950;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@media(max-width:390px){
+  .header-card{column-gap:8px !important}
+  .brand-title{font-size:1.38rem !important}
+  .header-program-name{max-width:120px;font-size:.49rem}
+}
+</style>
+
 </body>
 </html>
