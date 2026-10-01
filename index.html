@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V137</title>
+<title>SCHMOKEFIT • V138</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -13442,6 +13442,16 @@ function todayOpenConsistencyProgress(){
 }
 .nutrition-day-goal-segment{
   top:auto !important;
+}
+</style>
+
+
+<style>
+/* ===== V138 GOAL LABEL CLEARANCE =====
+   Keep the target line fixed; lift only its label for better separation,
+   especially in dense Month/Quarter views and around refeed markers. */
+.nutrition-day-goal-label{
+  transform:translateY(-11px) !important;
 }
 </style>
 
