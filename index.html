@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V138</title>
+<title>SCHMOKEFIT • V139</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -8739,7 +8739,7 @@ function onRepsEntered(exerciseIndex, repInput) {
           <div class="weekly-bar-col ${isRefeed ? 'refeed-bar-col' : ''}" data-chart-goal="${rowGoal}" data-refeed="${isRefeed ? 'true' : 'false'}" title="${dayLabel} ${dateLabel}: ${valueLabel} • Goal: ${goalLabel}${tooltipRefeed}">
             <div class="weekly-bar-value">${value > 0 ? valueLabel : '—'}</div>
             <div class="weekly-bar-track">
-              ${isRefeed ? `<div class="refeed-goal-marker" style="bottom:${Math.min(100, Math.max(0, rowGoal / maxValue * 100))}%"><span>R</span></div>` : ''}
+              ${isRefeed ? `<div class="refeed-goal-marker refeed-goal-marker-label-only"><span>R</span></div>` : ''}
               <div class="weekly-bar-fill ${statusClass}" style="height:${height}%"></div>
             </div>
             <div class="weekly-bar-day">${dayLabel}${isRefeed ? '<span class="refeed-day-badge">R</span>' : ''}</div>
@@ -13452,6 +13452,27 @@ function todayOpenConsistencyProgress(){
    especially in dense Month/Quarter views and around refeed markers. */
 .nutrition-day-goal-label{
   transform:translateY(-11px) !important;
+}
+</style>
+
+
+<style>
+/* ===== V139 REFEED TARGET CLEANUP =====
+   The shared gold goal segment already shows the refeed target.
+   Keep only the small R indicator; do not draw a second dashed target line. */
+.refeed-goal-marker-label-only{
+  left:auto !important;
+  right:0 !important;
+  top:0 !important;
+  bottom:auto !important;
+  width:0 !important;
+  height:0 !important;
+  border:0 !important;
+}
+.refeed-goal-marker-label-only span{
+  right:-3px !important;
+  bottom:auto !important;
+  top:-10px !important;
 }
 </style>
 
