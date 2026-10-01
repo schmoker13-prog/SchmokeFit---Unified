@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V139</title>
+<title>SCHMOKEFIT • V140</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -8711,8 +8711,11 @@ function onRepsEntered(exerciseIndex, repInput) {
           ? Math.round(run.shownGoal).toLocaleString()
           : `${round1(run.shownGoal)}g`;
         const plotBottomPx = 14 + 18 + (170 * pct / 100);
+        const runHasRefeed = metric === 'calories' && goalSegments
+          .slice(run.start, run.end + 1)
+          .some(seg => !!seg.row?.refeed);
         return `<div class="nutrition-day-goal-segment" style="left:${left}%;width:${width}%;bottom:${plotBottomPx}px">
-          <span class="nutrition-day-goal-label">GOAL ${label}</span>
+          <span class="nutrition-day-goal-label">GOAL ${label}${runHasRefeed ? '<span class="goal-label-refeed-r">R</span>' : ''}</span>
         </div>`;
       }).join('');
 
@@ -8739,7 +8742,7 @@ function onRepsEntered(exerciseIndex, repInput) {
           <div class="weekly-bar-col ${isRefeed ? 'refeed-bar-col' : ''}" data-chart-goal="${rowGoal}" data-refeed="${isRefeed ? 'true' : 'false'}" title="${dayLabel} ${dateLabel}: ${valueLabel} • Goal: ${goalLabel}${tooltipRefeed}">
             <div class="weekly-bar-value">${value > 0 ? valueLabel : '—'}</div>
             <div class="weekly-bar-track">
-              ${isRefeed ? `<div class="refeed-goal-marker refeed-goal-marker-label-only"><span>R</span></div>` : ''}
+              
               <div class="weekly-bar-fill ${statusClass}" style="height:${height}%"></div>
             </div>
             <div class="weekly-bar-day">${dayLabel}${isRefeed ? '<span class="refeed-day-badge">R</span>' : ''}</div>
@@ -13473,6 +13476,19 @@ function todayOpenConsistencyProgress(){
   right:-3px !important;
   bottom:auto !important;
   top:-10px !important;
+}
+</style>
+
+<style>
+/* ===== V140 REFEED R PLACEMENT ===== */
+.goal-label-refeed-r{
+  display:inline-block;
+  margin-left:6px;
+  color:#fbbf24;
+  font-size:.72em;
+  font-weight:1000;
+  line-height:1;
+  vertical-align:1px;
 }
 </style>
 
