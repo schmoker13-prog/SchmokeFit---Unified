@@ -2649,6 +2649,14 @@
 body.program-bahama #stickyMacroSummary{border-color:rgba(53,208,186,.48)}
 body.program-athlete #stickyMacroSummary{border-color:rgba(57,211,83,.48)}
 @media(max-width:480px){#stickyMacroSummary{gap:10px;padding:9px 10px}.sticky-macro-label{font-size:.56rem}.sticky-macro-value{font-size:.86rem}}
+
+/* V155 — restore Nutrition quick-glance bar for bottom-navigation layout */
+#stickyMacroSummary{
+  top:max(6px, env(safe-area-inset-top)) !important;
+  border-radius:14px !important;
+  z-index:3900 !important;
+}
+#stickyMacroSummary.visible{transform:translateY(0) !important;}
 </style>
 <style>
 /* v28 — Extra Activity Logger */
@@ -11718,23 +11726,27 @@ function finishAppTour() {
     }
 
     if(!macroVisible()){bar.classList.remove('visible');bar.setAttribute('aria-hidden','true');return;}
-    const top=headerBottom();
-    document.documentElement.style.setProperty('--macro-sticky-top',(top+2)+'px');
+    /* V155: navigation now lives at the bottom, so this summary anchors directly
+       to the top viewport instead of calculating a legacy sticky-tab offset. */
+    const top=6;
+    document.documentElement.style.setProperty('--macro-sticky-top','6px');
 
-    /* Match the width/alignment of the normal content cards on screen. */
+    /* Match the Nutrition card column without applying an inline transform; the
+       visible class owns the slide/fade animation. */
     const macroTab=document.getElementById('macrosTab');
     const referenceCard=macroTab?.querySelector('.card');
     const refRect=referenceCard?.getBoundingClientRect();
     if(refRect && refRect.width>0){
       bar.style.left=refRect.left+'px';
       bar.style.width=refRect.width+'px';
-      bar.style.transform='translateY(-8px)';
+      bar.style.removeProperty('transform');
     }
 
-    /* Both large Calories/Protein cards share the same row; use their stat row as trigger. */
+    /* Show once the full Calories/Protein summary has actually left the viewport.
+       This keeps the compact bar hidden while the normal summary is still visible. */
     const trigger=cal?.closest('.nutrition-stats') || cal?.parentElement || cal;
     const rect=trigger?.getBoundingClientRect();
-    const show=!!rect && rect.bottom<=top+2;
+    const show=!!rect && rect.bottom<=top;
     bar.classList.toggle('visible',show);
     bar.setAttribute('aria-hidden',show?'false':'true');
   }
@@ -14012,6 +14024,7 @@ function todayOpenConsistencyProgress(){
 })();
 </script>
 
+<!-- SchmokeFit V155: restored Nutrition sticky macro quick-glance bar -->
 </body>
 </html>
 <!-- V149: Bahama Mama and Aesthetic Athlete header artwork rebuilt from the exact Greek Physique/blue master geometry. -->
