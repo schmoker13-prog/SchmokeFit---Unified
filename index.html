@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>SCHMOKEFIT • V154</title>
+<title>SCHMOKEFIT • V156</title>
 <style>
     :root {
       --bg-color: #0b0f19;
@@ -2625,6 +2625,25 @@
 .compact-my-food-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
 .compact-my-food-actions .btn{margin:0;white-space:nowrap}
 
+
+/* V158 — tappable previous-set history */
+.prev-val-box.set-history-trigger{cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;}
+.prev-val-box.set-history-trigger:active{border-color:var(--accent-blue);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent-blue) 16%,transparent);background:color-mix(in srgb,var(--accent-blue) 7%,transparent);}
+.set-history-icon{font-size:.54rem;line-height:1;color:var(--accent-blue);opacity:.48;font-weight:900;}
+.set-history-sheet-overlay{position:fixed;inset:0;z-index:10060;background:rgba(0,0,0,.68);display:none;align-items:flex-end;justify-content:center;padding:14px;}
+.set-history-sheet-overlay.open{display:flex;}
+.set-history-sheet{width:min(520px,100%);max-height:min(72vh,620px);overflow:auto;background:#101923;border:1px solid #2c4053;border-radius:20px 20px 14px 14px;padding:18px;box-shadow:0 -18px 55px rgba(0,0,0,.48);}
+.set-history-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.set-history-kicker{font-size:.58rem;font-weight:900;letter-spacing:.09em;color:var(--accent-blue);margin-bottom:4px;}
+.set-history-title{font-size:1rem;font-weight:900;color:var(--text);line-height:1.2;}
+.set-history-close{border:1px solid var(--input-border);background:rgba(255,255,255,.03);color:var(--text);width:34px;height:34px;border-radius:9px;font-size:1.1rem;cursor:pointer;}
+.set-history-table{width:100%;border-collapse:collapse;font-size:.72rem;}
+.set-history-table th{color:var(--text-muted);font-size:.56rem;letter-spacing:.07em;text-align:left;padding:7px 5px;border-bottom:1px solid #26384a;}
+.set-history-table th:nth-child(n+2),.set-history-table td:nth-child(n+2){text-align:right;}
+.set-history-table td{padding:10px 5px;border-bottom:1px solid rgba(148,163,184,.11);color:var(--text);font-weight:700;}
+.set-history-table tr:first-child td{color:var(--accent-blue);}
+.set-history-trend{margin-top:13px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--accent-blue) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent-blue) 25%,transparent);font-size:.68rem;font-weight:800;color:var(--text-muted);}
+.set-history-empty{padding:20px 8px;text-align:center;color:var(--text-muted);font-size:.72rem;}
 </style>
 <!-- iPhone / iPad -->
 <link href="schmokefit-icon.png" rel="apple-touch-icon"/>
@@ -2649,14 +2668,6 @@
 body.program-bahama #stickyMacroSummary{border-color:rgba(53,208,186,.48)}
 body.program-athlete #stickyMacroSummary{border-color:rgba(57,211,83,.48)}
 @media(max-width:480px){#stickyMacroSummary{gap:10px;padding:9px 10px}.sticky-macro-label{font-size:.56rem}.sticky-macro-value{font-size:.86rem}}
-
-/* V155 — restore Nutrition quick-glance bar for bottom-navigation layout */
-#stickyMacroSummary{
-  top:max(6px, env(safe-area-inset-top)) !important;
-  border-radius:14px !important;
-  z-index:3900 !important;
-}
-#stickyMacroSummary.visible{transform:translateY(0) !important;}
 </style>
 <style>
 /* v28 — Extra Activity Logger */
@@ -3548,6 +3559,68 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 .history-filter-option input{width:18px;height:18px;margin:0;accent-color:var(--accent-blue);cursor:pointer}
 .history-type-badge{display:inline-flex;align-items:center;margin:0 0 7px;padding:3px 7px;border-radius:999px;font-size:.58rem;font-weight:950;letter-spacing:.08em;border:1px solid var(--input-border);color:var(--muted)}
 .history-card[data-history-type="food"] .history-type-badge{color:#4ade80}.history-card[data-history-type="workout"] .history-type-badge{color:#38bdf8}
+</style>
+
+<style>
+/* ===== V156 COMPACT WORKOUT SET DENSITY =====
+   Reclaims vertical space on phones without shrinking the entered numbers. */
+@media (max-width:600px){
+  /* Slightly tighter card shell while preserving the existing header controls. */
+  #exerciseContainer{gap:7px!important;}
+  .exercise-card{padding:10px!important;gap:0!important;}
+  .exercise-card .exercise-header{margin-bottom:4px!important;}
+
+  /* Reduce dead space between Set 1 / Set 2 / Set 3. */
+  .exercise-card .set-row,
+  .exercise-card .athlete-set-row{
+    padding:2px 0!important;
+    margin:0!important;
+    min-height:0!important;
+    height:auto!important;
+    row-gap:0!important;
+  }
+
+  /* Keep the same readable 16px entered values, just use a shorter field. */
+  .exercise-card .set-input{
+    height:38px!important;
+    min-height:38px!important;
+    padding:3px 5px!important;
+    margin:0!important;
+    font-size:16px!important;
+    line-height:1.05!important;
+  }
+
+  /* Previous-session chip follows the denser row without shrinking its text. */
+  .exercise-card .prev-val-box{
+    height:28px!important;
+    min-height:28px!important;
+    padding:3px 4px!important;
+    margin:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+  }
+
+  .exercise-card .set-label,
+  .exercise-card .set-input-group,
+  .exercise-card .prev-val-wrap{
+    margin-top:0!important;
+    margin-bottom:0!important;
+  }
+}
+</style>
+<!-- V156: denser mobile workout cards; shorter weight/reps fields and tighter set spacing; V154/V155 behavior preserved. -->
+
+
+<style id="v159-set-history-fix">
+/* V159: clean, fully tappable previous-performance boxes + robust history sheet */
+.set-history-trigger{cursor:pointer;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;white-space:nowrap!important;}
+.set-history-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.set-history-icon{display:none!important;}
+#setHistoryOverlay.set-history-sheet-overlay{position:fixed!important;inset:0!important;z-index:2147483646!important;background:rgba(0,0,0,.72)!important;align-items:flex-end!important;justify-content:center!important;padding:14px!important;}
+#setHistoryOverlay.set-history-sheet-overlay.open{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;}
+#setHistoryOverlay .set-history-sheet{position:relative!important;z-index:2147483647!important;width:min(520px,100%)!important;max-height:min(72dvh,620px)!important;}
 </style>
 </head>
 <body>
@@ -5537,7 +5610,12 @@ document.addEventListener('keydown', e => {
       for (const log of history) {
         if (log.type === 'WORKOUT' && log.structuredData && log.structuredData[exName]) {
           const setData = log.structuredData[exName][`set${setNum}`];
-          if (setData && (setData.w !== '-' || setData.r !== '-')) return setData;
+          if (!setData) continue;
+          const w = String(setData.w ?? '').trim();
+          const r = String(setData.r ?? '').trim();
+          // Only surface a real completed prior set. A weight-only draft such as
+          // 67.5 × - should never become the workout-card "last time" value.
+          if (w && w !== '-' && r && r !== '-') return setData;
         }
       }
       return null;
@@ -5794,7 +5872,7 @@ document.addEventListener('keydown', e => {
         html+=`
           <div class="set-row athlete-set-row">
             <div class="set-label">${label}</div>
-            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session">${prev}</div></div>
+            <div class="prev-val-wrap"><div class="prev-val-box set-history-trigger" title="View set history" role="button" tabindex="0" onclick="openSetHistory(ex.name,${n},this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSetHistory(ex.name,${n},this)}"><span>${prev}</span></div></div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w${n}" placeholder="${weightPlaceholder}" ${isSprint||isConditioning?'disabled':''} oninput="checkSetPR(${idx}, ${n})">
               <input type="${isSprint||isConditioning?'text':'number'}" inputmode="${isSprint||isConditioning?'text':'numeric'}" class="set-input ex-${idx}-r${n}" placeholder="${repPlaceholder}" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, ${n}); if(this.value) setSmartRestForExercise(${idx}, true)">
@@ -5866,7 +5944,7 @@ function renderWorkoutExercises() {
           <!-- SET 1 -->
           <div class="set-row">
             <div class="set-label">Set 1 (Heavy)</div>
-            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session Weight × Reps">${prev1}</div></div>
+            <div class="prev-val-wrap"><div class="prev-val-box set-history-trigger" title="View set history" role="button" tabindex="0" onclick="openSetHistory(activeExercises[${idx}]?.name,1, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSetHistory(activeExercises[${idx}]?.name,1,this)}"><span>${prev1}</span></div></div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w1" placeholder="Wt" oninput="autoCalcRPT(${idx}); checkSetPR(${idx}, 1)">
               <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r1" placeholder="Reps (4-6)" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, 1); if(this.value) setSmartRestForExercise(${idx}, true)">
@@ -5874,7 +5952,7 @@ function renderWorkoutExercises() {
           </div>
           <div class="set-row">
             <div class="set-label">Set 2 (-10%)</div>
-            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session Weight × Reps">${prev2}</div></div>
+            <div class="prev-val-wrap"><div class="prev-val-box set-history-trigger" title="View set history" role="button" tabindex="0" onclick="openSetHistory(activeExercises[${idx}]?.name,2, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSetHistory(activeExercises[${idx}]?.name,2,this)}"><span>${prev2}</span></div></div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w2" placeholder="Wt" oninput="checkSetPR(${idx}, 2)">
               <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r2" placeholder="Reps (6-8)" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, 2); if(this.value) setSmartRestForExercise(${idx}, true)">
@@ -5882,7 +5960,7 @@ function renderWorkoutExercises() {
           </div>
           <div class="set-row">
             <div class="set-label">Set 3 (-20%)</div>
-            <div class="prev-val-wrap"><div class="prev-val-box" title="Previous Session Weight × Reps">${prev3}</div></div>
+            <div class="prev-val-wrap"><div class="prev-val-box set-history-trigger" title="View set history" role="button" tabindex="0" onclick="openSetHistory(activeExercises[${idx}]?.name,3, this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSetHistory(activeExercises[${idx}]?.name,3,this)}"><span>${prev3}</span></div></div>
             <div class="set-input-group">
               <input type="number" class="set-input ex-${idx}-w3" placeholder="Wt" oninput="checkExerciseCompletion(${idx}); checkSetPR(${idx}, 3)">
               <input type="number" inputmode="numeric" pattern="[0-9]*" class="set-input ex-${idx}-r3" placeholder="Reps (8-10)" onchange="onRepsEntered(${idx}, this); checkSetPR(${idx}, 3); if(this.value) setSmartRestForExercise(${idx}, true)">
@@ -11726,27 +11804,23 @@ function finishAppTour() {
     }
 
     if(!macroVisible()){bar.classList.remove('visible');bar.setAttribute('aria-hidden','true');return;}
-    /* V155: navigation now lives at the bottom, so this summary anchors directly
-       to the top viewport instead of calculating a legacy sticky-tab offset. */
-    const top=6;
-    document.documentElement.style.setProperty('--macro-sticky-top','6px');
+    const top=headerBottom();
+    document.documentElement.style.setProperty('--macro-sticky-top',(top+2)+'px');
 
-    /* Match the Nutrition card column without applying an inline transform; the
-       visible class owns the slide/fade animation. */
+    /* Match the width/alignment of the normal content cards on screen. */
     const macroTab=document.getElementById('macrosTab');
     const referenceCard=macroTab?.querySelector('.card');
     const refRect=referenceCard?.getBoundingClientRect();
     if(refRect && refRect.width>0){
       bar.style.left=refRect.left+'px';
       bar.style.width=refRect.width+'px';
-      bar.style.removeProperty('transform');
+      bar.style.transform='translateY(-8px)';
     }
 
-    /* Show once the full Calories/Protein summary has actually left the viewport.
-       This keeps the compact bar hidden while the normal summary is still visible. */
+    /* Both large Calories/Protein cards share the same row; use their stat row as trigger. */
     const trigger=cal?.closest('.nutrition-stats') || cal?.parentElement || cal;
     const rect=trigger?.getBoundingClientRect();
-    const show=!!rect && rect.bottom<=top;
+    const show=!!rect && rect.bottom<=top+2;
     bar.classList.toggle('visible',show);
     bar.setAttribute('aria-hidden',show?'false':'true');
   }
@@ -12073,7 +12147,7 @@ function saveExtraCardioActivity(){
  };
  window.closeResetWorkoutDefault=function(){
    const overlay=document.getElementById('resetWorkoutDefaultOverlay');
-   if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+   if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');overlay.style.removeProperty('display');overlay.style.removeProperty('visibility');overlay.style.removeProperty('opacity');overlay.style.removeProperty('pointer-events');}
  };
  window.confirmResetWorkoutDefault=function(){
    const k=orderKey();
@@ -12986,7 +13060,13 @@ function renderTodayDashboard(){
     nextName.textContent=programName;
     nextSlot.textContent=`Workout ${slot} of ${total}${customName ? ` • ${customName}` : ''}`;
     start.disabled=false;
-    start.textContent='OPEN NEXT WORKOUT →';
+    // V157: mirror the Workout tab's draft state on Today. If the next
+    // scheduled workout already has an autosaved draft, make the primary
+    // action clearly resume it instead of presenting it as a new workout.
+    const inProgressDraft = (typeof getProgramWorkoutDraft === 'function')
+      ? getProgramWorkoutDraft(currentWeek, nextDay, currentWorkoutCycle)
+      : null;
+    start.textContent=inProgressDraft ? 'CONTINUE WORKOUT →' : 'OPEN NEXT WORKOUT →';
   }else{
     title.textContent='WEEK COMPLETE ✓';
     meta.textContent=`${total} OF ${total} WORKOUTS COMPLETE • Great work. Recover, keep nutrition consistent, and review your progress.`;
@@ -14022,9 +14102,92 @@ function todayOpenConsistencyProgress(){
     startObserver();
   }
 })();
+
+    // V158 — quick history for the exact exercise + set position.
+    function getExerciseSetHistory(exName,setNum,limit=5){
+      let history=[];
+      try{ history=JSON.parse(appStorage.getItem('schmokefit_history')||'[]'); }catch(e){}
+      const rows=[];
+      for(const log of history){
+        if(log?.type!=='WORKOUT'||!log.structuredData?.[exName]) continue;
+        const d=log.structuredData[exName][`set${setNum}`];
+        if(!d) continue;
+        const w=String(d.w??'').trim(), r=String(d.r??'').trim();
+        // History means completed logged sets, not partial/draft values.
+        if(!w||w==='-'||!r||r==='-') continue;
+        rows.push({date:log.date||'',title:log.title||'',w,r});
+        if(rows.length>=limit) break;
+      }
+      return rows;
+    }
+    function workoutSetLabel(exName,setNum){
+      if(currentProgram==='athlete'){
+        const ex=(activeExercises||[]).find(x=>x.name===exName);
+        const p=athleteExercisePrescription(ex||{name:exName,badge:''});
+        return p?.labels?.[setNum-1]||`Set ${setNum}`;
+      }
+      return setNum===1?'Set 1 · Heavy':setNum===2?'Set 2 · -10%':'Set 3 · -20%';
+    }
+    function escapeSetHistoryText(v){
+      return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function openSetHistory(exName,setNum){
+      if(!exName) return;
+      const overlay=document.getElementById('setHistoryOverlay');
+      const title=document.getElementById('setHistoryTitle');
+      const kicker=document.getElementById('setHistoryKicker');
+      const content=document.getElementById('setHistoryContent');
+      if(!overlay||!content) return;
+      title.textContent=exName;
+      kicker.textContent=`${workoutSetLabel(exName,setNum).toUpperCase()} · LAST 5`;
+      const rows=getExerciseSetHistory(exName,setNum,5);
+      if(!rows.length){
+        content.innerHTML='<div class="set-history-empty">No completed history yet for this set.</div>';
+      }else{
+        const body=rows.map((x,i)=>`<tr><td>${i===0?'Last time':`${i+1} workouts ago`}<div style="font-size:.52rem;color:var(--text-muted);font-weight:600;margin-top:2px">${escapeSetHistoryText(x.date)}</div></td><td>${escapeSetHistoryText(x.w)} lb</td><td>${escapeSetHistoryText(x.r)}</td></tr>`).join('');
+        let trend='';
+        if(rows.length>1){
+          const newest=Number(rows[0].w), oldest=Number(rows[rows.length-1].w);
+          if(Number.isFinite(newest)&&Number.isFinite(oldest)){
+            const diff=newest-oldest;
+            trend=`<div class="set-history-trend">${diff>0?'↑':diff<0?'↓':'→'} ${diff===0?'Weight is unchanged':`${Math.abs(diff)} lb ${diff>0?'increase':'decrease'}`} across these ${rows.length} recorded sessions.</div>`;
+          }
+        }
+        content.innerHTML=`<table class="set-history-table"><thead><tr><th>SESSION</th><th>WEIGHT</th><th>REPS</th></tr></thead><tbody>${body}</tbody></table>${trend}`;
+      }
+      if(overlay.parentElement!==document.body) document.body.appendChild(overlay);
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden','false');
+      overlay.style.setProperty('display','flex','important');
+      overlay.style.setProperty('visibility','visible','important');
+      overlay.style.setProperty('opacity','1','important');
+      overlay.style.setProperty('pointer-events','auto','important');
+    }
+    function closeSetHistory(){
+      const overlay=document.getElementById('setHistoryOverlay');
+      if(!overlay) return;
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden','true');
+      // openSetHistory uses inline !important properties so the sheet can escape
+      // transformed app containers. Remove those overrides again when closing.
+      overlay.style.removeProperty('display');
+      overlay.style.removeProperty('visibility');
+      overlay.style.removeProperty('opacity');
+      overlay.style.removeProperty('pointer-events');
+    }
+    document.addEventListener('keydown',e=>{if(e.key==='Escape') closeSetHistory();});
 </script>
 
-<!-- SchmokeFit V155: restored Nutrition sticky macro quick-glance bar -->
+
+<div class="set-history-sheet-overlay" id="setHistoryOverlay" aria-hidden="true" onclick="if(event.target===this) closeSetHistory()">
+  <div class="set-history-sheet" role="dialog" aria-modal="true" aria-labelledby="setHistoryTitle">
+    <div class="set-history-sheet-head">
+      <div><div class="set-history-kicker" id="setHistoryKicker">SET HISTORY</div><div class="set-history-title" id="setHistoryTitle">Exercise</div></div>
+      <button class="set-history-close" type="button" onclick="closeSetHistory()" aria-label="Close set history">×</button>
+    </div>
+    <div id="setHistoryContent"></div>
+  </div>
+</div>
 </body>
 </html>
 <!-- V149: Bahama Mama and Aesthetic Athlete header artwork rebuilt from the exact Greek Physique/blue master geometry. -->
@@ -14034,3 +14197,8 @@ function todayOpenConsistencyProgress(){
 <!-- V153: tightly cropped login SCHMOKEFIT wordmark to remove excess vertical image canvas. -->
 
 <!-- V154: full responsive header usernames; ellipsis removed; V153 functionality preserved. -->
+
+<!-- V159: Removed set-history reset icons; hardened previous-performance history bottom sheet rendering above app UI. -->
+<!-- V160: Fixed malformed escaped-newline JavaScript in set-history handler so previous-performance taps actually open the history sheet. -->
+
+<!-- V161: Set-history close now clears forced overlay styles; prior-set/history values require both weight and reps so partial drafts are excluded. -->
