@@ -2659,7 +2659,7 @@
 <meta content="SchmokeFit" name="apple-mobile-web-app-title"/>
 <style>
 /* v25: compact sticky Calories + Protein summary */
-#stickyMacroSummary{position:fixed;left:20px;top:var(--macro-sticky-top,0px);transform:translateY(-8px);z-index:990;width:min(calc(100% - 40px),648px);box-sizing:border-box;display:flex;justify-content:center;align-items:center;gap:16px;padding:9px 14px;background:rgba(10,18,27,.97);border:1px solid rgba(91,155,213,.48);border-radius:0 0 14px 14px;box-shadow:0 8px 20px rgba(0,0,0,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;transition:.16s ease}
+#stickyMacroSummary{position:fixed;left:20px;top:var(--macro-sticky-top,0px);transform:translateY(-8px);z-index:3990;width:min(calc(100% - 40px),648px);box-sizing:border-box;display:flex;justify-content:center;align-items:center;gap:16px;padding:9px 14px;background:rgba(10,18,27,.97);border:1px solid rgba(91,155,213,.48);border-radius:0 0 14px 14px;box-shadow:0 8px 20px rgba(0,0,0,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;transition:.16s ease}
 #stickyMacroSummary.visible{opacity:1;visibility:visible;transform:translateY(0)}
 #stickyMacroSummary>div{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
 .sticky-macro-label{font-size:.61rem;font-weight:900;letter-spacing:.07em;color:#9fb2c6}
@@ -11749,7 +11749,7 @@ function finishAppTour() {
   
 </div>
 <script>
-/* v25: show compact totals only after the full totals have scrolled under the sticky header */
+/* V163: Nutrition floating macro summary anchored to top viewport */
 (function(){
   function macroVisible(){
     const el=document.getElementById('macrosTab');
@@ -11804,8 +11804,9 @@ function finishAppTour() {
     }
 
     if(!macroVisible()){bar.classList.remove('visible');bar.setAttribute('aria-hidden','true');return;}
-    const top=headerBottom();
-    document.documentElement.style.setProperty('--macro-sticky-top',(top+2)+'px');
+    /* Bottom navigation is now the app's persistent nav. Keep this summary at the TOP of the viewport, not adjacent to nav. */
+    const top=8;
+    document.documentElement.style.setProperty('--macro-sticky-top',top+'px');
 
     /* Match the width/alignment of the normal content cards on screen. */
     const macroTab=document.getElementById('macrosTab');
@@ -11820,7 +11821,9 @@ function finishAppTour() {
     /* Both large Calories/Protein cards share the same row; use their stat row as trigger. */
     const trigger=cal?.closest('.nutrition-stats') || cal?.parentElement || cal;
     const rect=trigger?.getBoundingClientRect();
-    const show=!!rect && rect.bottom<=top+2;
+    const activeNutrition = document.getElementById('tabBtn-macrosTab')?.classList.contains('active') || macroVisible();
+    const triggerLine = Math.max(top + 2, 8);
+    const show=activeNutrition && !!rect && rect.bottom<=triggerLine;
     bar.classList.toggle('visible',show);
     bar.setAttribute('aria-hidden',show?'false':'true');
   }
