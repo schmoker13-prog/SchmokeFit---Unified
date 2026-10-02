@@ -6146,6 +6146,8 @@ function onRepsEntered(exerciseIndex, repInput) {
     let timerInterval = null;
     let totalSeconds = 150;
     let restTimerStartSeconds = 150;
+    let restTimerEndTime = null;
+    let restTimerAlarmFired = false;
     function setRestTimerButtonState(state) {
       const btn = document.getElementById('restTimerStartBtn');
       if (!btn) return;
@@ -6254,14 +6256,44 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     function adjustTimer(seconds) {
       totalSeconds = Math.max(0, totalSeconds + seconds);
-      if (timerInterval === null && totalSeconds > 0) {
+      if (restTimerEndTime) {
+        restTimerEndTime = Math.max(Date.now(), restTimerEndTime + (seconds * 1000));
+        syncRestTimerFromClock();
+      } else if (totalSeconds > 0) {
         restTimerStartSeconds = totalSeconds;
+        updateTimerDisplay();
+      } else {
+        updateTimerDisplay();
       }
+    }
+
+    function finishRestTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      restTimerEndTime = null;
+      totalSeconds = 0;
+      updateTimerDisplay();
+      setRestTimerButtonState('finished');
+      if (!restTimerAlarmFired) {
+        restTimerAlarmFired = true;
+        playTimerAlarm();
+        showRestTimerNotification();
+      }
+    }
+
+    function syncRestTimerFromClock() {
+      if (!restTimerEndTime) return;
+      const remainingMs = restTimerEndTime - Date.now();
+      if (remainingMs <= 0) {
+        finishRestTimer();
+        return;
+      }
+      totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
       updateTimerDisplay();
     }
 
     function startTimer() {
-      const wasRunning = timerInterval !== null;
+      const wasRunning = restTimerEndTime !== null;
       const startBtn = document.getElementById('restTimerStartBtn');
       const wasFinished = startBtn?.innerText === 'START AGAIN';
 
@@ -6276,26 +6308,32 @@ function onRepsEntered(exerciseIndex, repInput) {
         restTimerStartSeconds = Math.max(1, totalSeconds);
       }
 
+      restTimerAlarmFired = false;
+      restTimerEndTime = Date.now() + (totalSeconds * 1000);
       updateTimerDisplay();
       setRestTimerButtonState('running');
 
-      timerInterval = setInterval(() => {
-        if (totalSeconds > 0) {
-          totalSeconds--;
-          updateTimerDisplay();
-        } else {
-          clearInterval(timerInterval);
-          timerInterval = null;
-          setRestTimerButtonState('finished');
-          playTimerAlarm();
-          showRestTimerNotification();
-        }
-      }, 1000);
+      // The interval is now only a display refresher. Remaining time is always
+      // derived from the absolute end timestamp, so browser throttling, screen
+      // locking, or switching apps cannot make the countdown lose elapsed time.
+      timerInterval = setInterval(syncRestTimerFromClock, 250);
     }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && restTimerEndTime) syncRestTimerFromClock();
+    });
+    window.addEventListener('focus', () => {
+      if (restTimerEndTime) syncRestTimerFromClock();
+    });
+    window.addEventListener('pageshow', () => {
+      if (restTimerEndTime) syncRestTimerFromClock();
+    });
 
     function resetTimer() {
       clearInterval(timerInterval);
       timerInterval = null;
+      restTimerEndTime = null;
+      restTimerAlarmFired = false;
       setRestTimerButtonState('ready');
       const ex = Number.isInteger(smartRestExerciseIndex) && Array.isArray(activeExercises)
         ? activeExercises[smartRestExerciseIndex]
