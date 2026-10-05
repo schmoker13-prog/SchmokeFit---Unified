@@ -6343,6 +6343,32 @@ function onRepsEntered(exerciseIndex, repInput) {
       updateTimerDisplay();
     }
 
+    // V165: once an active workout is logged complete, there is no remaining
+    // rest period to preserve. Fully clear the timestamp-based timer so a
+    // delayed alarm cannot fire after returning to Today.
+    function stopRestTimerAfterWorkoutCompletion() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      restTimerEndTime = null;
+      restTimerAlarmFired = false;
+      smartRestExerciseIndex = null;
+      totalSeconds = 150;
+      restTimerStartSeconds = 150;
+      setRestTimerButtonState('ready');
+      updateTimerDisplay();
+
+      const timerContext = document.getElementById('smartRestContext');
+      if (timerContext) timerContext.innerHTML = 'SELECT AN EXERCISE • SMART REST READY';
+      document.querySelectorAll('.exercise-card').forEach(card => card.classList.remove('smart-rest-active'));
+
+      clearTimeout(window.schmokeFitRestNoticeTimeout);
+      const notice = document.getElementById('restTimerNotice');
+      if (notice) {
+        notice.style.opacity = '0';
+        notice.style.transform = 'translate(-50%,-50%) scale(.94)';
+      }
+    }
+
     function updateTimerDisplay() {
       const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
       const secs = String(totalSeconds % 60).padStart(2, '0');
@@ -9926,7 +9952,10 @@ function onRepsEntered(exerciseIndex, repInput) {
       appStorage.setItem('schmokefit_history', JSON.stringify(history));
       setWorkoutSkipped(week, day, false, currentWorkoutCycle);
 
-      if (Number(week) === Number(currentWeek)) syncCurrentWeekWorkoutCount();
+      if (Number(week) === Number(currentWeek)) {
+        syncCurrentWeekWorkoutCount();
+        stopRestTimerAfterWorkoutCompletion();
+      }
 
       const completed = workoutCompletionCount(week, currentWorkoutCycle);
       if (!existing && Number(week) === Number(currentWeek) && currentWeek === 18 && completed >= 3) {
