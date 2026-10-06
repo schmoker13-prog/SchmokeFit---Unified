@@ -4,6 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<!-- SchmokeFit V166 -->
 <title>SCHMOKEFIT • V156</title>
 <style>
     :root {
@@ -3968,10 +3969,10 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <button class="btn btn-outline extra-add-btn" id="addExtraWorkoutBtn" onclick="openExtraActivityPicker()">+ EXTRA WORKOUT / CARDIO SESSION</button>
 </div><div class="workout-cycle-actions">
 <button class="btn btn-blue" id="startNextWeekBtn" onclick="advanceActiveWorkoutWeek()">START NEXT WEEK →</button>
+<div class="workout-cycle-note" id="workoutCycleNote">Your previous workout history is always preserved.</div>
 <button class="btn btn-outline" onclick="requestManualNewCycle()">↻ START NEW 18-WEEK CYCLE</button>
 <button class="btn btn-outline full-reset-btn" onclick="requestFullFreshStart()">WIPE ALL DATA &amp; START OVER</button>
-<div class="full-reset-note">Deletes workout and nutrition progress for both programs and returns SchmokeFit to Cycle 1 / Week 1. Your login is preserved.</div>
-<div class="workout-cycle-note" id="workoutCycleNote">Your previous workout history is always preserved.</div>
+<div class="full-reset-note">Deletes all workout and nutrition progress and returns SchmokeFit to Cycle 1 / Week 1. Your login is preserved.</div>
 </div></div><!-- /workoutDashboardView -->
 <div class="workout-detail-view" id="workoutDetailView">
 <div class="workout-detail-header">
@@ -6950,19 +6951,72 @@ function onRepsEntered(exerciseIndex, repInput) {
       return getNutritionMealDefinitions().find(m=>m.id===id)?.name ||
         defaultNutritionMealDefinitions.find(m=>m.id===id)?.name || String(id);
     }
+    let pendingRenameNutritionMealId = null;
+
     function renameNutritionMeal(id) {
-      const meals=getNutritionMealDefinitions(), meal=meals.find(m=>m.id===id);
+      const meal = getNutritionMealDefinitions().find(m=>m.id===id);
       if(!meal) return;
-      const entered=prompt('Meal name:', meal.name);
-      if(entered===null || !entered.trim()) return;
-      meal.name=entered.trim().slice(0,30);
+      pendingRenameNutritionMealId = id;
+      const overlay = document.getElementById('renameMealOverlay');
+      const input = document.getElementById('renameMealInput');
+      if(!overlay || !input) return;
+      input.value = meal.name || '';
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => { input.focus(); input.select(); }, 40);
+    }
+
+    function closeRenameMealModal() {
+      const overlay = document.getElementById('renameMealOverlay');
+      if(overlay) {
+        overlay.classList.remove('open');
+        overlay.setAttribute('aria-hidden','true');
+      }
+      document.body.style.overflow = '';
+      pendingRenameNutritionMealId = null;
+    }
+    window.closeRenameMealModal = closeRenameMealModal;
+
+    function saveRenameMealModal() {
+      if(!pendingRenameNutritionMealId) return;
+      const input = document.getElementById('renameMealInput');
+      const entered = (input?.value || '').trim().slice(0,30);
+      if(!entered) {
+        input?.focus();
+        return;
+      }
+      const meals = getNutritionMealDefinitions();
+      const meal = meals.find(m=>m.id===pendingRenameNutritionMealId);
+      if(!meal) {
+        closeRenameMealModal();
+        return;
+      }
+      const renamedId = pendingRenameNutritionMealId;
+      meal.name = entered;
       saveNutritionMealDefinitions(meals);
+      closeRenameMealModal();
       renderMealSections();
-      if (activeNutritionMeal === id) {
+      if (activeNutritionMeal === renamedId) {
         const searchLabel = document.getElementById('searchMealLabel');
-        if (searchLabel) searchLabel.innerText = `ADD TO ${nutritionMealName(id).toUpperCase()}`;
+        if (searchLabel) searchLabel.innerText = `ADD TO ${nutritionMealName(renamedId).toUpperCase()}`;
       }
     }
+    window.saveRenameMealModal = saveRenameMealModal;
+
+    document.addEventListener('keydown', function(e) {
+      const overlay = document.getElementById('renameMealOverlay');
+      if(!overlay?.classList.contains('open')) return;
+      if(e.key === 'Escape') closeRenameMealModal();
+      if(e.key === 'Enter') {
+        e.preventDefault();
+        saveRenameMealModal();
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if(e.target?.id === 'renameMealOverlay') closeRenameMealModal();
+    });
     function addNutritionMeal() {
       const entered=prompt('Name your new meal:', 'Morning Snack');
       if(entered===null || !entered.trim()) return;
@@ -9723,7 +9777,7 @@ function onRepsEntered(exerciseIndex, repInput) {
     function requestFullFreshStart() {
       const firstConfirm = confirm(
         'START COMPLETELY FRESH?\n\n' +
-        'This permanently deletes ALL SchmokeFit workout history, workout drafts, skipped workouts, nutrition logs, custom meals, bodyweight/macros settings, refeed days, and progress for BOTH Greek Physique and Bahama Mama.\n\n' +
+        'This permanently deletes ALL SchmokeFit workout history, workout drafts, skipped workouts, nutrition logs, custom meals, bodyweight/macros settings, refeed days, and all workout and nutrition progress.\n\n' +
         'Your login will be preserved. This cannot be undone.'
       );
       if (!firstConfirm) return;
@@ -14258,6 +14312,56 @@ function todayOpenConsistencyProgress(){
     <div id="setHistoryContent"></div>
   </div>
 </div>
+
+<!-- V166: Styled Rename Meal modal -->
+<style>
+  .sf-rename-meal-overlay{
+    position:fixed; inset:0; z-index:10050; display:none;
+    align-items:center; justify-content:center; padding:22px;
+    background:rgba(0,0,0,.78); backdrop-filter:blur(7px);
+  }
+  .sf-rename-meal-overlay.open{display:flex;}
+  .sf-rename-meal-modal{
+    width:min(92vw,430px); border:1px solid rgba(255,255,255,.14);
+    border-radius:18px; padding:22px; background:#111318;
+    box-shadow:0 24px 70px rgba(0,0,0,.55);
+  }
+  .sf-rename-meal-kicker{
+    font-size:.68rem; font-weight:900; letter-spacing:.16em;
+    color:#8f9baa; margin-bottom:7px;
+  }
+  .sf-rename-meal-title{
+    font-size:1.25rem; font-weight:950; letter-spacing:.04em;
+    color:#fff; margin-bottom:7px;
+  }
+  .sf-rename-meal-copy{
+    color:#aeb7c2; font-size:.82rem; line-height:1.45; margin-bottom:15px;
+  }
+  .sf-rename-meal-input{
+    width:100%; box-sizing:border-box; border-radius:12px;
+    border:1px solid rgba(255,255,255,.16); background:#090b0f;
+    color:#fff; font:inherit; font-weight:800; padding:14px 15px;
+    outline:none; margin-bottom:14px;
+  }
+  .sf-rename-meal-input:focus{
+    border-color:#2f8cff; box-shadow:0 0 0 3px rgba(47,140,255,.14);
+  }
+  .sf-rename-meal-actions{display:flex; gap:10px;}
+  .sf-rename-meal-actions .btn{flex:1; margin:0;}
+</style>
+<div class="sf-rename-meal-overlay" id="renameMealOverlay" aria-hidden="true">
+  <div class="sf-rename-meal-modal" role="dialog" aria-modal="true" aria-labelledby="renameMealTitle">
+    <div class="sf-rename-meal-kicker">NUTRITION</div>
+    <div class="sf-rename-meal-title" id="renameMealTitle">RENAME MEAL</div>
+    <div class="sf-rename-meal-copy">Choose a name for this meal.</div>
+    <input class="sf-rename-meal-input" id="renameMealInput" maxlength="30" autocomplete="off">
+    <div class="sf-rename-meal-actions">
+      <button class="btn btn-dark" type="button" onclick="closeRenameMealModal()">CANCEL</button>
+      <button class="btn btn-blue" type="button" onclick="saveRenameMealModal()">SAVE NAME</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 <!-- V149: Bahama Mama and Aesthetic Athlete header artwork rebuilt from the exact Greek Physique/blue master geometry. -->
