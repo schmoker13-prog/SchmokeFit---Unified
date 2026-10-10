@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<!-- SchmokeFit V170 -->
+<!-- SchmokeFit V172 -->
 <title>SCHMOKEFIT • V156</title>
 <style>
     :root {
@@ -6164,60 +6164,93 @@ function onRepsEntered(exerciseIndex, repInput) {
       btn.innerText = state === 'running' ? 'RESTART REST' : state === 'finished' ? 'START AGAIN' : 'START REST';
     }
 
-    function playTimerAlarm() {
+    // V171: Reuse an audio context unlocked by a user gesture. Android may
+    // suspend newly created contexts when a backgrounded PWA resumes.
+    let restAlarmAudioContext = null;
+    let restAlarmPending = false;
+    let restAlarmAttemptInFlight = false;
+    let restAlarmRetryOnGesture = false;
+    let restAlarmRunId = 0;
+
+    function unlockRestAlarmAudio() {
       try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-
-        const playBurst = (startTime) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(1046.50, ctx.currentTime + startTime);
-          
-          gain.gain.setValueAtTime(0.3, ctx.currentTime + startTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + 0.15);
-          
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          osc.start(ctx.currentTime + startTime);
-          osc.stop(ctx.currentTime + startTime + 0.15);
-        };
-
-        // Three groups of three beeps (9 total), giving the user a longer,
-        // harder-to-miss rest-complete alert without becoming one continuous tone.
-        const beepGroups = [
-          [0.00, 0.25, 0.50],
-          [1.25, 1.50, 1.75],
-          [2.50, 2.75, 3.00]
-        ];
-        beepGroups.flat().forEach(playBurst);
-
-        // Match the three beep groups with three vibration clusters on supported devices.
-        // Each cluster is three short pulses, with a longer pause between clusters.
-        if (navigator.vibrate) {
-          navigator.vibrate([
-            180, 70, 180, 70, 180,
-            570,
-            180, 70, 180, 70, 180,
-            570,
-            180, 70, 180, 70, 180
-          ]);
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return Promise.resolve(false);
+        if (!restAlarmAudioContext || restAlarmAudioContext.state === 'closed') {
+          restAlarmAudioContext = new AudioContextClass();
         }
-
-        // Release the audio context after the full 9-beep alert finishes.
-        setTimeout(() => {
-          if (ctx && typeof ctx.close === 'function') ctx.close().catch(() => {});
-        }, 3800);
-
+        if (restAlarmAudioContext.state === 'running') return Promise.resolve(true);
+        return restAlarmAudioContext.resume().then(
+          () => restAlarmAudioContext.state === 'running',
+          () => false
+        );
       } catch (e) {
-        console.log("Audio play blocked or unsupported:", e);
+        return Promise.resolve(false);
       }
     }
 
+    async function playTimerAlarm() {
+      const unlocked = await unlockRestAlarmAudio();
+      if (!unlocked) return false;
+      try {
+        const ctx = restAlarmAudioContext;
+        const base = ctx.currentTime + .025;
+        const playBurst = (offset) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(1046.50, base + offset);
+          gain.gain.setValueAtTime(.3, base + offset);
+          gain.gain.exponentialRampToValueAtTime(.001, base + offset + .15);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(base + offset);
+          osc.stop(base + offset + .15);
+        };
+        [0,.25,.5,1.25,1.5,1.75,2.5,2.75,3].forEach(playBurst);
+        if (navigator.vibrate) navigator.vibrate([
+          180,70,180,70,180,570,180,70,180,70,180,570,180,70,180,70,180
+        ]);
+        return true;
+      } catch (e) {
+        console.log('Rest alarm playback unavailable:', e);
+        return false;
+      }
+    }
+
+    async function deliverPendingRestAlarm() {
+      if (!restAlarmPending || restAlarmAttemptInFlight || document.hidden) return;
+      restAlarmAttemptInFlight = true;
+      const runId = restAlarmRunId;
+      try {
+        const started = await playTimerAlarm();
+        if (runId !== restAlarmRunId) return;
+        if (started) {
+          restAlarmPending = false;
+          restAlarmRetryOnGesture = false;
+          restTimerAlarmFired = true;
+          showRestTimerNotification();
+        } else {
+          restAlarmRetryOnGesture = true;
+          showRestTimerNotification();
+        }
+      } finally {
+        restAlarmAttemptInFlight = false;
+      }
+    }
+
+    function cancelPendingRestAlarm() {
+      restAlarmRunId++;
+      restAlarmPending = false;
+      restAlarmRetryOnGesture = false;
+      restTimerAlarmFired = false;
+    }
+
+    // A genuine touch/click can unlock Web Audio when Android blocks autoplay
+    // after backgrounding. Only retries if a previous attempt was blocked.
+    document.addEventListener('pointerdown', () => {
+      if (restAlarmRetryOnGesture && restAlarmPending) deliverPendingRestAlarm();
+    }, {passive:true});
     function showRestTimerNotification() {
       // Use an in-app notification instead of window.alert().
       // Native alert() blocks the page's event loop on some phones, which can
@@ -6284,11 +6317,10 @@ function onRepsEntered(exerciseIndex, repInput) {
       totalSeconds = 0;
       updateTimerDisplay();
       setRestTimerButtonState('finished');
-      if (!restTimerAlarmFired) {
-        restTimerAlarmFired = true;
-        playTimerAlarm();
-        showRestTimerNotification();
+      if (!restTimerAlarmFired && !restAlarmPending) {
+        restAlarmPending = true;
       }
+      if (!document.hidden) deliverPendingRestAlarm();
     }
 
     function syncRestTimerFromClock() {
@@ -6318,7 +6350,9 @@ function onRepsEntered(exerciseIndex, repInput) {
         restTimerStartSeconds = Math.max(1, totalSeconds);
       }
 
-      restTimerAlarmFired = false;
+      cancelPendingRestAlarm();
+      // Unlock sound on the START REST gesture, before any background suspension.
+      unlockRestAlarmAudio();
       restTimerEndTime = Date.now() + (totalSeconds * 1000);
       updateTimerDisplay();
       setRestTimerButtonState('running');
@@ -6330,20 +6364,25 @@ function onRepsEntered(exerciseIndex, repInput) {
     }
 
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && restTimerEndTime) syncRestTimerFromClock();
+      if (!document.hidden) {
+        if (restTimerEndTime) syncRestTimerFromClock();
+        deliverPendingRestAlarm();
+      }
     });
     window.addEventListener('focus', () => {
       if (restTimerEndTime) syncRestTimerFromClock();
+      deliverPendingRestAlarm();
     });
     window.addEventListener('pageshow', () => {
       if (restTimerEndTime) syncRestTimerFromClock();
+      deliverPendingRestAlarm();
     });
 
     function resetTimer() {
       clearInterval(timerInterval);
       timerInterval = null;
       restTimerEndTime = null;
-      restTimerAlarmFired = false;
+      cancelPendingRestAlarm();
       setRestTimerButtonState('ready');
       const ex = Number.isInteger(smartRestExerciseIndex) && Array.isArray(activeExercises)
         ? activeExercises[smartRestExerciseIndex]
@@ -6360,7 +6399,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       clearInterval(timerInterval);
       timerInterval = null;
       restTimerEndTime = null;
-      restTimerAlarmFired = false;
+      cancelPendingRestAlarm();
       smartRestExerciseIndex = null;
       totalSeconds = 150;
       restTimerStartSeconds = 150;
@@ -7531,6 +7570,42 @@ function onRepsEntered(exerciseIndex, repInput) {
       appStorage.setItem('schmokefit_barcode_foods',JSON.stringify(saved));
     }
 
+    // V172: Manage the separate, device-local barcode lookup cache.
+    function forgetCurrentSavedBarcode() {
+      const barcode = String(currentBarcodeFood?.barcode || '').trim();
+      if (!barcode || !getSavedBarcodeFoods()[barcode]) return;
+      if (!confirm('Forget the saved nutrition for barcode ' + barcode + '? Previously logged meals will not change. SchmokeFit will look up this barcode again.')) return;
+      removeSavedBarcodeFood(barcode);
+      currentBarcodeFood = null;
+      document.getElementById('foodSearchResults').innerHTML = '<div class="nutrition-empty">Saved barcode removed. Checking the product database again…</div>';
+      lookupBarcode(barcode);
+    }
+
+    function editCurrentSavedBarcode() {
+      const barcode = String(currentBarcodeFood?.barcode || '').trim();
+      const saved = getSavedBarcodeFoods()[barcode];
+      if (!barcode || !saved) return;
+      const grams = Math.max(1, Number(saved.servingGrams) || 100);
+      const scale = grams / 100;
+      showManualFoodForm(barcode);
+      document.getElementById('manualFoodName').value = saved.name || '';
+      document.getElementById('manualFoodUnit').value = 'g';
+      updateManualServingFields();
+      document.getElementById('manualFoodServing').value = grams;
+      document.getElementById('manualFoodCalories').value = Math.round(numberOrZero(saved.caloriesPer100) * scale * 10) / 10;
+      document.getElementById('manualFoodProtein').value = Math.round(numberOrZero(saved.proteinPer100) * scale * 10) / 10;
+      document.getElementById('manualFoodCarbs').value = Math.round(numberOrZero(saved.carbsPer100) * scale * 10) / 10;
+      document.getElementById('manualFoodFat').value = Math.round(numberOrZero(saved.fatPer100) * scale * 10) / 10;
+      const alertBox = document.getElementById('manualBarcodeAlert');
+      if (alertBox) {
+        const title = alertBox.querySelector('.manual-barcode-alert-title');
+        if (title) title.textContent = '✎ EDIT SAVED BARCODE';
+      }
+      document.getElementById('manualFoodHeading').textContent = 'EDIT SAVED BARCODE NUTRITION';
+      document.getElementById('manualFoodSaveBtn').textContent = 'SAVE CORRECTION & ADD TO MEAL';
+      document.getElementById('manualFoodPanel').scrollIntoView({behavior:'smooth',block:'center'});
+    }
+
     async function startBarcodeScanner() {
       hideManualFoodForm();
       document.getElementById('foodSearchResults').innerHTML = '';
@@ -7850,6 +7925,7 @@ function onRepsEntered(exerciseIndex, repInput) {
             <div class="search-result-meta">Barcode: ${escapeHtml(barcode)}</div>
           </div>
         </div>
+        ${sourceLabel === 'Saved on this device' ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;"><button type="button" class="btn btn-dark" style="margin:0;flex:1;" onclick="editCurrentSavedBarcode()">EDIT NUTRITION</button><button type="button" class="btn btn-dark" style="margin:0;flex:1;" onclick="forgetCurrentSavedBarcode()">FORGET SAVED BARCODE</button></div>` : ''}
         <div class="search-result-controls">
           <input type="number" min="0.01" step="0.01" value="1" id="barcodeFoodAmount" class="custom-select" aria-label="Amount" oninput="updateBarcodeServingPreview()" onchange="updateBarcodeServingPreview()">
           <select id="barcodeFoodUnit" class="custom-select" aria-label="Unit" onchange="updateBarcodeServingPreview()">
