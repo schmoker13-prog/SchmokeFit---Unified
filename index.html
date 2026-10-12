@@ -14933,16 +14933,16 @@ function todayOpenConsistencyProgress(){
 </div>
 
 <script>
-/* V182.1 — retain the user's current screen across Android background reloads.
+/* V182.2 — retain the user's current screen across Android background reloads.
    Navigation state only: no cloud, nutrition, workout or timer data is changed. */
 (function(){
   const KEY='sf1821_navigation';
   const allowed=new Set(['introTab','todayTab','workoutTab','macrosTab','nutritionHistoryTab','historyTab']);
-  let restoring=false;
+  let restoring=false, armed=false, backgroundState=null;
   function visibleApp(){const a=document.getElementById('appContainer');return a&&getComputedStyle(a).display!=='none';}
-  function read(){try{const x=JSON.parse(sessionStorage.getItem(KEY)||'null');return x&&Date.now()-x.time<43200000?x:null;}catch(e){return null;}}
+  function read(){try{const x=JSON.parse(sessionStorage.getItem(KEY)||localStorage.getItem(KEY)||'null');return x&&Date.now()-x.time<43200000?x:null;}catch(e){return null;}}
   function remember(){
-    if(restoring||!visibleApp())return;
+    if(restoring||!armed||!visibleApp())return;
     const active=document.querySelector('.tab-content.active');
     if(!active||!allowed.has(active.id))return;
     const detail=document.getElementById('workoutDetailView');
@@ -14955,7 +14955,7 @@ function todayOpenConsistencyProgress(){
       state.extraDraft=typeof editingExtraDraftId!=='undefined'?editingExtraDraftId:null;
       try{if(typeof saveCurrentWorkoutDraft==='function')saveCurrentWorkoutDraft();}catch(e){}
     }
-    try{sessionStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+    try{sessionStorage.setItem(KEY,JSON.stringify(state));localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
   }
   function restore(){
     if(!visibleApp())return false;
@@ -14975,7 +14975,7 @@ function todayOpenConsistencyProgress(){
         }
       }
     }catch(e){console.warn('Navigation restore skipped',e);}
-    finally{restoring=false;remember();}
+    finally{restoring=false;armed=true;remember();}
     return true;
   }
   // Wrap the final tab switch handler; only explicit navigation updates this state.
@@ -14995,13 +14995,13 @@ function todayOpenConsistencyProgress(){
     const original=window.closeWorkoutDetail;
     window.closeWorkoutDetail=function(){const result=original.apply(this,arguments);remember();return result;};
   }
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)remember();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){remember();backgroundState=read();}else if(armed&&visibleApp()){if(backgroundState&&backgroundState.tab!=='todayTab'){try{sessionStorage.setItem(KEY,JSON.stringify(backgroundState));localStorage.setItem(KEY,JSON.stringify(backgroundState));}catch(e){}}const state=read();const active=document.querySelector('.tab-content.active');if(state&&active&&active.id==='todayTab'&&state.tab!=='todayTab')restore();}});
   window.addEventListener('pagehide',remember);
   // Login asynchronously initializes the app and defaults to Today. Restore only
   // after it becomes visible, so the existing startup/auth flow remains intact.
   const app=document.getElementById('appContainer');
   if(app){
-    const observer=new MutationObserver(()=>{if(visibleApp())setTimeout(restore,120);});
+    const observer=new MutationObserver(()=>{if(visibleApp()&&!armed)setTimeout(restore,120);});
     observer.observe(app,{attributes:true,attributeFilter:['style','class']});
     if(visibleApp())setTimeout(restore,200);
   }
