@@ -10753,12 +10753,10 @@ function onRepsEntered(exerciseIndex, repInput) {
     let workoutCompletionPromptShown = false;
 
     function stopAndResetRestTimer() {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      totalSeconds = 150;
-      restTimerStartSeconds = 150;
-      updateTimerDisplay();
-      setRestTimerButtonState('ready');
+      // V183.7: use the complete cancellation path on workout completion.
+      // Clearing only the display interval leaves the absolute deadline and
+      // queued alarm active, so an alarm can sound after leaving the workout.
+      stopRestTimerAfterWorkoutCompletion();
     }
 
 
