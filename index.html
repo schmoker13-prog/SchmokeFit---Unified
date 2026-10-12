@@ -3730,8 +3730,11 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V180</div>
-    <div class="account-tools-copy">Your workouts, nutrition, and progress stay on this device during everyday use. Cloud backups happen only when you choose. Back up before switching or replacing phones.</div>
+    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V181</div>
+    <div class="account-tools-copy">Your workouts, nutrition, and progress stay on this device during everyday use. Your primary device automatically backs up once a week when the app is open. Other devices cannot silently replace its backup.</div>
+    <div id="sfPrimaryStatus" role="status" style="font-size:12px;color:#b9c8d6;margin:10px 0">Primary device: checking…</div>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfPrimaryClaim" onclick="sfPrimaryClaimDevice()">📱 SET THIS AS PRIMARY DEVICE</button>
+    <div class="account-tools-copy" style="margin:8px 0 12px">Only the primary device can upload backups. Changing the primary device requires your confirmation. Automatic backups run only while the app is open and signed in.</div>
     <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0">Checking cloud backup…</div>
     <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ BACK UP MY DATA</button>
     <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sfCloudRestoreBackup()">⬇ RESTORE FROM CLOUD</button>
@@ -11706,6 +11709,7 @@ function toggleAccountMenu(event){
 }
 function closeAccountMenu(){document.getElementById('accountMenuPanel')?.classList.remove('open')}
 function openBackupPanel(){
+ setTimeout(async()=>{try{sf181ShowOwner(await sf181Owner());}catch(e){sfCloudStatus("V181 server setup required: "+e.message,true);}},50);
   closeAccountMenu();
   const sheet=document.getElementById('backupSheet');
   if(!sheet)return;
@@ -11820,38 +11824,100 @@ function sfCloudDownloadFile(payload,prefix){
  a.href=url;a.download=prefix+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
-async function sfCloudUploadBackup(){
+// V181: server-side primary ownership is enforced by the supplied SQL RPC.
+const SF181_DEVICE_KEY='sf181_device_id';
+const SF181_LAST_BACKUP='sf181_last_success_';
+const SF181_LAST_PING='sf181_last_ping_';
+let sf181Timer=null, sf181Running=false;
+function sf181DeviceId(){
+ let id=rawLocalStorage.getItem(SF181_DEVICE_KEY);
+ if(!id){id=crypto.randomUUID();rawLocalStorage.setItem(SF181_DEVICE_KEY,id);}
+ return id;
+}
+async function sf181Rpc(name,args={}){
+ const {data,error}=await schmokeAuthClient.rpc(name,args);
+ if(error)throw new Error(error.message+' (Install the V181 Supabase SQL setup if not already installed.)');
+ return data;
+}
+async function sf181Owner(){
+ await sfCloudIdentity();
+ return await sf181Rpc('sf181_status');
+}
+function sf181ShowOwner(status){
+ const el=document.getElementById('sfPrimaryStatus');
+ if(!el)return;
+ const id=sf181DeviceId();
+ el.textContent=!status?.primary_device_id?'Primary device: not selected yet. Choose your everyday phone.':
+ status.primary_device_id===id?'✓ This is your PRIMARY backup device. Weekly backups enabled.':'Secondary device — cloud uploads are locked to your primary device.';
+}
+async function sfPrimaryClaimDevice(){
  if(sfCloudBusy)return;
  sfCloudSetBusy(true);
  try{
-  const user=await sfCloudIdentity();
+  const status=await sf181Owner();
+  if(status?.primary_device_id===sf181DeviceId()){sf181ShowOwner(status);return;}
+  const existing=status?.primary_device_id;
+  if(!confirm(existing?'TRANSFER PRIMARY DEVICE?\n\nThis device will become the ONLY device allowed to upload cloud backups. The previous primary will be blocked.\n\nDo this only after restoring the newest cloud backup here, or if your previous device is permanently unavailable.\n\nContinue?':'Make THIS device your primary cloud backup device?\n\nChoose your everyday phone. Other devices will be prevented from overwriting its cloud backup.'))return;
+  if(existing&&!confirm('FINAL CONFIRMATION: Transfer backup ownership to this device? This does NOT restore or upload data.'))return;
+  const result=await sf181Rpc('sf181_claim_primary',{p_device_id:sf181DeviceId()});
+  sf181ShowOwner(result);
+  sfCloudStatus('Primary backup device set. Your cloud data has not been changed. Make one manual backup to start the weekly schedule.');
+ }catch(e){sfCloudStatus('Primary-device setup failed: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
+async function sf181Upload({automatic=false}={}){
+ if(sfCloudBusy)return;
+ sfCloudSetBusy(true);
+ try{
+  const status=await sf181Owner();sf181ShowOwner(status);
+  if(status?.primary_device_id!==sf181DeviceId()){
+   if(!automatic)sfCloudStatus('Upload blocked: this is not the primary device. Restore data here if needed, or explicitly transfer primary ownership.',true);
+   return;
+  }
   const payload=schmokeFitBackupPayload();
   if(!sfCloudValidPayload(payload))throw new Error('No valid local fitness data found. Nothing uploaded.');
-  const previous=await sfCloudFetch();
-  if(previous){
-   if(!confirm('A cloud backup already exists from '+new Date(previous.updated_at).toLocaleString()+'.\n\nFirst download a safety copy of the previous cloud backup? Choose OK to download it, or Cancel to leave everything unchanged.'))return;
-   if(!sfCloudValidPayload(previous.backup))throw new Error('Existing cloud backup is invalid; refusing to overwrite.');
-   sfCloudDownloadFile(previous.backup,'SchmokeFit-Previous-Cloud');
-   if(!confirm('Confirm that the previous cloud backup file downloaded successfully.\n\nReplace the cloud backup with the CURRENT DATA ON THIS DEVICE?\n\nCancel leaves the cloud unchanged.'))return;
-  }else if(!confirm('Back up all current fitness data from THIS device to your private cloud account?'))return;
-  sfCloudStatus('Saving cloud backup…');
-  const timestamp=new Date().toISOString();
-  let result;
-  if(previous){
-   result=await schmokeAuthClient.from('schmokefit_backups')
-    .update({backup:payload,updated_at:timestamp})
-    .eq('user_id',user.id).eq('updated_at',previous.updated_at).select('updated_at');
-  }else{
-   result=await schmokeAuthClient.from('schmokefit_backups')
-    .upsert({user_id:user.id,backup:payload,updated_at:timestamp},{onConflict:'user_id'}).select('updated_at');
+  if(!automatic){
+   const previous=await sfCloudFetch();
+   if(previous){
+    if(!confirm('Download a safety copy of the existing cloud backup before replacing it? Cancel leaves everything unchanged.'))return;
+    if(!sfCloudValidPayload(previous.backup))throw new Error('Existing cloud backup is invalid; refusing to overwrite.');
+    sfCloudDownloadFile(previous.backup,'SchmokeFit-Previous-Cloud');
+    if(!confirm('Confirm the cloud safety copy downloaded. Upload THIS primary device’s data now?'))return;
+   }else if(!confirm('Upload the current data from this primary device?'))return;
   }
-  if(result.error)throw result.error;
-  if(!result.data||result.data.length!==1)throw new Error('Cloud backup changed during upload. Nothing was overwritten. Try again.');
+  sfCloudStatus(automatic?'Weekly backup running…':'Saving cloud backup…');
+  const result=await sf181Rpc('sf181_save_backup',{p_device_id:sf181DeviceId(),p_backup:payload});
+  if(!result?.saved)throw new Error('Server did not confirm the upload.');
   const verified=await sfCloudFetch();
-  if(!verified||!sfCloudEqualData(verified.backup?.data,payload.data))throw new Error('Upload completed, but read-back verification did not match. Keep your local backup and retry later.');
-  sfCloudStatus('✓ Cloud backup verified and saved: '+new Date(verified.updated_at).toLocaleString()+'. This device is unchanged.');
- }catch(e){sfCloudStatus('Backup failed: '+e.message,true);}
+  if(!verified||!sfCloudEqualData(verified.backup?.data,payload.data))throw new Error('Backup read-back verification failed.');
+  rawLocalStorage.setItem(SF181_LAST_BACKUP+schmokeAuthUserId,new Date().toISOString());
+  sfCloudStatus('✓ '+(automatic?'Weekly ':'')+'cloud backup verified: '+new Date(verified.updated_at).toLocaleString()+'.');
+ }catch(e){sfCloudStatus((automatic?'Weekly backup failed: ':'Backup failed: ')+e.message,true);}
  finally{sfCloudSetBusy(false);}
+}
+async function sfCloudUploadBackup(){return sf181Upload({automatic:false});}
+async function sf181Background(){
+ if(sf181Running||sfCloudBusy||!schmokeAuthUserId||document.visibilityState==='hidden'||!navigator.onLine)return;
+ sf181Running=true;
+ try{
+  const uid=schmokeAuthUserId,now=Date.now();
+  const ping=Date.parse(rawLocalStorage.getItem(SF181_LAST_PING+uid)||'');
+  let status=null;
+  if(!Number.isFinite(ping)||now-ping>=24*3600*1000){
+   status=await sf181Owner(); // Lightweight authenticated database read; no fitness data touched.
+   rawLocalStorage.setItem(SF181_LAST_PING+uid,new Date().toISOString());
+   sf181ShowOwner(status);
+  }
+  const last=Date.parse(rawLocalStorage.getItem(SF181_LAST_BACKUP+uid)||'');
+  if(Number.isFinite(last)&&now-last>=7*24*3600*1000){
+   status=status||await sf181Owner();sf181ShowOwner(status);
+   if(status?.primary_device_id===sf181DeviceId()){
+    // Do not upload immediately on first launch: allow local app initialization to settle.
+    await sf181Upload({automatic:true});
+   }
+  }
+ }catch(e){console.warn('V181 background check deferred:',e.message);}
+ finally{sf181Running=false;}
 }
 async function sfCloudRestoreBackup(){
  if(sfCloudBusy)return;
@@ -11899,10 +11965,14 @@ async function sfCloudDownloadBackup(){
  finally{sfCloudSetBusy(false);}
 }
 
-/* V180: manual backups only. Legacy sync settings are intentionally ignored.
-   No timers, background uploads, automatic restores, or sync comparisons. */
-function sfSyncStop(){}
-function sfSyncOnLogin(){}
+/* V181: primary-only weekly snapshots and daily database keepalive; no two-way sync. */
+function sfSyncStop(){if(sf181Timer){clearInterval(sf181Timer);sf181Timer=null;}}
+function sfSyncOnLogin(){
+ sfSyncStop();
+ setTimeout(sf181Background,15000);
+ sf181Timer=setInterval(sf181Background,60*60*1000);
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(sf181Background,2500);});
 
 const appTourSteps = [
   {
