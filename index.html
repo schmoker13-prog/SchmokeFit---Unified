@@ -3730,7 +3730,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V182</div>
+    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V182.1</div>
     <div class="account-tools-copy">Your workouts, nutrition, and progress stay on this device during everyday use. Your primary device automatically backs up once a week when the app is open. Other devices cannot silently replace its backup.</div>
     <div id="sfPrimaryStatus" role="status" style="font-size:12px;color:#b9c8d6;margin:10px 0">Primary device: checking…</div>
     <button class="btn btn-dark account-tool-btn" type="button" id="sfPrimaryClaim" onclick="sfPrimaryClaimDevice()">📱 SET THIS AS PRIMARY DEVICE</button>
@@ -14932,6 +14932,81 @@ function todayOpenConsistencyProgress(){
   </div>
 </div>
 
+<script>
+/* V182.1 — retain the user's current screen across Android background reloads.
+   Navigation state only: no cloud, nutrition, workout or timer data is changed. */
+(function(){
+  const KEY='sf1821_navigation';
+  const allowed=new Set(['introTab','todayTab','workoutTab','macrosTab','nutritionHistoryTab','historyTab']);
+  let restoring=false;
+  function visibleApp(){const a=document.getElementById('appContainer');return a&&getComputedStyle(a).display!=='none';}
+  function read(){try{const x=JSON.parse(sessionStorage.getItem(KEY)||'null');return x&&Date.now()-x.time<43200000?x:null;}catch(e){return null;}}
+  function remember(){
+    if(restoring||!visibleApp())return;
+    const active=document.querySelector('.tab-content.active');
+    if(!active||!allowed.has(active.id))return;
+    const detail=document.getElementById('workoutDetailView');
+    const inDetail=active.id==='workoutTab'&&detail&&getComputedStyle(detail).display!=='none';
+    const state={tab:active.id,detail:!!inDetail,time:Date.now()};
+    if(inDetail){
+      state.week=typeof editingWorkoutWeek!=='undefined'?editingWorkoutWeek:null;
+      state.day=typeof editingWorkoutDay!=='undefined'?editingWorkoutDay:null;
+      state.cycle=typeof currentWorkoutCycle!=='undefined'?currentWorkoutCycle:null;
+      state.extraDraft=typeof editingExtraDraftId!=='undefined'?editingExtraDraftId:null;
+      try{if(typeof saveCurrentWorkoutDraft==='function')saveCurrentWorkoutDraft();}catch(e){}
+    }
+    try{sessionStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  }
+  function restore(){
+    if(!visibleApp())return false;
+    const state=read();
+    if(!state||!allowed.has(state.tab)||state.tab==='introTab')return true;
+    restoring=true;
+    try{
+      const btn=document.getElementById('tabBtn-'+state.tab);
+      if(typeof switchTab==='function')switchTab(state.tab,btn);
+      if(state.tab==='workoutTab'&&state.detail&&state.cycle===currentWorkoutCycle){
+        if(Number.isFinite(Number(state.week)))viewedWorkoutWeek=Number(state.week);
+        if(state.extraDraft&&typeof openExtraWorkoutDraft==='function'){
+          const key=typeof extraWorkoutDraftKey==='function'?extraWorkoutDraftKey(state.cycle,state.week,state.extraDraft):null;
+          if(key&&typeof getWorkoutDrafts==='function'&&getWorkoutDrafts()[key])openExtraWorkoutDraft(key);
+        }else if(state.day&&typeof openWorkoutDetail==='function'){
+          openWorkoutDetail(state.day);
+        }
+      }
+    }catch(e){console.warn('Navigation restore skipped',e);}
+    finally{restoring=false;remember();}
+    return true;
+  }
+  // Wrap the final tab switch handler; only explicit navigation updates this state.
+  if(typeof window.switchTab==='function'){
+    const original=window.switchTab;
+    window.switchTab=function(){const result=original.apply(this,arguments);remember();return result;};
+  }
+  if(typeof window.openWorkoutDetail==='function'){
+    const original=window.openWorkoutDetail;
+    window.openWorkoutDetail=function(){const result=original.apply(this,arguments);remember();return result;};
+  }
+  if(typeof window.openExtraWorkoutDraft==='function'){
+    const original=window.openExtraWorkoutDraft;
+    window.openExtraWorkoutDraft=function(){const result=original.apply(this,arguments);remember();return result;};
+  }
+  if(typeof window.closeWorkoutDetail==='function'){
+    const original=window.closeWorkoutDetail;
+    window.closeWorkoutDetail=function(){const result=original.apply(this,arguments);remember();return result;};
+  }
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)remember();});
+  window.addEventListener('pagehide',remember);
+  // Login asynchronously initializes the app and defaults to Today. Restore only
+  // after it becomes visible, so the existing startup/auth flow remains intact.
+  const app=document.getElementById('appContainer');
+  if(app){
+    const observer=new MutationObserver(()=>{if(visibleApp())setTimeout(restore,120);});
+    observer.observe(app,{attributes:true,attributeFilter:['style','class']});
+    if(visibleApp())setTimeout(restore,200);
+  }
+})();
+</script>
 </body>
 </html>
 <!-- V149: Bahama Mama and Aesthetic Athlete header artwork rebuilt from the exact Greek Physique/blue master geometry. -->
