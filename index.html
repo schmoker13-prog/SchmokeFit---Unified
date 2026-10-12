@@ -3730,7 +3730,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">PRIVATE CLOUD BACKUP & SYNC · V179.5</div>
+    <div class="info-subtitle">PRIVATE CLOUD BACKUP & SYNC · V179.6</div>
     <div class="account-tools-copy">Automatic sync is optional. Enable it only after reviewing the cloud and device copies. Conflicts pause sync instead of overwriting either copy.</div>
     <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:10px 0">Checking cloud backup…</div>
     <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ SAVE TO CLOUD</button>
@@ -12004,6 +12004,24 @@ function sfSyncConflictReport(local,remote){
  lines.push('No copy was overwritten. Export backups and keep sync disabled until resolved.');
  return lines.join('\n');
 }
+// V179.6: Only reconcile divergent revisions when every cloud-side change
+// is already present identically on this device. Never merge conflicting values.
+function sfSyncCanSafelyAdvanceLocal(local,remote,user=sfSyncUser){
+ const base=sfSyncLoadEntryBase(user);
+ if(!base)return false;
+ const device=sfSyncEntrySignatures(local),cloud=sfSyncEntrySignatures(remote);
+ const keys=new Set([...Object.keys(base),...Object.keys(device),...Object.keys(cloud)]);
+ let localHasDifference=false;
+ for(const k of keys){
+  const l=device[k],r=cloud[k],b=base[k];
+  if(l!==r){
+   localHasDifference=true;
+   // If cloud differs from baseline, this entry is a genuine collision.
+   if(r!==b)return false;
+  }
+ }
+ return localHasDifference;
+}
 function sfSyncStop(){if(sfSyncTimer)clearInterval(sfSyncTimer);sfSyncTimer=null;sfSyncUser=null;sfSyncBase=null;sfSyncPause=false;sfSyncRunning=false;sfSyncText('Automatic sync is off.');sfSyncButton();}
 function sfSyncButton(){const e=document.getElementById('sfSyncToggle');if(e)e.textContent=sfSyncUser?'⏸ DISABLE AUTOMATIC SYNC':'⇄ ENABLE AUTOMATIC SYNC';}
 function sfSyncHasData(p){return Object.keys(p?.data||{}).some(k=>!/(migration|tour_completed|program|master_unlocked|show_intro|has_logged_in_before)/.test(k));}
@@ -12083,7 +12101,20 @@ async function sfSyncToggle(){
    sfSyncSaveEntryBase(user.id,local);
   }else{
    const a=sfSyncSignature(local),b=sfSyncSignature(row.backup);
-   if(a!==b){
+   if(a!==b&&sfSyncCanSafelyAdvanceLocal(local,row.backup,user.id)){
+    // Safe re-enrollment: remote changes are already represented on this device;
+    // the remaining differences are exclusively device-side.
+    if(!confirm('V179.6: The cloud changes already match this device. Only device-side differences remain. Upload this device’s additional changes to cloud and resume sync?\n\nCancel keeps both copies unchanged.'))return;
+    if(sfSyncSignature(sfSyncSnapshot())!==a){sfSyncText('Device changed during confirmation. Please retry.',true);return;}
+    const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
+     .update({backup:local,updated_at:new Date().toISOString()})
+     .eq('user_id',user.id).eq('updated_at',row.updated_at)
+     .select('updated_at');
+    if(error)throw error;
+    if(!data||data.length!==1){sfSyncText('Cloud changed during reconciliation. Nothing was overwritten. Retry.',true);return;}
+    sfSyncSaveBase(user.id,{stamp:data[0].updated_at,signature:a});
+    sfSyncSaveEntryBase(user.id,local);
+   }else if(a!==b){
     const choice=confirm('The device and cloud backups DIFFER.\n\n'+sfSyncDifferenceMessage(local,row.backup)+'\n\n'+sfSyncConflictReport(local,row.backup)+'\n\nOK = DOWNLOAD cloud data to this device (replaces local fitness data after another confirmation).\nCANCEL = Keep both unchanged and leave sync off.\n\nExport a local backup first!');
     if(!choice){sfSyncText('Different copies detected. Sync is off; no data was overwritten.',true);return;}
     if(!confirm('LAST CONFIRMATION: Replace this device’s fitness data with the cloud backup? This will reload the app. Export a local backup first.'))return;
@@ -12130,7 +12161,29 @@ async function sfSyncTick(manual){
    return;
   }
   const localChanged=localSig!==sfSyncBase.signature,remoteChanged=remoteSig!==sfSyncBase.signature;
-  if(localChanged&&remoteChanged){sfSyncPause=true;sfSyncText(sfSyncConflictReport(local,row.backup),true);return;}
+  if(localChanged&&remoteChanged){
+   // V179.6: cloud-only differences that are already reflected locally do not
+   // need to block uploading other device-only changes.
+   if(sfSyncCanSafelyAdvanceLocal(local,row.backup)){
+    if(sfSyncSignature(sfSyncSnapshot())!==localSig){
+     sfSyncText('Local data changed during sync check; retrying on next check.');return;
+    }
+    sfSyncText('☁ Reconciling matching cloud changes and saving device updates…');
+    const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
+     .update({backup:local,updated_at:new Date().toISOString()})
+     .eq('user_id',sfSyncUser).eq('updated_at',row.updated_at)
+     .select('updated_at');
+    if(error)throw error;
+    if(!data||data.length!==1){
+     sfSyncPause=true;sfSyncText('⚠ Cloud changed during reconciliation. Sync paused.',true);return;
+    }
+    sfSyncSaveBase(sfSyncUser,{stamp:data[0].updated_at,signature:localSig});
+    sfSyncSaveEntryBase(sfSyncUser,local);
+    sfSyncText('✓ All changes saved to cloud. Last checked '+new Date().toLocaleTimeString());
+    return;
+   }
+   sfSyncPause=true;sfSyncText(sfSyncConflictReport(local,row.backup),true);return;
+  }
   if(remoteChanged){
    if(!sfSyncSafeToReload()){
     sfSyncText('☁ New cloud changes waiting. SchmokeFit will update after 30 seconds without interaction.');return;
