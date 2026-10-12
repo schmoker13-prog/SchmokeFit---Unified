@@ -3730,39 +3730,28 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V183</div>
-    <div class="account-tools-copy">Your workouts, nutrition, and progress stay on this device during everyday use. Your primary device automatically backs up once a week when the app is open. Other devices cannot silently replace its backup.</div>
-    <div id="sfPrimaryStatus" role="status" style="font-size:12px;color:#b9c8d6;margin:10px 0">Primary device: checking…</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfPrimaryClaim" onclick="sfPrimaryClaimDevice()">📱 SET THIS AS PRIMARY DEVICE</button>
-    <div class="account-tools-copy" style="margin:8px 0 12px">Only the primary device can upload backups. Changing the primary device requires your confirmation. Automatic backups run only while the app is open and signed in.</div>
-    <div id="sf182Dashboard" style="background:#182535;border:1px solid #34485d;border-radius:12px;padding:13px;margin:12px 0;font-size:12px;line-height:1.75;color:#d8e4ee" role="status" aria-live="polite">
-      <div style="font-size:13px;font-weight:800;color:#f0f7ff;margin-bottom:6px">CLOUD PROTECTION STATUS</div>
-      <div id="sf182Last">Last verified backup: Checking…</div>
-      <div id="sf182Next">Next automatic backup: Checking…</div>
-      <div id="sf182Ping">Supabase activity check: Checking…</div>
-      <div id="sf182Check">Weekly backup check: Checking…</div>
+    <div class="info-subtitle">CLOUD BACKUP · V184</div>
+    <div id="sfPrimaryStatus" role="status" style="font-size:13px;color:#e2edf7;margin:12px 0">Checking device…</div>
+    <div id="sf184DeviceType" class="account-tools-copy">Device type: checking…</div>
+    <div id="sf184Auto" class="account-tools-copy" style="margin:9px 0">Checking weekly backup schedule…</div>
+    <div id="sf184Times" class="account-tools-copy" style="margin:9px 0;line-height:1.8">Checking saved backups…</div>
+    <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0">Ready.</div>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ BACK UP NOW</button>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sf184OpenRestore()">⬇ RESTORE CLOUD BACKUP</button>
+    <details style="margin-top:14px;border-top:1px solid #35414d;padding-top:12px">
+      <summary style="color:#e2edf7;font-weight:700;cursor:pointer">⚙ DEVICE SETTINGS</summary>
+      <div class="account-tools-copy" style="margin:12px 0">Rename this device for easier identification. Only the primary device makes automatic weekly backups while the app is open and signed in. Changing primary status never moves or restores fitness data.</div>
+      <input id="sf184DeviceName" type="text" maxlength="45" placeholder="Optional device name" style="width:100%;box-sizing:border-box;background:#152332;color:#fff;border:1px solid #526274;border-radius:8px;padding:11px;margin-bottom:9px">
+      <button class="btn btn-dark account-tool-btn" type="button" onclick="sf184SaveDeviceName()">SAVE DEVICE NAME</button>
+      <button class="btn btn-dark account-tool-btn" type="button" id="sfPrimaryClaim" onclick="sfPrimaryClaimDevice()">MAKE THIS PRIMARY DEVICE</button>
+      <div class="account-tools-copy" style="margin:10px 0">Local file backups are available above. Older granular transfer controls have been retired from this screen.</div>
+    </details>
+    <div id="sf184RestoreModal" style="display:none;background:#172637;border:1px solid #557087;border-radius:12px;padding:14px;margin-top:16px">
+      <div class="info-subtitle">RESTORE CLOUD BACKUP</div>
+      <div class="account-tools-copy">Choose a backup to replace this device's fitness data. A safety JSON file will be downloaded first.</div>
+      <div id="sf184RestoreOptions" style="margin:12px 0">Loading backups…</div>
+      <button class="btn btn-dark account-tool-btn" type="button" onclick="sf184CloseRestore()">CANCEL</button>
     </div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sf182CheckBtn" onclick="sf182CheckNow()">↻ CHECK BACKUP SCHEDULE</button>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sf182TestBtn" onclick="sf182TestBackup()">🛡 TEST AUTOMATIC BACKUP</button>
-    <div class="account-tools-copy" style="margin:8px 0 12px">Schedule check is read-only. Test automatic backup is optional and asks before replacing the cloud snapshot; a copy of the previous cloud backup is downloaded first. Neither action changes your training data on this device.</div>
-    <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0">Checking cloud backup…</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ BACK UP MY DATA</button>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sfCloudRestoreBackup()">⬇ RESTORE FROM CLOUD</button>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudDownload" onclick="sfCloudDownloadBackup()">⬇ DOWNLOAD CLOUD BACKUP FILE</button>
-    <div style="border-top:1px solid #35414d;margin:20px 0 12px"></div>
-    <div class="info-subtitle">DEVICE TRANSFER · V183.6</div>
-    <div class="account-tools-copy">Transfer laptop changes to your phone without replacing the primary cloud backup. Start by syncing the latest backup on your secondary device, before logging new workouts there.</div>
-    <div id="sf183Status" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0;line-height:1.6">Check device status to begin.</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sf183Check" onclick="sf183CheckStatus()">↻ CHECK DEVICE TRANSFER STATUS</button>
-    <div id="sf183SecondaryControls" style="display:none">
-      <button class="btn btn-dark account-tool-btn" type="button" id="sf183Sync" onclick="sf183SyncLatest()">⬇ SYNC LATEST PRIMARY BACKUP</button>
-      <button class="btn btn-dark account-tool-btn" type="button" id="sf183Send" onclick="sf183SendChanges()">⬆ SEND CHANGES TO PRIMARY</button>
-    </div>
-    <div id="sf183PrimaryControls" style="display:none">
-      <button class="btn btn-dark account-tool-btn" type="button" id="sf183Receive" onclick="sf183ReceiveChanges()">📥 REVIEW &amp; RECEIVE CHANGES</button>
-    </div>
-    <div class="account-tools-copy" style="margin-top:10px">Conflicting changes are never overwritten automatically. Every restore or receive requires a downloaded safety backup. Sending changes does not modify the primary cloud backup.</div>
-    <div class="account-tools-copy" style="margin-top:12px">Restoring replaces this device's fitness data. SchmokeFit will first download a safety backup of the current device. Keep that file until you've checked the restored data.</div>
   </div>
 </div>
 </div>
@@ -11744,8 +11733,7 @@ function openBackupPanel(){
   const card=sheet.querySelector('.backup-sheet-card');
   if(card)card.scrollTop=0;
   document.body.style.overflow='hidden';
-  sfCloudRefreshStatus();
-  setTimeout(()=>sf183CheckStatus(),100);
+  setTimeout(()=>sf184Refresh(),100);
 }
 function closeBackupPanel(){
   document.getElementById('backupSheet')?.classList.remove('open');
@@ -11917,8 +11905,7 @@ function sf181ShowOwner(status){
  const el=document.getElementById('sfPrimaryStatus');
  if(!el)return;
  const id=sf181DeviceId();
- el.textContent=!status?.primary_device_id?'Primary device: not selected yet. Choose your everyday phone.':
- status.primary_device_id===id?'✓ This is your PRIMARY backup device. Weekly backups enabled.':'Secondary device — cloud uploads are locked to your primary device.';
+ el.textContent=!status?.primary_device_id?'Device Not Assigned':status.primary_device_id===id?'Primary Device · '+(typeof sf184DeviceLabel==='function'?sf184DeviceLabel():''):'Secondary Device · '+(typeof sf184DeviceLabel==='function'?sf184DeviceLabel():'');
  sf182Display(status);
 }
 async function sfPrimaryClaimDevice(){
@@ -12048,6 +12035,130 @@ function sfSyncOnLogin(){
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(sf181Background,2500);});
 
+
+/* V184: two independently owned full-backup slots; legacy primary backup remains untouched. */
+const SF184_NAME_KEY='sf184_device_name';
+function sf184Type(){
+ const ua=navigator.userAgent||'';
+ if(/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1))return 'iPad';
+ if(/iPhone/i.test(ua))return 'iPhone';
+ if(/Android/i.test(ua))return /Mobile/i.test(ua)?'Android Phone':'Android Tablet';
+ if(/Windows/i.test(ua))return 'Windows Computer';
+ if(/Macintosh|Mac OS X/i.test(ua))return 'Mac Computer';
+ if(/CrOS/i.test(ua))return 'Chromebook';
+ if(/Linux/i.test(ua))return 'Linux Computer';
+ return 'Device';
+}
+function sf184DeviceLabel(){return rawLocalStorage.getItem(SF184_NAME_KEY)||sf184Type();}
+function sf184SaveDeviceName(){
+ const name=document.getElementById('sf184DeviceName').value.trim();
+ if(name)rawLocalStorage.setItem(SF184_NAME_KEY,name);
+ else rawLocalStorage.removeItem(SF184_NAME_KEY);
+ sf184Refresh();
+}
+async function sf184Slots(){
+ return await sf181Rpc('sf184_list_slots');
+}
+function sf184Date(v){return v?new Date(v).toLocaleString():'No backup yet';}
+async function sf184Refresh(){
+ try{
+  const [owner,slots]=await Promise.all([sf181Owner(),sf184Slots()]);
+  sf181ShowOwner(owner);
+  const primary=owner?.primary_device_id===sf181DeviceId();
+  const title=primary?'Primary Device':owner?.primary_device_id?'Secondary Device':'Device Not Assigned';
+  document.getElementById('sfPrimaryStatus').textContent=title+' · '+sf184DeviceLabel();
+  document.getElementById('sf184DeviceType').textContent='Detected device: '+sf184Type();
+  document.getElementById('sf184DeviceName').value=rawLocalStorage.getItem(SF184_NAME_KEY)||'';
+  document.getElementById('sf184Auto').textContent=primary?'Weekly automatic backup enabled (when app is open).':'Automatic backups off · Manual backup available.';
+  document.getElementById('sf184Times').textContent='Primary backup: '+sf184Date(slots?.primary?.updated_at)+'\nSecondary backup: '+sf184Date(slots?.secondary?.updated_at);
+  document.getElementById('sf184Times').style.whiteSpace='pre-line';
+  document.getElementById('sfPrimaryClaim').style.display=primary?'none':'block';
+ }catch(e){sfCloudStatus('V184 setup required: '+e.message,true);}
+}
+async function sf184Save(automatic=false){
+ if(sfCloudBusy)return;
+ sfCloudSetBusy(true);
+ try{
+  const owner=await sf181Owner(),primary=owner?.primary_device_id===sf181DeviceId();
+  if(automatic&&!primary)return;
+  if(!owner?.primary_device_id)throw new Error('Choose a primary device in Device Settings first.');
+  const slot=primary?'primary':'secondary',payload=schmokeFitBackupPayload();
+  if(!sfCloudValidPayload(payload))throw new Error('No valid fitness data to back up.');
+  if(!automatic&&!confirm('Back up this '+slot+' device now?\n\nThis replaces only the '+slot+' cloud backup slot. Your other cloud backup is preserved.'))return;
+  const result=await sf181Rpc('sf184_save_slot',{p_device_id:sf181DeviceId(),p_backup:payload});
+  if(!result?.saved||result.slot!==slot)throw new Error('Server did not confirm the correct backup slot.');
+  const verify=await sf181Rpc('sf184_get_slot',{p_slot:slot});
+  if(!verify?.backup||!sfCloudEqualData(verify.backup.data,payload.data))throw new Error('Cloud backup verification failed.');
+  if(primary)rawLocalStorage.setItem(SF181_LAST_BACKUP+schmokeAuthUserId,new Date().toISOString());
+  sfCloudStatus('✓ '+(automatic?'Weekly ':'')+slot+' backup verified: '+sf184Date(verify.updated_at));
+  sf184Refresh();
+ }catch(e){sfCloudStatus('Backup failed: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
+async function sf181Upload({automatic=false}={}){return sf184Save(automatic);}
+async function sfCloudUploadBackup(){return sf184Save(false);}
+async function sf184OpenRestore(){
+ const panel=document.getElementById('sf184RestoreModal'),options=document.getElementById('sf184RestoreOptions');
+ panel.style.display='block';options.textContent='Loading backups…';
+ try{
+  const slots=await sf184Slots();
+  options.innerHTML='';
+  for(const slot of ['primary','secondary']){
+   const info=slots?.[slot],button=document.createElement('button');
+   button.className='btn btn-dark account-tool-btn';
+   button.textContent=(slot==='primary'?'PRIMARY':'SECONDARY')+' BACKUP — '+sf184Date(info?.updated_at);
+   button.disabled=!info?.updated_at;
+   button.onclick=()=>sf184Restore(slot);
+   options.appendChild(button);
+  }
+ }catch(e){options.textContent='Unable to list backups: '+e.message;}
+}
+function sf184CloseRestore(){document.getElementById('sf184RestoreModal').style.display='none';}
+async function sf184Restore(slot){
+ if(sfCloudBusy||!['primary','secondary'].includes(slot))return;
+ sfCloudSetBusy(true);
+ try{
+  const row=await sf181Rpc('sf184_get_slot',{p_slot:slot});
+  if(!row?.backup||!sfCloudValidPayload(row.backup))throw new Error('Selected backup is unavailable or invalid.');
+  if(!confirm('RESTORE '+slot.toUpperCase()+' BACKUP\n\nSaved: '+sf184Date(row.updated_at)+'\n\nThis REPLACES all fitness data on this device. It does not change which device is primary. Continue?'))return;
+  const local=schmokeFitBackupPayload();
+  if(!sfCloudValidPayload(local))throw new Error('Cannot create safety backup of current device.');
+  sfCloudDownloadFile(local,'SchmokeFit-Before-V184-Restore');
+  if(!confirm('Confirm the safety backup file downloaded successfully.\n\nFINAL CONFIRMATION: Replace this device’s data?'))return;
+  const fresh=await sf181Rpc('sf184_get_slot',{p_slot:slot});
+  if(fresh?.updated_at!==row.updated_at||!sfCloudEqualData(fresh?.backup?.data,row.backup.data))throw new Error('Cloud backup changed during confirmation. Retry.');
+  const before=local.data;
+  try{
+   const keys=Object.keys(before);
+   keys.forEach(k=>rawLocalStorage.removeItem(k));
+   Object.entries(fresh.backup.data).forEach(([k,v])=>rawLocalStorage.setItem(k,String(v)));
+  }catch(e){
+   try{
+    Object.keys(fresh.backup.data).forEach(k=>rawLocalStorage.removeItem(k));
+    Object.entries(before).forEach(([k,v])=>rawLocalStorage.setItem(k,String(v)));
+   }catch(_){}
+   throw new Error('Local restore failed. Use your downloaded safety backup. '+e.message);
+  }
+  alert('Backup restored. SchmokeFit will reload.');location.reload();
+ }catch(e){sfCloudStatus('Restore stopped: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
+async function sfPrimaryClaimDevice(){
+ if(sfCloudBusy)return;
+ sfCloudSetBusy(true);
+ try{
+  const status=await sf181Owner();
+  if(status?.primary_device_id===sf181DeviceId())return;
+  if(!confirm('Make this the PRIMARY DEVICE?\n\nWeekly automatic backups will move to this device. No data will be restored or uploaded automatically by this action.'))return;
+  const result=await sf181Rpc('sf181_claim_primary',{p_device_id:sf181DeviceId()});
+  sf181ShowOwner(result);
+  // Reset schedule on the newly primary device so it does not immediately upload stale local data.
+  rawLocalStorage.setItem(SF181_LAST_BACKUP+schmokeAuthUserId,new Date().toISOString());
+  sfCloudStatus('Primary device changed. Your existing cloud backups are unchanged. Back up manually when ready.');
+  sf184Refresh();
+ }catch(e){sfCloudStatus('Primary device change failed: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
 const appTourSteps = [
   {
     tabId: 'todayTab',
