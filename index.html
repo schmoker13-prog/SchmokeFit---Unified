@@ -3730,7 +3730,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V182.3</div>
+    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V182.4</div>
     <div class="account-tools-copy">Your workouts, nutrition, and progress stay on this device during everyday use. Your primary device automatically backs up once a week when the app is open. Other devices cannot silently replace its backup.</div>
     <div id="sfPrimaryStatus" role="status" style="font-size:12px;color:#b9c8d6;margin:10px 0">Primary device: checking…</div>
     <button class="btn btn-dark account-tool-btn" type="button" id="sfPrimaryClaim" onclick="sfPrimaryClaimDevice()">📱 SET THIS AS PRIMARY DEVICE</button>
@@ -14934,10 +14934,10 @@ function todayOpenConsistencyProgress(){
 </div>
 
 <script>
-/* V182.3: navigation persistence, independent of the login startup default. */
+/* V182.4: navigation and scroll-position persistence. */
 (function(){
   const KEY='schmokefit_navigation_v183', LEGACY='sf1821_navigation';
-  let restoring=false, ready=false, beforeHide=null;
+  let restoring=false, ready=false, beforeHide=null, lastScrollY=0, scrollRestoreUntil=0;
   const tabs=new Set(['todayTab','workoutTab','macrosTab','nutritionHistoryTab','historyTab']);
   function appVisible(){const a=document.getElementById('appContainer');return !!a&&getComputedStyle(a).display!=='none';}
   function read(){
@@ -14953,7 +14953,8 @@ function todayOpenConsistencyProgress(){
     if(!active||!tabs.has(active.id))return;
     const detail=document.getElementById('workoutDetailView');
     const inDetail=active.id==='workoutTab'&&detail&&getComputedStyle(detail).display!=='none';
-    const x={tab:active.id,detail:!!inDetail,time:Date.now()};
+    const x={tab:active.id,detail:!!inDetail,time:Date.now(),scrollY:Math.max(0,Math.round(window.scrollY||document.documentElement.scrollTop||0))};
+    lastScrollY=x.scrollY;
     if(inDetail){
       x.week=typeof editingWorkoutWeek!=='undefined'?editingWorkoutWeek:null;
       x.day=typeof editingWorkoutDay!=='undefined'?editingWorkoutDay:null;
@@ -14963,12 +14964,27 @@ function todayOpenConsistencyProgress(){
     }
     try{localStorage.setItem(KEY,JSON.stringify(x));sessionStorage.setItem(KEY,JSON.stringify(x));}catch(e){}
   }
+  function restoreScroll(snapshot){
+    if(!snapshot||!Number.isFinite(Number(snapshot.scrollY)))return;
+    const target=Math.max(0,Number(snapshot.scrollY));
+    // Delayed rendering and existing smooth scroll-to-top calls can run after
+    // a workout is reopened. Restore only after the page has settled.
+    const apply=()=>{
+      if(document.hidden||!appVisible())return;
+      const active=document.querySelector('.tab-content.active');
+      if(active?.id!==snapshot.tab)return;
+      const detail=document.getElementById('workoutDetailView');
+      if(snapshot.tab==='workoutTab'&&snapshot.detail&&(!detail||getComputedStyle(detail).display==='none'))return;
+      window.scrollTo({top:target,left:0,behavior:'instant'});
+    };
+    [100,350,800,1400].forEach(ms=>setTimeout(apply,ms));
+  }
   function restore(){
     if(!appVisible())return;
     const x=beforeHide||read();
     if(!x||!tabs.has(x.tab))return;
     const active=document.querySelector('.tab-content.active');
-    if(active?.id===x.tab && (x.tab!=='workoutTab'||!x.detail||getComputedStyle(document.getElementById('workoutDetailView')).display!=='none'))return;
+    if(active?.id===x.tab && (x.tab!=='workoutTab'||!x.detail||getComputedStyle(document.getElementById('workoutDetailView')).display!=='none')){restoreScroll(x);return;}
     restoring=true;
     try {
       switchTab(x.tab,document.getElementById('tabBtn-'+x.tab));
@@ -14980,7 +14996,7 @@ function todayOpenConsistencyProgress(){
         }else if(x.day&&typeof openWorkoutDetail==='function')openWorkoutDetail(x.day);
       }
     }catch(e){console.warn('SchmokeFit navigation restore:',e);}
-    finally{restoring=false;}
+    finally{restoring=false;restoreScroll(x);}
   }
   // The login flow explicitly selects Today. Don't allow that startup selection
   // to overwrite the previous screen before the app is initialized.
@@ -15005,6 +15021,7 @@ function todayOpenConsistencyProgress(){
     const original=window.closeWorkoutDetail;
     window.closeWorkoutDetail=function(){const result=original.apply(this,arguments);save();return result;};
   }
+  window.addEventListener('scroll',()=>{if(ready&&!document.hidden&&!restoring)lastScrollY=Math.max(0,Math.round(window.scrollY||0));},{passive:true});
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){save();beforeHide=read();}
     else if(ready){setTimeout(restore,80);setTimeout(restore,500);}
