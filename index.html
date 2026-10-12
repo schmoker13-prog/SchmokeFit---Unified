@@ -3726,22 +3726,17 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   <div class="backup-sheet-card">
     <button class="backup-sheet-close" type="button" onclick="closeBackupPanel()">×</button>
     <div class="info-subtitle" style="padding-right:46px">DATA &amp; BACKUP</div>
-    <div class="account-tools-copy">Backup your SchmokeFit data before changing phones, browsers, or clearing site data.</div>
+    <div class="account-tools-copy">Save a backup before changing phones, browsers, or clearing site data.</div>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">PRIVATE CLOUD BACKUP & SYNC · V179.6</div>
-    <div class="account-tools-copy">Automatic sync is optional. Enable it only after reviewing the cloud and device copies. Conflicts pause sync instead of overwriting either copy.</div>
-    <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:10px 0">Checking cloud backup…</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ SAVE TO CLOUD</button>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudDownload" onclick="sfCloudDownloadBackup()">⬇ DOWNLOAD CLOUD BACKUP</button>
-    <div style="border-top:1px solid #35414d;margin:14px 0"></div>
-    <div class="account-tools-copy" style="border:1px solid #435b71;border-radius:10px;padding:12px;margin:10px 0"><strong>V179.5 — CLEAN BASELINE (COMPUTER)</strong><br>Only use this on the computer containing your verified, accurate data. First export a local backup. This process downloads the previous cloud backup before replacing it and requires two confirmations. Keep sync off on the phone until its data is restored from the new cloud backup.</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfBaselineComputer" onclick="sfSyncPromoteComputer()">⇧ SET THIS COMPUTER AS CLOUD BASELINE</button>
-    <div id="sfSyncStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:8px 0">Automatic sync is off.</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfSyncToggle" onclick="sfSyncToggle()">⇄ ENABLE AUTOMATIC SYNC</button>
-    <button class="btn btn-dark account-tool-btn" type="button" onclick="sfSyncCheckNow()">↻ CHECK FOR CHANGES</button>
-    <div class="account-tools-copy">To restore a downloaded cloud backup, use RESTORE BACKUP above. Review the confirmation carefully: restoring replaces local fitness data and reloads the app. Download a local backup first.</div>
+    <div class="info-subtitle">PRIVATE CLOUD BACKUP · V180</div>
+    <div class="account-tools-copy">Your workouts, nutrition, and progress stay on this device during everyday use. Cloud backups happen only when you choose. Back up before switching or replacing phones.</div>
+    <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0">Checking cloud backup…</div>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ BACK UP MY DATA</button>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sfCloudRestoreBackup()">⬇ RESTORE FROM CLOUD</button>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudDownload" onclick="sfCloudDownloadBackup()">⬇ DOWNLOAD CLOUD BACKUP FILE</button>
+    <div class="account-tools-copy" style="margin-top:12px">Restoring replaces this device's fitness data. SchmokeFit will first download a safety backup of the current device. Keep that file until you've checked the restored data.</div>
   </div>
 </div>
 </div>
@@ -11768,6 +11763,10 @@ function importSchmokeFitBackup(event){
    if(keys.length>15000)throw new Error('too many keys');
    const when=payload.exportedAt?new Date(payload.exportedAt).toLocaleString():'unknown date';
    if(!confirm(`Restore SchmokeFit backup from ${when}?\n\nThis will replace the SchmokeFit data currently stored on this device.`)){input.value='';return}
+   const safety=schmokeFitBackupPayload();
+   if(!sfCloudValidPayload(safety))throw new Error('Cannot create safety backup');
+   sfCloudDownloadFile(safety,'SchmokeFit-Before-File-Restore');
+   if(!confirm('Confirm the safety backup downloaded successfully before replacing this device data.')){input.value='';return;}
    const remove=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSchmokeFitStorageKey(k))remove.push(k)}
    remove.forEach(k=>localStorage.removeItem(k));keys.forEach(k=>localStorage.setItem(k,String(payload.data[k])));
    sfSyncStop();input.value='';alert('Backup restored successfully. SchmokeFit will reload now.');location.reload();
@@ -11783,7 +11782,7 @@ function sfCloudStatus(message,error=false){
 }
 function sfCloudSetBusy(busy){
  sfCloudBusy=busy;
- for(const id of ['sfCloudUpload','sfCloudDownload']){
+ for(const id of ['sfCloudUpload','sfCloudRestore','sfCloudDownload']){
   const btn=document.getElementById(id);if(btn)btn.disabled=busy;
  }
 }
@@ -11808,24 +11807,79 @@ async function sfCloudRefreshStatus(){
   sfCloudStatus(row?'Last cloud backup: '+new Date(row.updated_at).toLocaleString():'No cloud backup yet. Your local data is unchanged.');
  }catch(e){sfCloudStatus('Cloud backup unavailable: '+e.message,true);}
 }
+function sfCloudEqualData(a,b){
+ const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
+ return JSON.stringify(stable(a))===JSON.stringify(stable(b));
+}
+function sfCloudValidPayload(payload){
+ return payload?.app==='SchmokeFit'&&payload?.format==='schmokefit-local-backup'&&payload.data&&typeof payload.data==='object'&&!Array.isArray(payload.data)&&Object.keys(payload.data).length>0&&Object.keys(payload.data).length<=15000&&Object.keys(payload.data).every(isSchmokeFitStorageKey);
+}
+function sfCloudDownloadFile(payload,prefix){
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=prefix+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
 async function sfCloudUploadBackup(){
  if(sfCloudBusy)return;
  sfCloudSetBusy(true);
  try{
   const user=await sfCloudIdentity();
   const payload=schmokeFitBackupPayload();
-  if(Object.keys(payload.data).length===0)throw new Error('No local fitness data found to back up.');
+  if(!sfCloudValidPayload(payload))throw new Error('No valid local fitness data found. Nothing uploaded.');
   const previous=await sfCloudFetch();
-  const text=previous
-   ?'A cloud backup already exists from '+new Date(previous.updated_at).toLocaleString()+'.\n\nReplace it with the current data on THIS device? This cannot be undone. Download the existing cloud backup first if you want to keep it.'
-   :'Upload this device’s current SchmokeFit fitness data to your private Supabase account? This will not delete local data.';
-  if(!confirm(text))return;
-  sfCloudStatus('Uploading your private cloud backup…');
-  const {error}=await schmokeAuthClient.from('schmokefit_backups').upsert({user_id:user.id,backup:payload},{onConflict:'user_id'});
-  if(error)throw error;
-  sfCloudStatus('Cloud backup saved successfully. Local data is unchanged.');
-  if(sfSyncUser){sfSyncPause=true;sfSyncText('Manual cloud backup changed the sync baseline. Disable and re-enable sync to verify copies.');}
- }catch(e){sfCloudStatus('Upload failed: '+e.message,true);}
+  if(previous){
+   if(!confirm('A cloud backup already exists from '+new Date(previous.updated_at).toLocaleString()+'.\n\nFirst download a safety copy of the previous cloud backup? Choose OK to download it, or Cancel to leave everything unchanged.'))return;
+   if(!sfCloudValidPayload(previous.backup))throw new Error('Existing cloud backup is invalid; refusing to overwrite.');
+   sfCloudDownloadFile(previous.backup,'SchmokeFit-Previous-Cloud');
+   if(!confirm('Confirm that the previous cloud backup file downloaded successfully.\n\nReplace the cloud backup with the CURRENT DATA ON THIS DEVICE?\n\nCancel leaves the cloud unchanged.'))return;
+  }else if(!confirm('Back up all current fitness data from THIS device to your private cloud account?'))return;
+  sfCloudStatus('Saving cloud backup…');
+  const timestamp=new Date().toISOString();
+  let result;
+  if(previous){
+   result=await schmokeAuthClient.from('schmokefit_backups')
+    .update({backup:payload,updated_at:timestamp})
+    .eq('user_id',user.id).eq('updated_at',previous.updated_at).select('updated_at');
+  }else{
+   result=await schmokeAuthClient.from('schmokefit_backups')
+    .upsert({user_id:user.id,backup:payload,updated_at:timestamp},{onConflict:'user_id'}).select('updated_at');
+  }
+  if(result.error)throw result.error;
+  if(!result.data||result.data.length!==1)throw new Error('Cloud backup changed during upload. Nothing was overwritten. Try again.');
+  const verified=await sfCloudFetch();
+  if(!verified||!sfCloudEqualData(verified.backup?.data,payload.data))throw new Error('Upload completed, but read-back verification did not match. Keep your local backup and retry later.');
+  sfCloudStatus('✓ Cloud backup verified and saved: '+new Date(verified.updated_at).toLocaleString()+'. This device is unchanged.');
+ }catch(e){sfCloudStatus('Backup failed: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
+async function sfCloudRestoreBackup(){
+ if(sfCloudBusy)return;
+ sfCloudSetBusy(true);
+ try{
+  const row=await sfCloudFetch();
+  if(!row){sfCloudStatus('No cloud backup exists for this account yet.');return;}
+  if(!sfCloudValidPayload(row.backup))throw new Error('Cloud backup is invalid. No local data changed.');
+  const local=schmokeFitBackupPayload();
+  if(!confirm('RESTORE FROM CLOUD\n\nCloud backup: '+new Date(row.updated_at).toLocaleString()+'\n\nThis will REPLACE this device’s workout, nutrition and progress data. A local safety backup must be downloaded first.\n\nContinue?'))return;
+  if(!sfCloudValidPayload(local))throw new Error('Could not create a valid device safety backup. Restore canceled.');
+  sfCloudDownloadFile(local,'SchmokeFit-Before-Cloud-Restore');
+  if(!confirm('Verify the device safety backup JSON file has downloaded.\n\nFINAL CONFIRMATION: Replace this device’s fitness data with the cloud backup?'))return;
+  // Recheck that the cloud backup did not change while confirmations were shown.
+  const current=await sfCloudFetch();
+  if(!current||current.updated_at!==row.updated_at||!sfCloudEqualData(current.backup?.data,row.backup.data))throw new Error('Cloud backup changed during confirmation. No local data was changed. Retry.');
+  const keys=Object.keys(current.backup.data);
+  const oldKeys=[];for(let i=0;i<rawLocalStorage.length;i++){const k=rawLocalStorage.key(i);if(isSchmokeFitStorageKey(k))oldKeys.push(k);}
+  try{
+   oldKeys.forEach(k=>rawLocalStorage.removeItem(k));
+   keys.forEach(k=>rawLocalStorage.setItem(k,String(current.backup.data[k])));
+  }catch(writeError){
+   // Best-effort rollback if storage fills or write fails.
+   try{const now=[];for(let i=0;i<rawLocalStorage.length;i++){const k=rawLocalStorage.key(i);if(isSchmokeFitStorageKey(k))now.push(k);}now.forEach(k=>rawLocalStorage.removeItem(k));Object.keys(local.data).forEach(k=>rawLocalStorage.setItem(k,local.data[k]));}catch(e){}
+   throw new Error('Could not complete local restore. Use your downloaded safety backup if necessary. '+writeError.message);
+  }
+  alert('Cloud backup restored. SchmokeFit will reload now.');location.reload();
+ }catch(e){sfCloudStatus('Restore stopped: '+e.message,true);}
  finally{sfCloudSetBusy(false);}
 }
 async function sfCloudDownloadBackup(){
@@ -11845,372 +11899,10 @@ async function sfCloudDownloadBackup(){
  finally{sfCloudSetBusy(false);}
 }
 
-/* V179 protected two-way snapshot sync: automatic remote adoption only with unchanged local baseline. */
-let sfSyncTimer=null,sfSyncRunning=false,sfSyncBase=null,sfSyncUser=null,sfSyncPause=false;
-function sfSyncKey(user){return 'sf_sync_v178_'+user;}
-function sfSyncBaselineKey(user){return 'sf_sync_v179_base_'+user;}
-function sfSyncSaveBase(user,base){sfSyncBase=base;try{rawLocalStorage.setItem(sfSyncBaselineKey(user),JSON.stringify(base));}catch(e){console.warn('Could not persist sync baseline',e);}}
-function sfSyncLoadBase(user){try{const b=JSON.parse(rawLocalStorage.getItem(sfSyncBaselineKey(user))||'null');return b&&typeof b.stamp==='string'&&typeof b.signature==='string'?b:null;}catch(e){return null;}}
-let sfSyncLastInteraction=Date.now();
-['pointerdown','keydown','input','touchstart'].forEach(eventName=>document.addEventListener(eventName,()=>{sfSyncLastInteraction=Date.now();},{passive:true}));
-function sfSyncSafeToReload(){
- if(document.visibilityState!=='visible'||Date.now()-sfSyncLastInteraction<30000)return false;
- const active=document.activeElement;
- if(active&&active.matches?.('input,textarea,select,[contenteditable="true"]'))return false;
- // Never interrupt an open dialog, workout editor, or active overlay.
- if(document.querySelector('[role="dialog"][aria-hidden="false"],dialog[open],.modal.show,.modal.active,.sheet.open'))return false;
- return true;
-}
-function sfSyncAdoptCloud(row){
- const user=sfSyncUser;
- // Preserve a rollback copy on-device, outside the fitness backup namespace.
- const safety={createdAt:new Date().toISOString(),backup:sfSyncSnapshot()};
- rawLocalStorage.setItem('sf_sync_v179_rollback_'+user,JSON.stringify(safety));
- sfSyncApply(row.backup);
- sfSyncSaveBase(user,{stamp:row.updated_at,signature:sfSyncSignature(row.backup)});
- sfSyncSaveEntryBase(user,row.backup);
- sfSyncText('☁ New cloud data received. Refreshing SchmokeFit…');
- location.reload();
-}
-
-function sfSyncText(t,bad=false){const e=document.getElementById('sfSyncStatus');if(e){e.textContent=t;e.style.whiteSpace='pre-wrap';e.style.color=bad?'#fb7185':'#b9c8d6';}}
-function sfSyncSnapshot(){return schmokeFitBackupPayload();}
-// V178.2: compare meaningful nutrition metadata, not the write-time audit stamp.
-// The original JSON remains intact in backups and is never discarded on restore.
-// V179.3: canonicalize JSON objects without changing array order or source backups.
-// This avoids false differences from object property order / serialization whitespace.
-function sfSyncStableJson(v){
- if(Array.isArray(v))return v.map(sfSyncStableJson);
- if(v&&typeof v==='object'){
-  const out={};for(const k of Object.keys(v).sort())out[k]=sfSyncStableJson(v[k]);return out;
- }
- return v;
-}
-function sfSyncCanonicalValue(key,value){
- if(value===undefined)return undefined;
- if(typeof value!=='string')return JSON.stringify(sfSyncStableJson(value));
- try{
-  const obj=JSON.parse(value);
-  if(obj&&typeof obj==='object'){
-   // savedAt is an audit timestamp, not a nutrition setting.
-   if(/(?:^|_)nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(key)&&!Array.isArray(obj))delete obj.savedAt;
-   return JSON.stringify(sfSyncStableJson(obj));
-  }
- }catch(e){}
- return value;
-}
-function sfSyncSignature(payload){
- const d=payload?.data||{};
- return JSON.stringify(Object.keys(d).sort().map(k=>[k,sfSyncCanonicalValue(k,d[k])]));
-}
-function sfSyncDifferenceKeys(a,b){
- const x=a?.data||{},y=b?.data||{};
- const keys=[...new Set([...Object.keys(x),...Object.keys(y)])].sort();
- return keys.filter(k=>sfSyncCanonicalValue(k,x[k])!==sfSyncCanonicalValue(k,y[k]));
-}
-// V179.1: diagnostic-only nutrition metadata field comparison. Never display food or user values.
-function sfSyncNutritionFieldPaths(a,b){
- const x=a?.data||{},y=b?.data||{};
- const keys=sfSyncDifferenceKeys(a,b).filter(k=>/(?:^|_)nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(k));
- const details=[];
- for(const key of keys){
-  let left,right;
-  try{left=x[key]===undefined?undefined:JSON.parse(x[key]);}catch(e){details.push(key+': invalid device JSON');continue;}
-  try{right=y[key]===undefined?undefined:JSON.parse(y[key]);}catch(e){details.push(key+': invalid cloud JSON');continue;}
-  function compare(l,r,path,depth){
-   if(path==='savedAt'||path.endsWith('.savedAt'))return;
-   if(depth>7){if(JSON.stringify(l)!==JSON.stringify(r))details.push(key+': '+path+' (nested change)');return;}
-   if(l&&r&&typeof l==='object'&&typeof r==='object'&&!Array.isArray(l)&&!Array.isArray(r)){
-    for(const prop of [...new Set([...Object.keys(l),...Object.keys(r)])].sort()){
-     if(prop==='savedAt')continue;
-     compare(l[prop],r[prop],path?path+'.'+prop:prop,depth+1);
-    }
-   }else if(JSON.stringify(l)!==JSON.stringify(r)){
-    details.push(key+': '+(path||'(entire entry)')+' ('+(l===undefined?'missing on device':r===undefined?'missing in cloud':'different')+')');
-   }
-  }
-  compare(left,right,'',0);
- }
- return details.slice(0,12);
-}
-function sfSyncDifferenceMessage(a,b){
- const keys=sfSyncDifferenceKeys(a,b);
- const shown=keys.slice(0,8).map(k=>k.replace('schmokefit_unified_',''));
- const fields=sfSyncNutritionFieldPaths(a,b);
- return 'Cloud and device differ ('+keys.length+' storage entries). Differences: '+shown.join(', ')+(keys.length>8?', …':'')+'.'+(fields.length?'\n\nNutrition metadata fields (names only):\n'+fields.join('\n'):'')+'\n\nSync remains paused; neither copy was overwritten.';
-}
-// V179.3: store a privacy-preserving, account-scoped per-entry baseline for diagnosis.
-// Existing V179.1 baselines have only a signature; never guess their changed keys.
-function sfSyncEntrySignatures(payload){
- const d=payload?.data||{},out={};
- for(const k of Object.keys(d))out[k]=sfSyncCanonicalValue(k,d[k]);
- return out;
-}
-function sfSyncEntryBaseKey(user){return 'sf_sync_v179_entry_base_'+user;}
-function sfSyncSaveEntryBase(user,payload){
- try{rawLocalStorage.setItem(sfSyncEntryBaseKey(user),JSON.stringify(sfSyncEntrySignatures(payload)));}
- catch(e){console.warn('Could not store diagnostic baseline',e);}
-}
-function sfSyncLoadEntryBase(user){
- try{const v=JSON.parse(rawLocalStorage.getItem(sfSyncEntryBaseKey(user))||'null');return v&&typeof v==='object'&&!Array.isArray(v)?v:null;}
- catch(e){return null;}
-}
-function sfSyncDiffAgainstEntryBase(payload,base){
- const now=sfSyncEntrySignatures(payload);
- return [...new Set([...Object.keys(now),...Object.keys(base)])].sort().filter(k=>now[k]!==base[k]);
-}
-// V179.3: show per-entry and per-field *paths*, never personal values.
-function sfSyncChangedFieldPaths(key,a,b,limit=6){
- let left,right;
- try{left=a===undefined?undefined:JSON.parse(a);}catch(e){return ['(non-JSON content differs)'];}
- try{right=b===undefined?undefined:JSON.parse(b);}catch(e){return ['(non-JSON content differs)'];}
- const result=[];
- function walk(x,y,path,depth){
-  if(result.length>=limit)return;
-  if(depth>5){if(JSON.stringify(sfSyncStableJson(x))!==JSON.stringify(sfSyncStableJson(y)))result.push(path||'(entry)');return;}
-  if(x&&y&&typeof x==='object'&&typeof y==='object'&&!Array.isArray(x)&&!Array.isArray(y)){
-   for(const prop of [...new Set([...Object.keys(x),...Object.keys(y)])].sort()){
-    if(prop==='savedAt'&&/(?:^|_)nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(key))continue;
-    walk(x[prop],y[prop],path?path+'.'+prop:prop,depth+1);
-   }
-  }else if(Array.isArray(x)&&Array.isArray(y)){
-   if(x.length!==y.length)result.push((path||'(array)')+'.length');
-   for(let i=0;i<Math.min(x.length,y.length,20)&&result.length<limit;i++)walk(x[i],y[i],(path||'(array)')+'['+i+']',depth+1);
-   if(x.length>20||y.length>20)result.push((path||'(array)')+'[remaining entries not inspected]');
-  }else if(JSON.stringify(sfSyncStableJson(x))!==JSON.stringify(sfSyncStableJson(y))){
-   result.push((path||'(entry)')+(x===undefined?' (only in cloud)':y===undefined?' (only on device)':''));
-  }
- }
- walk(left,right,'',0);
- return result.length?result:['(value differs)'];
-}
-function sfSyncConflictReport(local,remote){
- const baseline=sfSyncLoadEntryBase(sfSyncUser);
- if(!baseline)return '⚠ Both device and cloud changed. '+sfSyncDifferenceMessage(local,remote)+'\n\nNo per-entry baseline is available. Neither copy was overwritten.';
- const device=sfSyncDiffAgainstEntryBase(local,baseline),cloud=sfSyncDiffAgainstEntryBase(remote,baseline);
- const overlap=device.filter(k=>cloud.includes(k));
- const localEntries=sfSyncEntrySignatures(local),cloudEntries=sfSyncEntrySignatures(remote);
- const show=keys=>keys.length?keys.slice(0,8).map(k=>k.replace('schmokefit_unified_','')).join(', ')+(keys.length>8?' …':''):'none';
- const lines=['⚠ Sync paused — both device and cloud changed since their shared baseline.',
-  'Device changed ('+device.length+'): '+show(device),
-  'Cloud changed ('+cloud.length+'): '+show(cloud),
-  'Overlapping entries ('+overlap.length+'): '+show(overlap)];
- const differing=sfSyncDifferenceKeys(local,remote);
- lines.push('Currently different ('+differing.length+'): '+show(differing));
- for(const key of differing.slice(0,6)){
-  const paths=sfSyncChangedFieldPaths(key,local?.data?.[key],remote?.data?.[key],4);
-  lines.push(' • '+key.replace('schmokefit_unified_','')+': '+paths.join(', '));
- }
- lines.push('No copy was overwritten. Export backups and keep sync disabled until resolved.');
- return lines.join('\n');
-}
-// V179.6: Only reconcile divergent revisions when every cloud-side change
-// is already present identically on this device. Never merge conflicting values.
-function sfSyncCanSafelyAdvanceLocal(local,remote,user=sfSyncUser){
- const base=sfSyncLoadEntryBase(user);
- if(!base)return false;
- const device=sfSyncEntrySignatures(local),cloud=sfSyncEntrySignatures(remote);
- const keys=new Set([...Object.keys(base),...Object.keys(device),...Object.keys(cloud)]);
- let localHasDifference=false;
- for(const k of keys){
-  const l=device[k],r=cloud[k],b=base[k];
-  if(l!==r){
-   localHasDifference=true;
-   // If cloud differs from baseline, this entry is a genuine collision.
-   if(r!==b)return false;
-  }
- }
- return localHasDifference;
-}
-function sfSyncStop(){if(sfSyncTimer)clearInterval(sfSyncTimer);sfSyncTimer=null;sfSyncUser=null;sfSyncBase=null;sfSyncPause=false;sfSyncRunning=false;sfSyncText('Automatic sync is off.');sfSyncButton();}
-function sfSyncButton(){const e=document.getElementById('sfSyncToggle');if(e)e.textContent=sfSyncUser?'⏸ DISABLE AUTOMATIC SYNC':'⇄ ENABLE AUTOMATIC SYNC';}
-function sfSyncHasData(p){return Object.keys(p?.data||{}).some(k=>!/(migration|tour_completed|program|master_unlocked|show_intro|has_logged_in_before)/.test(k));}
-function sfSyncApply(p){
- if(p?.app!=='SchmokeFit'||p?.format!=='schmokefit-local-backup'||!p.data||typeof p.data!=='object')throw new Error('Invalid cloud backup');
- const keys=Object.keys(p.data).filter(isSchmokeFitStorageKey);
- if(keys.length>15000)throw new Error('Cloud backup has too many entries');
- const remove=[];for(let i=0;i<rawLocalStorage.length;i++){const k=rawLocalStorage.key(i);if(isSchmokeFitStorageKey(k))remove.push(k);}
- remove.forEach(k=>rawLocalStorage.removeItem(k));keys.forEach(k=>rawLocalStorage.setItem(k,String(p.data[k])));
-}
-function sfSyncOnLogin(){
- const user=schmokeAuthUserId;
- if(!user||sfSyncUser===user)return;
- sfSyncStop();
- if(rawLocalStorage.getItem(sfSyncKey(user))==='enabled'){
-  sfSyncUser=user;sfSyncBase=sfSyncLoadBase(user);sfSyncPause=false;
-  sfSyncText('☁ Checking this device against the cloud…');sfSyncButton();
-  // On older installations without a stored baseline, check equality first.
-  sfSyncCheckNow();
-  if(!sfSyncTimer)sfSyncTimer=setInterval(()=>sfSyncTick(false),12000);
- }else sfSyncText('Automatic sync is off. Enable it when ready.');
-}
-// V179.4: explicit, guarded one-time baseline reset. No automatic promotion.
-async function sfSyncPromoteComputer(){
- if(sfCloudBusy||sfSyncRunning){sfSyncText('Another cloud operation is running. Try again.',true);return;}
- if(!navigator.onLine){sfSyncText('Connect to the internet before establishing a baseline.',true);return;}
- if(!confirm('V179.4 — COMPUTER IS THE SOURCE OF TRUTH\n\nOnly continue on the computer whose workout and nutrition data you verified as accurate.\n\nFirst export a local backup using EXPORT BACKUP.\n\nContinue to review the current cloud backup?'))return;
- const btn=document.getElementById('sfBaselineComputer');if(btn)btn.disabled=true;
- sfSyncRunning=true;
- try{
-  const user=await sfCloudIdentity();
-  if(sfSyncUser){rawLocalStorage.removeItem(sfSyncKey(user.id));sfSyncStop();}
-  const cloud=await sfCloudFetch(),local=sfSyncSnapshot();
-  if(!cloud)throw new Error('No existing cloud backup. Use Save to Cloud for a new account.');
-  if(local?.app!=='SchmokeFit'||local?.format!=='schmokefit-local-backup'||!sfSyncHasData(local))throw new Error('Local backup is missing or invalid. Nothing uploaded.');
-  const originalSig=sfSyncSignature(local);
-  // Download a copy of the existing cloud backup BEFORE changing the remote row.
-  const blob=new Blob([JSON.stringify(cloud.backup,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='SchmokeFit-Pre-V1794-Cloud-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
-  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  if(!confirm('The previous cloud backup download has been started.\n\nVERIFY the JSON file was saved before proceeding.\n\nDo you want to replace the cloud copy with THIS COMPUTER’s current data?')){
-   sfSyncText('Canceled. No cloud data changed.');return;
-  }
-  if(!confirm('FINAL CONFIRMATION\n\nReplace the current Supabase backup with this computer’s data? The old cloud version will no longer be the active backup.\n\nPress OK only after verifying your exported computer backup AND the downloaded previous cloud backup.'))return;
-  if(sfSyncSignature(sfSyncSnapshot())!==originalSig)throw new Error('Computer data changed during confirmation. Restart to avoid an inconsistent backup.');
-  // Compare-and-swap: update only if the cloud row is still the one we reviewed.
-  const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
-   .update({backup:local,updated_at:new Date().toISOString()})
-   .eq('user_id',user.id).eq('updated_at',cloud.updated_at)
-   .select('user_id,updated_at');
-  if(error)throw error;
-  if(!data||data.length!==1)throw new Error('Cloud backup changed since review. Nothing was overwritten. Please retry.');
-  sfSyncSaveBase(user.id,{stamp:data[0].updated_at,signature:originalSig});
-  sfSyncSaveEntryBase(user.id,local);
-  rawLocalStorage.setItem(sfSyncKey(user.id),'enabled');
-  sfSyncUser=user.id;sfSyncPause=false;sfSyncButton();
-  sfSyncText('✓ Computer established as cloud baseline. Automatic sync is enabled here. On your phone, keep sync off, download the new cloud backup, and restore it after exporting its local data.');
-  sfCloudStatus('Cloud baseline updated: '+new Date(data[0].updated_at).toLocaleString());
-  if(sfSyncTimer)clearInterval(sfSyncTimer);
-  sfSyncTimer=setInterval(()=>sfSyncTick(false),12000);
- }catch(e){sfSyncText('Baseline setup stopped: '+e.message,true);}
- finally{sfSyncRunning=false;if(btn)btn.disabled=false;}
-}
-async function sfSyncToggle(){
- if(sfSyncUser){rawLocalStorage.removeItem(sfSyncKey(sfSyncUser));sfSyncStop();return;}
- if(!schmokeAuthUserId){sfSyncText('Sign in to enable sync.',true);return;}
- if(!confirm('Enable automatic cloud synchronization on this device?\n\nSchmokeFit will compare your local and cloud data first. It will NEVER automatically overwrite conflicting copies. Export a local backup before proceeding.'))return;
- try{
-  const user=await sfCloudIdentity(),row=await sfCloudFetch(),local=sfSyncSnapshot();
-  if(!row){
-   if(!sfSyncHasData(local)){sfSyncText('No fitness data to synchronize yet. Add some activity first.',true);return;}
-   if(!confirm('No cloud backup exists. Upload this device as the starting copy?'))return;
-   const {data,error}=await schmokeAuthClient.from('schmokefit_backups').insert({user_id:user.id,backup:local}).select('updated_at').single();
-   if(error)throw error;
-   sfSyncSaveBase(user.id,{stamp:data.updated_at,signature:sfSyncSignature(local)});
-   sfSyncSaveEntryBase(user.id,local);
-  }else{
-   const a=sfSyncSignature(local),b=sfSyncSignature(row.backup);
-   if(a!==b&&sfSyncCanSafelyAdvanceLocal(local,row.backup,user.id)){
-    // Safe re-enrollment: remote changes are already represented on this device;
-    // the remaining differences are exclusively device-side.
-    if(!confirm('V179.6: The cloud changes already match this device. Only device-side differences remain. Upload this device’s additional changes to cloud and resume sync?\n\nCancel keeps both copies unchanged.'))return;
-    if(sfSyncSignature(sfSyncSnapshot())!==a){sfSyncText('Device changed during confirmation. Please retry.',true);return;}
-    const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
-     .update({backup:local,updated_at:new Date().toISOString()})
-     .eq('user_id',user.id).eq('updated_at',row.updated_at)
-     .select('updated_at');
-    if(error)throw error;
-    if(!data||data.length!==1){sfSyncText('Cloud changed during reconciliation. Nothing was overwritten. Retry.',true);return;}
-    sfSyncSaveBase(user.id,{stamp:data[0].updated_at,signature:a});
-    sfSyncSaveEntryBase(user.id,local);
-   }else if(a!==b){
-    const choice=confirm('The device and cloud backups DIFFER.\n\n'+sfSyncDifferenceMessage(local,row.backup)+'\n\n'+sfSyncConflictReport(local,row.backup)+'\n\nOK = DOWNLOAD cloud data to this device (replaces local fitness data after another confirmation).\nCANCEL = Keep both unchanged and leave sync off.\n\nExport a local backup first!');
-    if(!choice){sfSyncText('Different copies detected. Sync is off; no data was overwritten.',true);return;}
-    if(!confirm('LAST CONFIRMATION: Replace this device’s fitness data with the cloud backup? This will reload the app. Export a local backup first.'))return;
-    sfSyncApply(row.backup);
-    sfSyncSaveBase(user.id,{stamp:row.updated_at,signature:b});
-   sfSyncSaveEntryBase(user.id,row.backup);
-    rawLocalStorage.setItem(sfSyncKey(user.id),'enabled');
-    alert('Cloud copy restored. Reloading; open Data & Backup and choose CHECK FOR CHANGES to resume syncing.');location.reload();return;
-   }
-   sfSyncSaveBase(user.id,{stamp:row.updated_at,signature:b});
-   sfSyncSaveEntryBase(user.id,row.backup);
-  }
-  sfSyncUser=user.id;sfSyncPause=false;rawLocalStorage.setItem(sfSyncKey(user.id),'enabled');sfSyncButton();
-  sfSyncText('✓ Synced. Monitoring changes while this app is open.');
-  sfSyncTimer=setInterval(()=>sfSyncTick(false),12000);
- }catch(e){sfSyncText('Sync setup failed: '+e.message,true);}
-}
-async function sfSyncCheckNow(){
- if(!schmokeAuthUserId){sfSyncText('Sign in first.',true);return;}
- if(!sfSyncUser){sfSyncText('Automatic sync is off. Enable it first.');return;}
- if(sfSyncPause){sfSyncText('⚠ Sync paused due to a conflict. Export a backup and review the copies before proceeding.',true);return;}
- await sfSyncTick(true);
-}
-async function sfSyncTick(manual){
- if(sfSyncRunning||sfSyncPause||!sfSyncUser||schmokeAuthUserId!==sfSyncUser||!navigator.onLine)return;
- sfSyncRunning=true;
- try{
-  const row=await sfCloudFetch();
-  if(!row)throw new Error('Cloud backup unavailable.');
-  const local=sfSyncSnapshot(),localSig=sfSyncSignature(local),remoteSig=sfSyncSignature(row.backup);
-  if(!sfSyncBase){
-   // Legacy V178.2 enrollment: do not infer which copy wins.
-   if(localSig!==remoteSig){sfSyncPause=true;sfSyncText(sfSyncDifferenceMessage(local,row.backup),true);return;}
-   sfSyncSaveBase(sfSyncUser,{stamp:row.updated_at,signature:remoteSig});
-   sfSyncSaveEntryBase(sfSyncUser,row.backup);
-  }
-  // V179.5: matching current values are never a conflict, even when both
-  // signatures advanced independently since the last common baseline.
-  // Advance the shared baseline to the exact cloud revision in that case.
-  if(localSig===remoteSig){
-   sfSyncSaveBase(sfSyncUser,{stamp:row.updated_at,signature:remoteSig});
-   sfSyncSaveEntryBase(sfSyncUser,row.backup);
-   sfSyncText('✓ All changes saved to cloud. Last checked '+new Date().toLocaleTimeString());
-   return;
-  }
-  const localChanged=localSig!==sfSyncBase.signature,remoteChanged=remoteSig!==sfSyncBase.signature;
-  if(localChanged&&remoteChanged){
-   // V179.6: cloud-only differences that are already reflected locally do not
-   // need to block uploading other device-only changes.
-   if(sfSyncCanSafelyAdvanceLocal(local,row.backup)){
-    if(sfSyncSignature(sfSyncSnapshot())!==localSig){
-     sfSyncText('Local data changed during sync check; retrying on next check.');return;
-    }
-    sfSyncText('☁ Reconciling matching cloud changes and saving device updates…');
-    const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
-     .update({backup:local,updated_at:new Date().toISOString()})
-     .eq('user_id',sfSyncUser).eq('updated_at',row.updated_at)
-     .select('updated_at');
-    if(error)throw error;
-    if(!data||data.length!==1){
-     sfSyncPause=true;sfSyncText('⚠ Cloud changed during reconciliation. Sync paused.',true);return;
-    }
-    sfSyncSaveBase(sfSyncUser,{stamp:data[0].updated_at,signature:localSig});
-    sfSyncSaveEntryBase(sfSyncUser,local);
-    sfSyncText('✓ All changes saved to cloud. Last checked '+new Date().toLocaleTimeString());
-    return;
-   }
-   sfSyncPause=true;sfSyncText(sfSyncConflictReport(local,row.backup),true);return;
-  }
-  if(remoteChanged){
-   if(!sfSyncSafeToReload()){
-    sfSyncText('☁ New cloud changes waiting. SchmokeFit will update after 30 seconds without interaction.');return;
-   }
-   // Recheck local state immediately before replacing anything.
-   if(sfSyncSignature(sfSyncSnapshot())!==sfSyncBase.signature){sfSyncPause=true;sfSyncText('⚠ Local changes detected during download. Sync paused.',true);return;}
-   sfSyncAdoptCloud(row);return;
-  }
-  if(localChanged){
-   sfSyncText('☁ Saving changes to cloud…');
-   const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
-    .update({backup:local,updated_at:new Date().toISOString()})
-    .eq('user_id',sfSyncUser).eq('updated_at',sfSyncBase.stamp)
-    .select('updated_at');
-   if(error)throw error;
-   if(!data||data.length!==1){sfSyncPause=true;sfSyncText('⚠ Cloud changed during upload. Sync paused to protect your data.',true);return;}
-   sfSyncSaveBase(sfSyncUser,{stamp:data[0].updated_at,signature:localSig});
-   sfSyncSaveEntryBase(sfSyncUser,local);
-  }else if(row.updated_at!==sfSyncBase.stamp){
-   // Cloud data equivalent but its timestamp advanced (e.g. manual backup).
-   sfSyncSaveBase(sfSyncUser,{stamp:row.updated_at,signature:remoteSig});
-   sfSyncSaveEntryBase(sfSyncUser,row.backup);
-  }
-  sfSyncText('✓ All changes saved to cloud. Last checked '+new Date().toLocaleTimeString());
- }catch(e){sfSyncText('Cloud unavailable; changes remain on this device. '+e.message,true);}
- finally{sfSyncRunning=false;}
-}
+/* V180: manual backups only. Legacy sync settings are intentionally ignored.
+   No timers, background uploads, automatic restores, or sync comparisons. */
+function sfSyncStop(){}
+function sfSyncOnLogin(){}
 
 const appTourSteps = [
   {
