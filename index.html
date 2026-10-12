@@ -3632,6 +3632,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 #setHistoryOverlay.set-history-sheet-overlay.open{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;}
 #setHistoryOverlay .set-history-sheet{position:relative!important;z-index:2147483647!important;width:min(520px,100%)!important;max-height:min(72dvh,620px)!important;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <!-- INITIAL LOGIN / REGISTER SCREEN -->
@@ -3648,11 +3649,14 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 </div>
 <!-- STEP 2: REGISTRATION / LOGIN FORM -->
 <div id="authForm" style="width: 100%; margin-top: 10px; display: none;">
-<input class="login-input" id="usernameInput" placeholder="USERNAME" type="text"/>
-<input class="login-input" id="passwordInput" onkeyup="checkEnterKey(event)" placeholder="PASSWORD" type="password"/>
+<input class="login-input" id="usernameInput" placeholder="EMAIL ADDRESS" type="email" autocomplete="email" type="text"/>
+<input class="login-input" id="displayNameInput" placeholder="CHOOSE A DISPLAY NAME" autocomplete="nickname" maxlength="40" style="display:none" type="text"/>
+<input class="login-input" id="passwordInput" onkeyup="checkEnterKey(event)" autocomplete="current-password" placeholder="PASSWORD (6+ CHARACTERS)" type="password"/>
 <div class="error-msg" id="loginError">INCORRECT USERNAME OR PASSWORD</div>
 <button class="btn btn-blue" id="authBtn" onclick="handleAuthSubmit()">LOG IN</button>
-<div class="reset-account-link" id="resetLink" onclick="resetUserAccount()" style="display:none;">Clear account &amp; set new password</div>
+<div class="reset-account-link" id="authSwitch" onclick="toggleAuthMode()" style="display:block;cursor:pointer;margin-top:14px;">NEW HERE? CREATE ACCOUNT</div>
+<div class="reset-account-link" id="authRecovery" onclick="setAuthMode('recover')" style="display:block;cursor:pointer;margin-top:10px;">FORGOT PASSWORD?</div>
+<div class="reset-account-link" id="resetLink" style="display:none;"></div>
 </div>
 </div>
 
@@ -3704,6 +3708,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <div class="account-menu-identity">
       <strong id="accountMenuUsername">ATHLETE</strong>
     </div>
+    <button class="account-menu-item" type="button" onclick="editSchmokeDisplayName()">✎ EDIT DISPLAY NAME</button>
     <div class="account-menu-divider"></div>
     <div class="account-menu-section-label">CURRENT PROGRAM</div>
     <div class="account-menu-current-program" id="accountMenuCurrentProgram">SCHMOKEFIT</div>
@@ -3724,6 +3729,19 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <div class="account-tools-copy">Backup your SchmokeFit data before changing phones, browsers, or clearing site data.</div>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
     <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
+    <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
+    <div class="info-subtitle">PRIVATE CLOUD BACKUP & SYNC · V179.5</div>
+    <div class="account-tools-copy">Automatic sync is optional. Enable it only after reviewing the cloud and device copies. Conflicts pause sync instead of overwriting either copy.</div>
+    <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:10px 0">Checking cloud backup…</div>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ SAVE TO CLOUD</button>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudDownload" onclick="sfCloudDownloadBackup()">⬇ DOWNLOAD CLOUD BACKUP</button>
+    <div style="border-top:1px solid #35414d;margin:14px 0"></div>
+    <div class="account-tools-copy" style="border:1px solid #435b71;border-radius:10px;padding:12px;margin:10px 0"><strong>V179.5 — CLEAN BASELINE (COMPUTER)</strong><br>Only use this on the computer containing your verified, accurate data. First export a local backup. This process downloads the previous cloud backup before replacing it and requires two confirmations. Keep sync off on the phone until its data is restored from the new cloud backup.</div>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfBaselineComputer" onclick="sfSyncPromoteComputer()">⇧ SET THIS COMPUTER AS CLOUD BASELINE</button>
+    <div id="sfSyncStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:8px 0">Automatic sync is off.</div>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfSyncToggle" onclick="sfSyncToggle()">⇄ ENABLE AUTOMATIC SYNC</button>
+    <button class="btn btn-dark account-tool-btn" type="button" onclick="sfSyncCheckNow()">↻ CHECK FOR CHANGES</button>
+    <div class="account-tools-copy">To restore a downloaded cloud backup, use RESTORE BACKUP above. Review the confirmation carefully: restoring replaces local fitness data and reloads the app. Download a local backup first.</div>
   </div>
 </div>
 </div>
@@ -4935,132 +4953,173 @@ document.addEventListener('keydown', e => {
     let selectedNutritionDateStamp = nutritionActiveDateStamp;
     const REFEED_CALORIE_BONUS = 600;
 
-    // INITIAL MASTER PASSWORD LOGIC
-    function handleMasterSubmit() {
-      const input = document.getElementById('masterPasswordInput').value.trim();
-      const errorMsg = document.getElementById('masterError');
-
-      if (input === "schmokefit") {
-        rawLocalStorage.setItem('schmokefit_unified_master_unlocked', 'true');
-        rawLocalStorage.setItem('schmokefit_master_unlocked', 'true');
-        errorMsg.style.display = 'none';
-        initAuthScreen();
-      } else {
-        errorMsg.style.display = 'block';
-      }
+    // V175 — Supabase Auth (workout/nutrition storage remains local to this browser).
+    const SCHMOKEFIT_SUPABASE_URL = 'https://maozdgpxjfadiyrakziy.supabase.co';
+    const SCHMOKEFIT_SUPABASE_KEY = 'sb_publishable_hXelWAXpiv9TJimquKclnw_HHv6y6NB';
+    let schmokeAuthClient = null;
+    let schmokeAuthMode = 'login';
+    let schmokeAuthBusy = false;
+    let schmokeAuthUserId = null;
+    function authMessage(message, success=false) {
+      const el=document.getElementById('loginError');
+      if(!el)return;
+      el.textContent=message;
+      el.style.display='block';
+      el.style.color=success?'#4ade80':'#fb7185';
     }
-
-    function checkMasterEnterKey(event) {
-      if (event.key === "Enter") {
-        handleMasterSubmit();
-      }
+    function clearAuthMessage(){const el=document.getElementById('loginError');if(el)el.style.display='none';}
+    function setAuthMode(mode){
+      schmokeAuthMode=mode;
+      clearAuthMessage();
+      const register=mode==='register';
+      document.getElementById('loginSubheading').textContent=register?'CREATE YOUR ACCOUNT':mode==='recover'?'RESET YOUR PASSWORD':mode==='update'?'SET NEW PASSWORD':'WELCOME BACK';
+      document.getElementById('authBtn').textContent=register?'CREATE ACCOUNT':mode==='recover'?'SEND RESET EMAIL':mode==='update'?'UPDATE PASSWORD':'LOG IN';
+      document.getElementById('passwordInput').style.display=mode==='recover'?'none':'';
+      document.getElementById('displayNameInput').style.display=register?'':'none';
+      document.getElementById('usernameInput').style.display=mode==='update'?'none':'';
+      document.getElementById('passwordInput').placeholder=mode==='update'?'NEW PASSWORD (6+ CHARACTERS)':'PASSWORD (6+ CHARACTERS)';
+      document.getElementById('authSwitch').textContent=register?'ALREADY HAVE AN ACCOUNT? LOG IN':mode==='login'?'NEW HERE? CREATE ACCOUNT':'BACK TO LOG IN';
+      document.getElementById('authRecovery').style.display=mode==='login'?'block':'none';
+      document.getElementById('authSwitch').style.display=mode==='update'?'none':'block';
     }
-
-    // SETUP INITIAL AUTH SCREEN
-    function initAuthScreen() {
-      const existingAccount =
-        rawLocalStorage.getItem('schmokefit_unified_user') ||
-        rawLocalStorage.getItem('schmokefit_user');
-      const masterUnlocked =
-        rawLocalStorage.getItem('schmokefit_unified_master_unlocked') ||
-        rawLocalStorage.getItem('schmokefit_master_unlocked') ||
-        existingAccount;
-      if (existingAccount && !rawLocalStorage.getItem('schmokefit_unified_master_unlocked')) {
-        rawLocalStorage.setItem('schmokefit_unified_master_unlocked', 'true');
-      }
-      const initialMasterForm = document.getElementById('initialMasterForm');
-      const authForm = document.getElementById('authForm');
-      const sub = document.getElementById('loginSubheading');
-      const btn = document.getElementById('authBtn');
-      const resetLink = document.getElementById('resetLink');
-      const usernameInput = document.getElementById('usernameInput');
-
-      // Check if user has passed the initial master password screen
-      if (!masterUnlocked && sessionStorage.getItem('schmokefit_authenticated') !== 'true') {
-        sub.innerText = "ACCESS CODE REQUIRED";
-        initialMasterForm.style.display = 'block';
-        authForm.style.display = 'none';
-        return;
-      }
-
-      // Show username & password form once unlocked
-      initialMasterForm.style.display = 'none';
-      authForm.style.display = 'block';
-
-      const storedUser = appStorage.getItem('schmokefit_user');
-
-      if (!storedUser) {
-        sub.innerText = "CREATE YOUR ACCOUNT";
-        btn.innerText = "CREATE ACCOUNT";
-        resetLink.style.display = 'none';
-        usernameInput.value = '';
-      } else {
-        sub.innerText = `WELCOME BACK ${storedUser.toUpperCase()}`;
-        btn.innerText = "LOG IN";
-        usernameInput.value = storedUser;
-        resetLink.style.display = 'block';
-      }
+    function toggleAuthMode(){setAuthMode(schmokeAuthMode==='login'?'register':'login');}
+    function initAuthScreen(){
+      document.getElementById('initialMasterForm').style.display='none';
+      document.getElementById('authForm').style.display='block';
+      document.getElementById('resetLink').style.display='none';
+      setAuthMode('login');
     }
-
-    function handleAuthSubmit() {
-      const user = document.getElementById('usernameInput').value.trim();
-      const pass = document.getElementById('passwordInput').value.trim();
-      const errorMsg = document.getElementById('loginError');
-
-      const storedUser = appStorage.getItem('schmokefit_user');
-      const storedPass = appStorage.getItem('schmokefit_pass');
-
-      if (!user || !pass) {
-        errorMsg.innerText = "PLEASE ENTER BOTH USERNAME & PASSWORD";
-        errorMsg.style.display = 'block';
-        return;
+    // V176: Account-scoped display names; workout and nutrition storage is untouched.
+    function legacySchmokeName(){
+      try {
+        const raw=rawLocalStorage.getItem('schmokefit_unified_user');
+        if(!raw)return '';
+        const parsed=JSON.parse(raw);
+        if(typeof parsed==='string')return parsed.trim();
+        if(parsed&&typeof parsed==='object')return String(parsed.username||parsed.name||'').trim();
+      }catch(e){
+        return String(rawLocalStorage.getItem('schmokefit_unified_user')||'').trim();
       }
-
-      if (!storedUser) {
-        // Register new local account
-        appStorage.setItem('schmokefit_user', user);
-        appStorage.setItem('schmokefit_pass', pass);
-        sessionStorage.setItem('schmokefit_authenticated', 'true');
-        unlockApp(user);
-      } else {
-        // Validate credentials
-        if (user.toLowerCase() === storedUser.toLowerCase() && pass === storedPass) {
-          sessionStorage.setItem('schmokefit_authenticated', 'true');
-          unlockApp(user);
-        } else {
-          errorMsg.innerText = "INCORRECT USERNAME OR PASSWORD";
-          errorMsg.style.display = 'block';
+      return '';
+    }
+    function authDisplayName(user){
+      const id=user?.id;
+      const key=id?'schmokefit_display_name_'+id:null;
+      const local=key?String(rawLocalStorage.getItem(key)||'').trim():'';
+      const remote=String(user?.user_metadata?.display_name||'').trim();
+      if(local)return local;
+      if(remote){
+        if(key)rawLocalStorage.setItem(key,remote);
+        return remote;
+      }
+      // Import legacy username only once, for the first authenticated account
+      // on this browser. Never leak it to a different account.
+      const claimed=rawLocalStorage.getItem('schmokefit_legacy_name_claimed_by');
+      const legacy=(!claimed||claimed===id)?legacySchmokeName():'';
+      if(legacy&&id){
+        rawLocalStorage.setItem('schmokefit_legacy_name_claimed_by',id);
+        rawLocalStorage.setItem(key,legacy);
+        // Sync in the background without blocking sign-in.
+        if(schmokeAuthClient)schmokeAuthClient.auth.updateUser({data:{display_name:legacy}})
+          .catch(e=>console.warn('Display name sync deferred',e));
+        return legacy;
+      }
+      return String(user?.email?.split('@')[0]||'ATHLETE');
+    }
+    async function editSchmokeDisplayName(){
+      if(!schmokeAuthClient||!schmokeAuthUserId)return;
+      const {data,error}=await schmokeAuthClient.auth.getUser();
+      if(error||!data?.user){alert('Please sign in again to edit your name.');return;}
+      const current=authDisplayName(data.user);
+      const entered=prompt('Choose your SchmokeFit display name (2–40 characters):',current);
+      if(entered===null)return;
+      const name=entered.trim();
+      if(name.length<2||name.length>40){alert('Please enter a name between 2 and 40 characters.');return;}
+      const result=await schmokeAuthClient.auth.updateUser({data:{display_name:name}});
+      if(result.error){alert('Could not save display name: '+result.error.message);return;}
+      rawLocalStorage.setItem('schmokefit_display_name_'+data.user.id,name);
+      unlockApp(name);
+    }
+    async function handleAuthSubmit(){
+      if(schmokeAuthBusy)return;
+      if(!schmokeAuthClient){authMessage('AUTHENTICATION IS UNAVAILABLE. CHECK YOUR CONNECTION AND RELOAD.');return;}
+      const email=document.getElementById('usernameInput').value.trim();
+      const pass=document.getElementById('passwordInput').value;
+      if(schmokeAuthMode!=='update'&&!/^\S+@\S+\.\S+$/.test(email)){authMessage('ENTER A VALID EMAIL ADDRESS');return;}
+      if(schmokeAuthMode!=='recover'&&pass.length<6){authMessage('PASSWORD MUST BE AT LEAST 6 CHARACTERS');return;}
+      schmokeAuthBusy=true;
+      const btn=document.getElementById('authBtn');btn.disabled=true;
+      clearAuthMessage();
+      try{
+        let result;
+        if(schmokeAuthMode==='register'){
+          const displayName=document.getElementById('displayNameInput').value.trim();
+          if(displayName.length<2||displayName.length>40)throw new Error('DISPLAY NAME MUST BE 2–40 CHARACTERS');
+          result=await schmokeAuthClient.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname,data:{display_name:displayName}}});
+          if(result.error)throw result.error;
+          if(result.data.session){schmokeAuthUserId=result.data.user.id;unlockApp(authDisplayName(result.data.user));}
+          else authMessage('ACCOUNT REQUEST RECEIVED. CHECK YOUR EMAIL TO VERIFY YOUR ADDRESS, THEN LOG IN.',true);
+        }else if(schmokeAuthMode==='recover'){
+          result=await schmokeAuthClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+          if(result.error)throw result.error;
+          authMessage('IF AN ACCOUNT EXISTS FOR THAT EMAIL, A RESET LINK HAS BEEN SENT.',true);
+        }else if(schmokeAuthMode==='update'){
+          result=await schmokeAuthClient.auth.updateUser({password:pass});
+          if(result.error)throw result.error;
+          authMessage('PASSWORD UPDATED. YOU CAN CONTINUE TO YOUR ACCOUNT.',true);
+          setAuthMode('login');
+          const {data}=await schmokeAuthClient.auth.getUser();
+          if(data?.user){schmokeAuthUserId=data.user.id;unlockApp(authDisplayName(data.user));}
+        }else{
+          result=await schmokeAuthClient.auth.signInWithPassword({email,password:pass});
+          if(result.error)throw result.error;
+          schmokeAuthUserId=result.data.user.id;
+          unlockApp(authDisplayName(result.data.user));
         }
-      }
+      }catch(e){authMessage(e?.message||'AUTHENTICATION FAILED. PLEASE TRY AGAIN.');}
+      finally{schmokeAuthBusy=false;btn.disabled=false;}
     }
-
-    function handleLogout() {
+    async function handleLogout(){
+      if(schmokeAuthClient){try{await schmokeAuthClient.auth.signOut();}catch(e){console.warn('Sign out error',e);}}
+      sfSyncStop();
+      schmokeAuthUserId=null;
       sessionStorage.removeItem('schmokefit_authenticated');
-      document.getElementById('appContainer').style.display = 'none';
-      document.getElementById('loginOverlay').style.display = 'flex';
-      document.body.style.alignItems = 'center';
-
-      document.getElementById('passwordInput').value = '';
-      document.getElementById('loginError').style.display = 'none';
-
+      document.getElementById('appContainer').style.display='none';
+      document.getElementById('loginOverlay').style.display='flex';
+      document.body.style.alignItems='center';
+      document.getElementById('passwordInput').value='';
       initAuthScreen();
     }
-
-    function resetUserAccount() {
-      if (confirm("Reset current saved login details? You can then create a new username and password.")) {
-        appStorage.removeItem('schmokefit_user');
-        appStorage.removeItem('schmokefit_pass');
-        appStorage.removeItem('schmokefit_has_logged_in_before');
-        document.getElementById('passwordInput').value = '';
-        document.getElementById('loginError').style.display = 'none';
-        initAuthScreen();
-      }
-    }
-
-    function checkEnterKey(event) {
-      if (event.key === "Enter") {
-        handleAuthSubmit();
-      }
+    function resetUserAccount(){setAuthMode('recover');}
+    function checkEnterKey(event){if(event.key==='Enter')handleAuthSubmit();}
+    async function initSupabaseAuth(){
+      initAuthScreen();
+      if(!window.supabase?.createClient){authMessage('COULD NOT LOAD AUTHENTICATION. CHECK INTERNET CONNECTION AND RELOAD.');return;}
+      try{
+        schmokeAuthClient=window.supabase.createClient(SCHMOKEFIT_SUPABASE_URL,SCHMOKEFIT_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+        schmokeAuthClient.auth.onAuthStateChange((event,session)=>{
+          if(event==='PASSWORD_RECOVERY'){
+            document.getElementById('loginOverlay').style.display='flex';
+            document.getElementById('appContainer').style.display='none';
+            setAuthMode('update');
+          }else if(event==='SIGNED_OUT'){
+            sfSyncStop();
+            schmokeAuthUserId=null;
+            document.getElementById('appContainer').style.display='none';
+            document.getElementById('loginOverlay').style.display='flex';
+            initAuthScreen();
+          }else if(event==='SIGNED_IN'&&session?.user&&schmokeAuthMode!=='update'){
+            schmokeAuthUserId=session.user.id;
+            unlockApp(authDisplayName(session.user));
+          }
+        });
+        const {data,error}=await schmokeAuthClient.auth.getSession();
+        if(error)throw error;
+        if(data?.session?.user&&schmokeAuthMode!=='update'){
+          schmokeAuthUserId=data.session.user.id;
+          unlockApp(authDisplayName(data.session.user));
+        }
+      }catch(e){authMessage('AUTHENTICATION COULD NOT CONNECT: '+(e?.message||'UNKNOWN ERROR'));}
     }
 
     function unlockApp(username) {
@@ -5101,6 +5160,7 @@ document.addEventListener('keydown', e => {
         switchTab('todayTab', todayTabBtn);
       }
       if (needsUnifiedProgramChoice) setTimeout(openProgramChooser, 120);
+      setTimeout(sfSyncOnLogin,1200);
     }
 
     // EXERCISE SUBSTITUTION DATABASE
@@ -9204,12 +9264,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       // If the app remains open overnight, this detects the new date and archives the prior day.
       setInterval(checkNutritionDateRollover, 60000);
 
-      const storedUser = appStorage.getItem('schmokefit_user');
-      if (sessionStorage.getItem('schmokefit_authenticated') === 'true' && storedUser) {
-        unlockApp(storedUser);
-      } else {
-        initAuthScreen();
-      }
+      initSupabaseAuth();
     };
   
     // ===== WEEKLY WORKOUT DASHBOARD + EDITABLE PAST WORKOUTS =====
@@ -11668,6 +11723,7 @@ function openBackupPanel(){
   const card=sheet.querySelector('.backup-sheet-card');
   if(card)card.scrollTop=0;
   document.body.style.overflow='hidden';
+  sfCloudRefreshStatus();
 }
 function closeBackupPanel(){
   document.getElementById('backupSheet')?.classList.remove('open');
@@ -11679,10 +11735,19 @@ document.addEventListener('click',e=>{
   if(e.target?.id==='backupSheet')closeBackupPanel();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBackupPanel();});
-function isSchmokeFitStorageKey(k){return !!k&&(k.startsWith('schmokefit_')||k.startsWith('sf_'))}
+// V177: never include authentication credentials, Supabase sessions, or display-name mappings.
+function isSchmokeFitStorageKey(k){
+ if(!k||!k.startsWith('schmokefit_unified_'))return false;
+ if(/^schmokefit_unified_(user|pass|master_unlocked|has_logged_in_before)$/.test(k))return false;
+ if(/(?:password|secret|token|auth|credential|session|display_name)/i.test(k))return false;
+ return true;
+}
 function schmokeFitBackupPayload(){
  const data={};
- for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSchmokeFitStorageKey(k))data[k]=localStorage.getItem(k)}
+ for(let i=0;i<rawLocalStorage.length;i++){
+  const k=rawLocalStorage.key(i);
+  if(isSchmokeFitStorageKey(k))data[k]=rawLocalStorage.getItem(k);
+ }
  return {app:'SchmokeFit',format:'schmokefit-local-backup',version:1,exportedAt:new Date().toISOString(),data};
 }
 function exportSchmokeFitBackup(){
@@ -11700,14 +11765,398 @@ function importSchmokeFitBackup(event){
    const payload=JSON.parse(String(reader.result||''));
    if(payload?.app!=='SchmokeFit'||payload?.format!=='schmokefit-local-backup'||!payload?.data||typeof payload.data!=='object')throw new Error('invalid');
    const keys=Object.keys(payload.data).filter(isSchmokeFitStorageKey);if(!keys.length)throw new Error('empty');
+   if(keys.length>15000)throw new Error('too many keys');
    const when=payload.exportedAt?new Date(payload.exportedAt).toLocaleString():'unknown date';
    if(!confirm(`Restore SchmokeFit backup from ${when}?\n\nThis will replace the SchmokeFit data currently stored on this device.`)){input.value='';return}
    const remove=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSchmokeFitStorageKey(k))remove.push(k)}
    remove.forEach(k=>localStorage.removeItem(k));keys.forEach(k=>localStorage.setItem(k,String(payload.data[k])));
-   input.value='';alert('Backup restored successfully. SchmokeFit will reload now.');location.reload();
+   sfSyncStop();input.value='';alert('Backup restored successfully. SchmokeFit will reload now.');location.reload();
   }catch(e){input.value='';alert('That file does not appear to be a valid SchmokeFit backup. No data was changed.')}
  };
  reader.onerror=()=>{input.value='';alert('SchmokeFit could not read that backup file.')};reader.readAsText(file);
+}
+
+/* V177 — Manual cloud snapshots. Requires SQL setup and Supabase RLS. */
+let sfCloudBusy=false;
+function sfCloudStatus(message,error=false){
+ const el=document.getElementById('sfCloudStatus');if(el){el.textContent=message;el.style.color=error?'#fb7185':'#b9c8d6';}
+}
+function sfCloudSetBusy(busy){
+ sfCloudBusy=busy;
+ for(const id of ['sfCloudUpload','sfCloudDownload']){
+  const btn=document.getElementById(id);if(btn)btn.disabled=busy;
+ }
+}
+async function sfCloudIdentity(){
+ if(!schmokeAuthClient)throw new Error('Supabase is unavailable.');
+ const {data,error}=await schmokeAuthClient.auth.getUser();
+ if(error||!data?.user||data.user.id!==schmokeAuthUserId)throw new Error('Sign in again before accessing your cloud backup.');
+ return data.user;
+}
+async function sfCloudFetch(){
+ const user=await sfCloudIdentity();
+ const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
+  .select('user_id,backup,updated_at').eq('user_id',user.id).maybeSingle();
+ if(error)throw error;
+ return data;
+}
+async function sfCloudRefreshStatus(){
+ if(sfCloudBusy)return;
+ sfCloudStatus('Checking cloud backup…');
+ try{
+  const row=await sfCloudFetch();
+  sfCloudStatus(row?'Last cloud backup: '+new Date(row.updated_at).toLocaleString():'No cloud backup yet. Your local data is unchanged.');
+ }catch(e){sfCloudStatus('Cloud backup unavailable: '+e.message,true);}
+}
+async function sfCloudUploadBackup(){
+ if(sfCloudBusy)return;
+ sfCloudSetBusy(true);
+ try{
+  const user=await sfCloudIdentity();
+  const payload=schmokeFitBackupPayload();
+  if(Object.keys(payload.data).length===0)throw new Error('No local fitness data found to back up.');
+  const previous=await sfCloudFetch();
+  const text=previous
+   ?'A cloud backup already exists from '+new Date(previous.updated_at).toLocaleString()+'.\n\nReplace it with the current data on THIS device? This cannot be undone. Download the existing cloud backup first if you want to keep it.'
+   :'Upload this device’s current SchmokeFit fitness data to your private Supabase account? This will not delete local data.';
+  if(!confirm(text))return;
+  sfCloudStatus('Uploading your private cloud backup…');
+  const {error}=await schmokeAuthClient.from('schmokefit_backups').upsert({user_id:user.id,backup:payload},{onConflict:'user_id'});
+  if(error)throw error;
+  sfCloudStatus('Cloud backup saved successfully. Local data is unchanged.');
+  if(sfSyncUser){sfSyncPause=true;sfSyncText('Manual cloud backup changed the sync baseline. Disable and re-enable sync to verify copies.');}
+ }catch(e){sfCloudStatus('Upload failed: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
+async function sfCloudDownloadBackup(){
+ if(sfCloudBusy)return;
+ sfCloudSetBusy(true);
+ try{
+  const row=await sfCloudFetch();
+  if(!row){sfCloudStatus('No cloud backup exists for this account yet.');return;}
+  const payload=row.backup;
+  if(payload?.app!=='SchmokeFit'||payload?.format!=='schmokefit-local-backup'||!payload.data||typeof payload.data!=='object')throw new Error('Cloud backup has an unexpected format.');
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='SchmokeFit-Cloud-Backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  sfCloudStatus('Cloud backup downloaded. To restore it, select RESTORE BACKUP.');
+ }catch(e){sfCloudStatus('Download failed: '+e.message,true);}
+ finally{sfCloudSetBusy(false);}
+}
+
+/* V179 protected two-way snapshot sync: automatic remote adoption only with unchanged local baseline. */
+let sfSyncTimer=null,sfSyncRunning=false,sfSyncBase=null,sfSyncUser=null,sfSyncPause=false;
+function sfSyncKey(user){return 'sf_sync_v178_'+user;}
+function sfSyncBaselineKey(user){return 'sf_sync_v179_base_'+user;}
+function sfSyncSaveBase(user,base){sfSyncBase=base;try{rawLocalStorage.setItem(sfSyncBaselineKey(user),JSON.stringify(base));}catch(e){console.warn('Could not persist sync baseline',e);}}
+function sfSyncLoadBase(user){try{const b=JSON.parse(rawLocalStorage.getItem(sfSyncBaselineKey(user))||'null');return b&&typeof b.stamp==='string'&&typeof b.signature==='string'?b:null;}catch(e){return null;}}
+let sfSyncLastInteraction=Date.now();
+['pointerdown','keydown','input','touchstart'].forEach(eventName=>document.addEventListener(eventName,()=>{sfSyncLastInteraction=Date.now();},{passive:true}));
+function sfSyncSafeToReload(){
+ if(document.visibilityState!=='visible'||Date.now()-sfSyncLastInteraction<30000)return false;
+ const active=document.activeElement;
+ if(active&&active.matches?.('input,textarea,select,[contenteditable="true"]'))return false;
+ // Never interrupt an open dialog, workout editor, or active overlay.
+ if(document.querySelector('[role="dialog"][aria-hidden="false"],dialog[open],.modal.show,.modal.active,.sheet.open'))return false;
+ return true;
+}
+function sfSyncAdoptCloud(row){
+ const user=sfSyncUser;
+ // Preserve a rollback copy on-device, outside the fitness backup namespace.
+ const safety={createdAt:new Date().toISOString(),backup:sfSyncSnapshot()};
+ rawLocalStorage.setItem('sf_sync_v179_rollback_'+user,JSON.stringify(safety));
+ sfSyncApply(row.backup);
+ sfSyncSaveBase(user,{stamp:row.updated_at,signature:sfSyncSignature(row.backup)});
+ sfSyncSaveEntryBase(user,row.backup);
+ sfSyncText('☁ New cloud data received. Refreshing SchmokeFit…');
+ location.reload();
+}
+
+function sfSyncText(t,bad=false){const e=document.getElementById('sfSyncStatus');if(e){e.textContent=t;e.style.whiteSpace='pre-wrap';e.style.color=bad?'#fb7185':'#b9c8d6';}}
+function sfSyncSnapshot(){return schmokeFitBackupPayload();}
+// V178.2: compare meaningful nutrition metadata, not the write-time audit stamp.
+// The original JSON remains intact in backups and is never discarded on restore.
+// V179.3: canonicalize JSON objects without changing array order or source backups.
+// This avoids false differences from object property order / serialization whitespace.
+function sfSyncStableJson(v){
+ if(Array.isArray(v))return v.map(sfSyncStableJson);
+ if(v&&typeof v==='object'){
+  const out={};for(const k of Object.keys(v).sort())out[k]=sfSyncStableJson(v[k]);return out;
+ }
+ return v;
+}
+function sfSyncCanonicalValue(key,value){
+ if(value===undefined)return undefined;
+ if(typeof value!=='string')return JSON.stringify(sfSyncStableJson(value));
+ try{
+  const obj=JSON.parse(value);
+  if(obj&&typeof obj==='object'){
+   // savedAt is an audit timestamp, not a nutrition setting.
+   if(/(?:^|_)nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(key)&&!Array.isArray(obj))delete obj.savedAt;
+   return JSON.stringify(sfSyncStableJson(obj));
+  }
+ }catch(e){}
+ return value;
+}
+function sfSyncSignature(payload){
+ const d=payload?.data||{};
+ return JSON.stringify(Object.keys(d).sort().map(k=>[k,sfSyncCanonicalValue(k,d[k])]));
+}
+function sfSyncDifferenceKeys(a,b){
+ const x=a?.data||{},y=b?.data||{};
+ const keys=[...new Set([...Object.keys(x),...Object.keys(y)])].sort();
+ return keys.filter(k=>sfSyncCanonicalValue(k,x[k])!==sfSyncCanonicalValue(k,y[k]));
+}
+// V179.1: diagnostic-only nutrition metadata field comparison. Never display food or user values.
+function sfSyncNutritionFieldPaths(a,b){
+ const x=a?.data||{},y=b?.data||{};
+ const keys=sfSyncDifferenceKeys(a,b).filter(k=>/(?:^|_)nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(k));
+ const details=[];
+ for(const key of keys){
+  let left,right;
+  try{left=x[key]===undefined?undefined:JSON.parse(x[key]);}catch(e){details.push(key+': invalid device JSON');continue;}
+  try{right=y[key]===undefined?undefined:JSON.parse(y[key]);}catch(e){details.push(key+': invalid cloud JSON');continue;}
+  function compare(l,r,path,depth){
+   if(path==='savedAt'||path.endsWith('.savedAt'))return;
+   if(depth>7){if(JSON.stringify(l)!==JSON.stringify(r))details.push(key+': '+path+' (nested change)');return;}
+   if(l&&r&&typeof l==='object'&&typeof r==='object'&&!Array.isArray(l)&&!Array.isArray(r)){
+    for(const prop of [...new Set([...Object.keys(l),...Object.keys(r)])].sort()){
+     if(prop==='savedAt')continue;
+     compare(l[prop],r[prop],path?path+'.'+prop:prop,depth+1);
+    }
+   }else if(JSON.stringify(l)!==JSON.stringify(r)){
+    details.push(key+': '+(path||'(entire entry)')+' ('+(l===undefined?'missing on device':r===undefined?'missing in cloud':'different')+')');
+   }
+  }
+  compare(left,right,'',0);
+ }
+ return details.slice(0,12);
+}
+function sfSyncDifferenceMessage(a,b){
+ const keys=sfSyncDifferenceKeys(a,b);
+ const shown=keys.slice(0,8).map(k=>k.replace('schmokefit_unified_',''));
+ const fields=sfSyncNutritionFieldPaths(a,b);
+ return 'Cloud and device differ ('+keys.length+' storage entries). Differences: '+shown.join(', ')+(keys.length>8?', …':'')+'.'+(fields.length?'\n\nNutrition metadata fields (names only):\n'+fields.join('\n'):'')+'\n\nSync remains paused; neither copy was overwritten.';
+}
+// V179.3: store a privacy-preserving, account-scoped per-entry baseline for diagnosis.
+// Existing V179.1 baselines have only a signature; never guess their changed keys.
+function sfSyncEntrySignatures(payload){
+ const d=payload?.data||{},out={};
+ for(const k of Object.keys(d))out[k]=sfSyncCanonicalValue(k,d[k]);
+ return out;
+}
+function sfSyncEntryBaseKey(user){return 'sf_sync_v179_entry_base_'+user;}
+function sfSyncSaveEntryBase(user,payload){
+ try{rawLocalStorage.setItem(sfSyncEntryBaseKey(user),JSON.stringify(sfSyncEntrySignatures(payload)));}
+ catch(e){console.warn('Could not store diagnostic baseline',e);}
+}
+function sfSyncLoadEntryBase(user){
+ try{const v=JSON.parse(rawLocalStorage.getItem(sfSyncEntryBaseKey(user))||'null');return v&&typeof v==='object'&&!Array.isArray(v)?v:null;}
+ catch(e){return null;}
+}
+function sfSyncDiffAgainstEntryBase(payload,base){
+ const now=sfSyncEntrySignatures(payload);
+ return [...new Set([...Object.keys(now),...Object.keys(base)])].sort().filter(k=>now[k]!==base[k]);
+}
+// V179.3: show per-entry and per-field *paths*, never personal values.
+function sfSyncChangedFieldPaths(key,a,b,limit=6){
+ let left,right;
+ try{left=a===undefined?undefined:JSON.parse(a);}catch(e){return ['(non-JSON content differs)'];}
+ try{right=b===undefined?undefined:JSON.parse(b);}catch(e){return ['(non-JSON content differs)'];}
+ const result=[];
+ function walk(x,y,path,depth){
+  if(result.length>=limit)return;
+  if(depth>5){if(JSON.stringify(sfSyncStableJson(x))!==JSON.stringify(sfSyncStableJson(y)))result.push(path||'(entry)');return;}
+  if(x&&y&&typeof x==='object'&&typeof y==='object'&&!Array.isArray(x)&&!Array.isArray(y)){
+   for(const prop of [...new Set([...Object.keys(x),...Object.keys(y)])].sort()){
+    if(prop==='savedAt'&&/(?:^|_)nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(key))continue;
+    walk(x[prop],y[prop],path?path+'.'+prop:prop,depth+1);
+   }
+  }else if(Array.isArray(x)&&Array.isArray(y)){
+   if(x.length!==y.length)result.push((path||'(array)')+'.length');
+   for(let i=0;i<Math.min(x.length,y.length,20)&&result.length<limit;i++)walk(x[i],y[i],(path||'(array)')+'['+i+']',depth+1);
+   if(x.length>20||y.length>20)result.push((path||'(array)')+'[remaining entries not inspected]');
+  }else if(JSON.stringify(sfSyncStableJson(x))!==JSON.stringify(sfSyncStableJson(y))){
+   result.push((path||'(entry)')+(x===undefined?' (only in cloud)':y===undefined?' (only on device)':''));
+  }
+ }
+ walk(left,right,'',0);
+ return result.length?result:['(value differs)'];
+}
+function sfSyncConflictReport(local,remote){
+ const baseline=sfSyncLoadEntryBase(sfSyncUser);
+ if(!baseline)return '⚠ Both device and cloud changed. '+sfSyncDifferenceMessage(local,remote)+'\n\nNo per-entry baseline is available. Neither copy was overwritten.';
+ const device=sfSyncDiffAgainstEntryBase(local,baseline),cloud=sfSyncDiffAgainstEntryBase(remote,baseline);
+ const overlap=device.filter(k=>cloud.includes(k));
+ const localEntries=sfSyncEntrySignatures(local),cloudEntries=sfSyncEntrySignatures(remote);
+ const show=keys=>keys.length?keys.slice(0,8).map(k=>k.replace('schmokefit_unified_','')).join(', ')+(keys.length>8?' …':''):'none';
+ const lines=['⚠ Sync paused — both device and cloud changed since their shared baseline.',
+  'Device changed ('+device.length+'): '+show(device),
+  'Cloud changed ('+cloud.length+'): '+show(cloud),
+  'Overlapping entries ('+overlap.length+'): '+show(overlap)];
+ const differing=sfSyncDifferenceKeys(local,remote);
+ lines.push('Currently different ('+differing.length+'): '+show(differing));
+ for(const key of differing.slice(0,6)){
+  const paths=sfSyncChangedFieldPaths(key,local?.data?.[key],remote?.data?.[key],4);
+  lines.push(' • '+key.replace('schmokefit_unified_','')+': '+paths.join(', '));
+ }
+ lines.push('No copy was overwritten. Export backups and keep sync disabled until resolved.');
+ return lines.join('\n');
+}
+function sfSyncStop(){if(sfSyncTimer)clearInterval(sfSyncTimer);sfSyncTimer=null;sfSyncUser=null;sfSyncBase=null;sfSyncPause=false;sfSyncRunning=false;sfSyncText('Automatic sync is off.');sfSyncButton();}
+function sfSyncButton(){const e=document.getElementById('sfSyncToggle');if(e)e.textContent=sfSyncUser?'⏸ DISABLE AUTOMATIC SYNC':'⇄ ENABLE AUTOMATIC SYNC';}
+function sfSyncHasData(p){return Object.keys(p?.data||{}).some(k=>!/(migration|tour_completed|program|master_unlocked|show_intro|has_logged_in_before)/.test(k));}
+function sfSyncApply(p){
+ if(p?.app!=='SchmokeFit'||p?.format!=='schmokefit-local-backup'||!p.data||typeof p.data!=='object')throw new Error('Invalid cloud backup');
+ const keys=Object.keys(p.data).filter(isSchmokeFitStorageKey);
+ if(keys.length>15000)throw new Error('Cloud backup has too many entries');
+ const remove=[];for(let i=0;i<rawLocalStorage.length;i++){const k=rawLocalStorage.key(i);if(isSchmokeFitStorageKey(k))remove.push(k);}
+ remove.forEach(k=>rawLocalStorage.removeItem(k));keys.forEach(k=>rawLocalStorage.setItem(k,String(p.data[k])));
+}
+function sfSyncOnLogin(){
+ const user=schmokeAuthUserId;
+ if(!user||sfSyncUser===user)return;
+ sfSyncStop();
+ if(rawLocalStorage.getItem(sfSyncKey(user))==='enabled'){
+  sfSyncUser=user;sfSyncBase=sfSyncLoadBase(user);sfSyncPause=false;
+  sfSyncText('☁ Checking this device against the cloud…');sfSyncButton();
+  // On older installations without a stored baseline, check equality first.
+  sfSyncCheckNow();
+  if(!sfSyncTimer)sfSyncTimer=setInterval(()=>sfSyncTick(false),12000);
+ }else sfSyncText('Automatic sync is off. Enable it when ready.');
+}
+// V179.4: explicit, guarded one-time baseline reset. No automatic promotion.
+async function sfSyncPromoteComputer(){
+ if(sfCloudBusy||sfSyncRunning){sfSyncText('Another cloud operation is running. Try again.',true);return;}
+ if(!navigator.onLine){sfSyncText('Connect to the internet before establishing a baseline.',true);return;}
+ if(!confirm('V179.4 — COMPUTER IS THE SOURCE OF TRUTH\n\nOnly continue on the computer whose workout and nutrition data you verified as accurate.\n\nFirst export a local backup using EXPORT BACKUP.\n\nContinue to review the current cloud backup?'))return;
+ const btn=document.getElementById('sfBaselineComputer');if(btn)btn.disabled=true;
+ sfSyncRunning=true;
+ try{
+  const user=await sfCloudIdentity();
+  if(sfSyncUser){rawLocalStorage.removeItem(sfSyncKey(user.id));sfSyncStop();}
+  const cloud=await sfCloudFetch(),local=sfSyncSnapshot();
+  if(!cloud)throw new Error('No existing cloud backup. Use Save to Cloud for a new account.');
+  if(local?.app!=='SchmokeFit'||local?.format!=='schmokefit-local-backup'||!sfSyncHasData(local))throw new Error('Local backup is missing or invalid. Nothing uploaded.');
+  const originalSig=sfSyncSignature(local);
+  // Download a copy of the existing cloud backup BEFORE changing the remote row.
+  const blob=new Blob([JSON.stringify(cloud.backup,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='SchmokeFit-Pre-V1794-Cloud-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  if(!confirm('The previous cloud backup download has been started.\n\nVERIFY the JSON file was saved before proceeding.\n\nDo you want to replace the cloud copy with THIS COMPUTER’s current data?')){
+   sfSyncText('Canceled. No cloud data changed.');return;
+  }
+  if(!confirm('FINAL CONFIRMATION\n\nReplace the current Supabase backup with this computer’s data? The old cloud version will no longer be the active backup.\n\nPress OK only after verifying your exported computer backup AND the downloaded previous cloud backup.'))return;
+  if(sfSyncSignature(sfSyncSnapshot())!==originalSig)throw new Error('Computer data changed during confirmation. Restart to avoid an inconsistent backup.');
+  // Compare-and-swap: update only if the cloud row is still the one we reviewed.
+  const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
+   .update({backup:local,updated_at:new Date().toISOString()})
+   .eq('user_id',user.id).eq('updated_at',cloud.updated_at)
+   .select('user_id,updated_at');
+  if(error)throw error;
+  if(!data||data.length!==1)throw new Error('Cloud backup changed since review. Nothing was overwritten. Please retry.');
+  sfSyncSaveBase(user.id,{stamp:data[0].updated_at,signature:originalSig});
+  sfSyncSaveEntryBase(user.id,local);
+  rawLocalStorage.setItem(sfSyncKey(user.id),'enabled');
+  sfSyncUser=user.id;sfSyncPause=false;sfSyncButton();
+  sfSyncText('✓ Computer established as cloud baseline. Automatic sync is enabled here. On your phone, keep sync off, download the new cloud backup, and restore it after exporting its local data.');
+  sfCloudStatus('Cloud baseline updated: '+new Date(data[0].updated_at).toLocaleString());
+  if(sfSyncTimer)clearInterval(sfSyncTimer);
+  sfSyncTimer=setInterval(()=>sfSyncTick(false),12000);
+ }catch(e){sfSyncText('Baseline setup stopped: '+e.message,true);}
+ finally{sfSyncRunning=false;if(btn)btn.disabled=false;}
+}
+async function sfSyncToggle(){
+ if(sfSyncUser){rawLocalStorage.removeItem(sfSyncKey(sfSyncUser));sfSyncStop();return;}
+ if(!schmokeAuthUserId){sfSyncText('Sign in to enable sync.',true);return;}
+ if(!confirm('Enable automatic cloud synchronization on this device?\n\nSchmokeFit will compare your local and cloud data first. It will NEVER automatically overwrite conflicting copies. Export a local backup before proceeding.'))return;
+ try{
+  const user=await sfCloudIdentity(),row=await sfCloudFetch(),local=sfSyncSnapshot();
+  if(!row){
+   if(!sfSyncHasData(local)){sfSyncText('No fitness data to synchronize yet. Add some activity first.',true);return;}
+   if(!confirm('No cloud backup exists. Upload this device as the starting copy?'))return;
+   const {data,error}=await schmokeAuthClient.from('schmokefit_backups').insert({user_id:user.id,backup:local}).select('updated_at').single();
+   if(error)throw error;
+   sfSyncSaveBase(user.id,{stamp:data.updated_at,signature:sfSyncSignature(local)});
+   sfSyncSaveEntryBase(user.id,local);
+  }else{
+   const a=sfSyncSignature(local),b=sfSyncSignature(row.backup);
+   if(a!==b){
+    const choice=confirm('The device and cloud backups DIFFER.\n\n'+sfSyncDifferenceMessage(local,row.backup)+'\n\n'+sfSyncConflictReport(local,row.backup)+'\n\nOK = DOWNLOAD cloud data to this device (replaces local fitness data after another confirmation).\nCANCEL = Keep both unchanged and leave sync off.\n\nExport a local backup first!');
+    if(!choice){sfSyncText('Different copies detected. Sync is off; no data was overwritten.',true);return;}
+    if(!confirm('LAST CONFIRMATION: Replace this device’s fitness data with the cloud backup? This will reload the app. Export a local backup first.'))return;
+    sfSyncApply(row.backup);
+    sfSyncSaveBase(user.id,{stamp:row.updated_at,signature:b});
+   sfSyncSaveEntryBase(user.id,row.backup);
+    rawLocalStorage.setItem(sfSyncKey(user.id),'enabled');
+    alert('Cloud copy restored. Reloading; open Data & Backup and choose CHECK FOR CHANGES to resume syncing.');location.reload();return;
+   }
+   sfSyncSaveBase(user.id,{stamp:row.updated_at,signature:b});
+   sfSyncSaveEntryBase(user.id,row.backup);
+  }
+  sfSyncUser=user.id;sfSyncPause=false;rawLocalStorage.setItem(sfSyncKey(user.id),'enabled');sfSyncButton();
+  sfSyncText('✓ Synced. Monitoring changes while this app is open.');
+  sfSyncTimer=setInterval(()=>sfSyncTick(false),12000);
+ }catch(e){sfSyncText('Sync setup failed: '+e.message,true);}
+}
+async function sfSyncCheckNow(){
+ if(!schmokeAuthUserId){sfSyncText('Sign in first.',true);return;}
+ if(!sfSyncUser){sfSyncText('Automatic sync is off. Enable it first.');return;}
+ if(sfSyncPause){sfSyncText('⚠ Sync paused due to a conflict. Export a backup and review the copies before proceeding.',true);return;}
+ await sfSyncTick(true);
+}
+async function sfSyncTick(manual){
+ if(sfSyncRunning||sfSyncPause||!sfSyncUser||schmokeAuthUserId!==sfSyncUser||!navigator.onLine)return;
+ sfSyncRunning=true;
+ try{
+  const row=await sfCloudFetch();
+  if(!row)throw new Error('Cloud backup unavailable.');
+  const local=sfSyncSnapshot(),localSig=sfSyncSignature(local),remoteSig=sfSyncSignature(row.backup);
+  if(!sfSyncBase){
+   // Legacy V178.2 enrollment: do not infer which copy wins.
+   if(localSig!==remoteSig){sfSyncPause=true;sfSyncText(sfSyncDifferenceMessage(local,row.backup),true);return;}
+   sfSyncSaveBase(sfSyncUser,{stamp:row.updated_at,signature:remoteSig});
+   sfSyncSaveEntryBase(sfSyncUser,row.backup);
+  }
+  // V179.5: matching current values are never a conflict, even when both
+  // signatures advanced independently since the last common baseline.
+  // Advance the shared baseline to the exact cloud revision in that case.
+  if(localSig===remoteSig){
+   sfSyncSaveBase(sfSyncUser,{stamp:row.updated_at,signature:remoteSig});
+   sfSyncSaveEntryBase(sfSyncUser,row.backup);
+   sfSyncText('✓ All changes saved to cloud. Last checked '+new Date().toLocaleTimeString());
+   return;
+  }
+  const localChanged=localSig!==sfSyncBase.signature,remoteChanged=remoteSig!==sfSyncBase.signature;
+  if(localChanged&&remoteChanged){sfSyncPause=true;sfSyncText(sfSyncConflictReport(local,row.backup),true);return;}
+  if(remoteChanged){
+   if(!sfSyncSafeToReload()){
+    sfSyncText('☁ New cloud changes waiting. SchmokeFit will update after 30 seconds without interaction.');return;
+   }
+   // Recheck local state immediately before replacing anything.
+   if(sfSyncSignature(sfSyncSnapshot())!==sfSyncBase.signature){sfSyncPause=true;sfSyncText('⚠ Local changes detected during download. Sync paused.',true);return;}
+   sfSyncAdoptCloud(row);return;
+  }
+  if(localChanged){
+   sfSyncText('☁ Saving changes to cloud…');
+   const {data,error}=await schmokeAuthClient.from('schmokefit_backups')
+    .update({backup:local,updated_at:new Date().toISOString()})
+    .eq('user_id',sfSyncUser).eq('updated_at',sfSyncBase.stamp)
+    .select('updated_at');
+   if(error)throw error;
+   if(!data||data.length!==1){sfSyncPause=true;sfSyncText('⚠ Cloud changed during upload. Sync paused to protect your data.',true);return;}
+   sfSyncSaveBase(sfSyncUser,{stamp:data[0].updated_at,signature:localSig});
+   sfSyncSaveEntryBase(sfSyncUser,local);
+  }else if(row.updated_at!==sfSyncBase.stamp){
+   // Cloud data equivalent but its timestamp advanced (e.g. manual backup).
+   sfSyncSaveBase(sfSyncUser,{stamp:row.updated_at,signature:remoteSig});
+   sfSyncSaveEntryBase(sfSyncUser,row.backup);
+  }
+  sfSyncText('✓ All changes saved to cloud. Last checked '+new Date().toLocaleTimeString());
+ }catch(e){sfSyncText('Cloud unavailable; changes remain on this device. '+e.message,true);}
+ finally{sfSyncRunning=false;}
 }
 
 const appTourSteps = [
@@ -14616,6 +15065,7 @@ function todayOpenConsistencyProgress(){
 <!-- V153: tightly cropped login SCHMOKEFIT wordmark to remove excess vertical image canvas. -->
 
 <!-- V154: full responsive header usernames; ellipsis removed; V153 functionality preserved. -->
+<!-- V176: Supabase display name registration, legacy name migration, and account-menu editing; workout/nutrition data remain local. -->
 
 <!-- V159: Removed set-history reset icons; hardened previous-performance history bottom sheet rendering above app UI. -->
 <!-- V160: Fixed malformed escaped-newline JavaScript in set-history handler so previous-performance taps actually open the history sheet. -->
