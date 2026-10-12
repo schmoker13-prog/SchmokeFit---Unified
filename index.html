@@ -3750,7 +3750,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sfCloudRestoreBackup()">⬇ RESTORE FROM CLOUD</button>
     <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudDownload" onclick="sfCloudDownloadBackup()">⬇ DOWNLOAD CLOUD BACKUP FILE</button>
     <div style="border-top:1px solid #35414d;margin:20px 0 12px"></div>
-    <div class="info-subtitle">DEVICE TRANSFER · V183.4</div>
+    <div class="info-subtitle">DEVICE TRANSFER · V183.5</div>
     <div class="account-tools-copy">Transfer laptop changes to your phone without replacing the primary cloud backup. Start by syncing the latest backup on your secondary device, before logging new workouts there.</div>
     <div id="sf183Status" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0;line-height:1.6">Check device status to begin.</div>
     <button class="btn btn-dark account-tool-btn" type="button" id="sf183Check" onclick="sf183CheckStatus()">↻ CHECK DEVICE TRANSFER STATUS</button>
@@ -15081,13 +15081,28 @@ function sf183LibraryReordered(c){
   return a.map(sig).sort().every((v,i)=>v===b.map(sig).sort()[i]);
  }catch(_){return false;}
 }
-function sf183MetadataOnlyConflict(c){
- if(!/nutrition_meta_\d{4}-\d{2}-\d{2}/i.test(c.key))return false;
- try{const a=JSON.parse(c.before),b=JSON.parse(c.after);
-  if(!a||!b||Array.isArray(a)||Array.isArray(b))return false;
-  const fields=[...new Set([...Object.keys(a),...Object.keys(b)])];
-  return fields.every(k=>k==='savedAt'||(k==='effectiveBodyweight'&&(b[k]===null||b[k]===undefined)&&a[k]!==undefined));
- }catch(_){return false;}
+/* V183.5: Classify metadata using base, proposed, AND current primary values.
+   Never write nutrition metadata implicitly; a real non-null weight change stays blocked. */
+function sf183MetadataDecision(c,currentValue){
+ if(!/^schmokefit_unified_nutrition_meta_\d{4}-\d{2}-\d{2}$/.test(c.key))return null;
+ try{
+  const base=JSON.parse(c.before), proposed=JSON.parse(c.after);
+  const primary=currentValue===null?null:JSON.parse(currentValue);
+  if(!base||!proposed||!primary||[base,proposed,primary].some(Array.isArray))return null;
+  if([base,proposed,primary].some(v=>typeof v!=='object'))return null;
+  const fields=[...new Set([...Object.keys(base),...Object.keys(proposed)])];
+  const changed=fields.filter(k=>JSON.stringify(sf183Canonical(base[k]??null))!==JSON.stringify(sf183Canonical(proposed[k]??null)));
+  if(!changed.length)return 'unchanged';
+  if(changed.some(k=>k!=='savedAt'&&k!=='effectiveBodyweight'))return null;
+  if(changed.includes('effectiveBodyweight')){
+   const before=base.effectiveBodyweight??null,after=proposed.effectiveBodyweight??null;
+   if(before!==null&&after!==null&&before!==after)return null;
+   if(after!==null&&before===null)return null; // a new weight must be explicitly reviewed
+   if(primary.effectiveBodyweight!=null&&after===null)return 'protected';
+   if(before!==null&&after===null)return 'protected';
+  }
+  return 'timestamp';
+ }catch(_){return null;}
 }
 function sf183MealKey(k){return /^schmokefit_unified_nutrition_\d{4}-\d{2}-\d{2}$/.test(k);}
 function sf183NutritionKey(k){return /nutrition|calor|macro|meal|food|protein/i.test(k);}
@@ -15164,10 +15179,11 @@ function sf183ChangeReview(safe,already,conflicts){
 }
 async function sf183ReceiveChanges(approved=false){if(sf183Busy)return;sf183SetBusy(true);try{if(await sf183Role()!=='primary')throw new Error('Only the primary device can receive changes.');const row=await sf183Fetch();if(!row){sf183Message('No pending secondary-device transfer.');return;}const packet=row.transfer;if(packet?.format!=='schmokefit-device-delta'||packet.version!==1||!Array.isArray(packet.changes)||packet.changes.length>15000||row.source_device_id===sf181DeviceId())throw new Error('Transfer payload is invalid or from this same device.');const keys=new Set();for(const c of packet.changes){if(!c||!isSchmokeFitStorageKey(c.key)||keys.has(c.key)||!(c.before===null||typeof c.before==='string')||!(c.after===null||typeof c.after==='string'))throw new Error('Transfer contains an invalid or repeated storage key.');keys.add(c.key);}const current=sf183Snapshot();const safe=[],conflicts=[],already=[],ignored=[],protectedMeta=[];
  for(const c of packet.changes){
-  if(sf183LibraryReordered(c)){ignored.push(c);continue;}
   const value=Object.prototype.hasOwnProperty.call(current,c.key)?current[c.key]:null;
+  if(sf183LibraryReordered(c)){ignored.push(c);continue;}
+  const meta=sf183MetadataDecision(c,value);
+  if(meta==='protected'||meta==='timestamp'){protectedMeta.push(c);continue;}
   if(sf183Equivalent(value,c.after))already.push(c);
-  else if(sf183MetadataOnlyConflict(c))protectedMeta.push(c);
   else if(sf183Equivalent(value,c.before))safe.push(c);
   else conflicts.push(c);
  }
@@ -15175,9 +15191,9 @@ async function sf183ReceiveChanges(approved=false){if(sf183Busy)return;sf183SetB
  const nutritionConflict=conflicts.some(c=>sf183NutritionKey(c.key));
  const held=nutritionConflict?safe.filter(c=>sf183NutritionKey(c.key)):[];
  const applicable=nutritionConflict?safe.filter(c=>!sf183NutritionKey(c.key)):safe;
- const details='Transfer from '+new Date(row.updated_at).toLocaleString()+'\n\nSafe to apply: '+applicable.length+' entries'+(held.length?'\nNutrition entries held for safety: '+held.length:'')+'\nAlready identical: '+already.length+' entries'+(ignored.length?'\nFood library reorder ignored: '+ignored.length:'')+(protectedMeta.length?'\nProtected nutrition metadata (not applied): '+protectedMeta.length:'')+'\nConflicting (will NOT overwrite): '+conflicts.length+' entries'+(conflicts.length?'\n\nConflict keys (first 12):\n'+conflicts.slice(0,12).map(c=>c.key).join('\n'):'')+(protectedMeta.length?'\n\nPrimary bodyweight metadata is preserved; missing laptop bodyweight is not imported.':'');
+ const details='Transfer from '+new Date(row.updated_at).toLocaleString()+'\n\nSafe to apply: '+applicable.length+' entries'+(held.length?'\nNutrition entries held for safety: '+held.length:'')+'\nAlready identical: '+already.length+' entries'+(ignored.length?'\nFood library reorder ignored: '+ignored.length:'')+(protectedMeta.length?'\nProtected nutrition metadata (not applied): '+protectedMeta.length:'')+'\nConflicting (will NOT overwrite): '+conflicts.length+' entries'+(conflicts.length?'\n\nConflict keys (first 12):\n'+conflicts.slice(0,12).map(c=>c.key).join('\n'):'')+(protectedMeta.length?'\n\nNutrition metadata is not imported; existing primary bodyweight is preserved.':'');
  const skipped=[...conflicts,...held,...protectedMeta];
-if(!approved){sf183RenderReview(details,applicable,held,[...conflicts,...protectedMeta],already);return;}if(!applicable.length){sf183RenderReview(details,applicable,held,[...conflicts,...protectedMeta],already);return;}if(!confirm('REVIEW DEVICE TRANSFER\n\n'+details+sf183ChangeReview(applicable,already,conflicts)+(held.length?'\n\nHELD FOR SAFETY (NOT APPLIED):\n'+held.map((c,i)=>(i+1)+'. '+sf183DescribeChange(c)).join('\n')+'\nRelated nutrition metadata has a conflict. Nutrition entries must be resolved together.':'')+'\n\nApply only the listed safe entries? A local safety backup will be downloaded first.'))return;const safety=schmokeFitBackupPayload();if(!sfCloudValidPayload(safety))throw new Error('Cannot create safety backup.');sfCloudDownloadFile(safety,'SchmokeFit-Before-Device-Receive');if(!confirm('Confirm your primary-device safety backup downloaded. Apply '+safe.length+' safe entries now?'))return;const latest=await sf183Fetch();if(!latest||latest.updated_at!==row.updated_at||!sfCloudEqualData(latest.transfer,packet))throw new Error('Transfer changed during review. Retry.');const fresh=sf183Snapshot();if(applicable.some(c=>(Object.prototype.hasOwnProperty.call(fresh,c.key)?fresh[c.key]:null)!==c.before&&!sf183Equivalent((Object.prototype.hasOwnProperty.call(fresh,c.key)?fresh[c.key]:null),c.before)))throw new Error('Primary device data changed during review. Retry.');try{for(const c of applicable){if(c.after===null)rawLocalStorage.removeItem(c.key);else rawLocalStorage.setItem(c.key,c.after);}}catch(e){try{for(const c of applicable){if(Object.prototype.hasOwnProperty.call(current,c.key))rawLocalStorage.setItem(c.key,current[c.key]);else rawLocalStorage.removeItem(c.key);}}catch(_){}throw new Error('Apply failed. Use your downloaded safety file if needed. '+e.message);}if(skipped.length){sf183Message('✓ Applied '+applicable.length+' safe entries. '+skipped.length+' protected/held entries were NOT overwritten. The transfer remains pending. Download a primary backup before resolving these manually. Reloading…');alert('Applied '+applicable.length+' safe entries. '+skipped.length+' protected/held entries were skipped; transfer remains pending. App will reload.');}else{const {error}=await schmokeAuthClient.from(SF183_TABLE).delete().eq('user_id',schmokeAuthUserId).eq('updated_at',row.updated_at);if(error)sf183Message('Changes applied, but could not clear inbox: '+error.message,true);alert('Received '+applicable.length+' changed entries. Primary cloud backup was NOT overwritten. Back up your primary device when ready. App will reload.');}location.reload();}catch(e){sf183Message('Receive stopped: '+e.message,true);}finally{sf183SetBusy(false);}}
+if(!approved){sf183RenderReview(details,applicable,held,[...conflicts,...protectedMeta],already);return;}if(!applicable.length){sf183RenderReview(details,applicable,held,[...conflicts,...protectedMeta],already);return;}if(!confirm('REVIEW DEVICE TRANSFER\n\n'+details+sf183ChangeReview(applicable,already,conflicts)+(held.length?'\n\nHELD FOR SAFETY (NOT APPLIED):\n'+held.map((c,i)=>(i+1)+'. '+sf183DescribeChange(c)).join('\n')+'\nRelated nutrition metadata has a conflict. Nutrition entries must be resolved together.':'')+'\n\nApply only the listed safe entries? A local safety backup will be downloaded first.'))return;const safety=schmokeFitBackupPayload();if(!sfCloudValidPayload(safety))throw new Error('Cannot create safety backup.');sfCloudDownloadFile(safety,'SchmokeFit-Before-Device-Receive');if(!confirm('Confirm your primary-device safety backup downloaded. Apply '+applicable.length+' safe entries now?'))return;const latest=await sf183Fetch();if(!latest||latest.updated_at!==row.updated_at||!sfCloudEqualData(latest.transfer,packet))throw new Error('Transfer changed during review. Retry.');const fresh=sf183Snapshot();if(applicable.some(c=>(Object.prototype.hasOwnProperty.call(fresh,c.key)?fresh[c.key]:null)!==c.before&&!sf183Equivalent((Object.prototype.hasOwnProperty.call(fresh,c.key)?fresh[c.key]:null),c.before)))throw new Error('Primary device data changed during review. Retry.');try{for(const c of applicable){if(c.after===null)rawLocalStorage.removeItem(c.key);else rawLocalStorage.setItem(c.key,c.after);}}catch(e){try{for(const c of applicable){if(Object.prototype.hasOwnProperty.call(current,c.key))rawLocalStorage.setItem(c.key,current[c.key]);else rawLocalStorage.removeItem(c.key);}}catch(_){}throw new Error('Apply failed. Use your downloaded safety file if needed. '+e.message);}if(skipped.length){sf183Message('✓ Applied '+applicable.length+' safe entries. '+skipped.length+' protected/held entries were NOT overwritten. The transfer remains pending. Download a primary backup before resolving these manually. Reloading…');alert('Applied '+applicable.length+' safe entries. '+skipped.length+' protected/held entries were skipped; transfer remains pending. App will reload.');}else{const {error}=await schmokeAuthClient.from(SF183_TABLE).delete().eq('user_id',schmokeAuthUserId).eq('updated_at',row.updated_at);if(error)sf183Message('Changes applied, but could not clear inbox: '+error.message,true);alert('Received '+applicable.length+' changed entries. Primary cloud backup was NOT overwritten. Back up your primary device when ready. App will reload.');}location.reload();}catch(e){sf183Message('Receive stopped: '+e.message,true);}finally{sf183SetBusy(false);}}
 
 </script>
 </body>
