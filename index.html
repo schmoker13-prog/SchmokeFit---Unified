@@ -4198,6 +4198,16 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="barcode-reader" id="barcodeReader"></div>
 <div class="barcode-status" id="barcodeStatus">Allow camera access, then center the UPC/EAN barcode inside the scanner.</div>
 <div class="barcode-code" id="barcodeCodeDisplay"></div>
+<div id="sf1873ScannerTools" style="margin-top:10px">
+ <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <button class="btn btn-dark" type="button" onclick="sf1873StartFallback()" style="flex:1">TRY ALTERNATE SCANNER</button>
+  <button class="btn btn-dark" type="button" onclick="sf1873ManualBarcode()" style="flex:1">ENTER BARCODE</button>
+ </div>
+ <div id="sf1873ManualRow" style="display:none;margin-top:9px;gap:8px">
+  <input id="sf1873ManualInput" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="UPC / EAN digits" aria-label="Barcode digits" style="min-width:0;flex:1;padding:10px;border-radius:8px;background:#111d2d;color:white;border:1px solid #51647a">
+  <button class="btn btn-blue" type="button" onclick="sf1873SubmitBarcode()">LOOK UP</button>
+ </div>
+</div>
 <button class="btn btn-dark" onclick="stopBarcodeScanner()" style="width:100%; margin-top:8px;">STOP CAMERA</button>
 </div>
 <div class="manual-food-panel" id="manualFoodPanel">
@@ -7778,6 +7788,88 @@ function onRepsEntered(exerciseIndex, repInput) {
       document.getElementById('manualFoodPanel').scrollIntoView({behavior:'smooth',block:'center'});
     }
 
+    // V187.3: optional independent ZXing decoder for iOS WebKit; loaded only when needed.
+    let sf1873Reader = null;
+    let sf1873Controls = null;
+    let sf1873Stream = null;
+    let sf1873Video = null;
+    let sf1873Starting = false;
+    let sf1873Generation = 0;
+    let sf1873Loader = null;
+    function sf1873IsIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1); }
+    function sf1873LoadZxing() {
+      if (window.ZXing?.BrowserMultiFormatReader) return Promise.resolve();
+      if (sf1873Loader) return sf1873Loader;
+      sf1873Loader = new Promise((resolve,reject)=>{
+        const script=document.createElement('script');
+        script.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+        script.onload=()=>window.ZXing?.BrowserMultiFormatReader?resolve():reject(new Error('Decoder library unavailable'));
+        script.onerror=()=>reject(new Error('Unable to load decoder library'));
+        document.head.appendChild(script);
+      }).catch(e=>{sf1873Loader=null;throw e;});
+      return sf1873Loader;
+    }
+    function sf1873ManualBarcode(){
+      const row=document.getElementById('sf1873ManualRow');
+      row.style.display='flex';document.getElementById('sf1873ManualInput')?.focus();
+    }
+    async function sf1873SubmitBarcode(){
+      const code=(document.getElementById('sf1873ManualInput')?.value||'').replace(/[\s-]/g,'');
+      if(!/^\d{8,14}$/.test(code)){
+        document.getElementById('barcodeStatus').textContent='Enter a valid 8–14 digit UPC/EAN barcode.';return;
+      }
+      if(barcodeScanLocked)return;
+      barcodeScanLocked=true;lastScannedBarcode=code;
+      document.getElementById('barcodeCodeDisplay').textContent='Barcode: '+code;
+      await stopBarcodeScanner(false);await lookupBarcode(code);
+    }
+    async function sf1873StopFallback(){
+      sf1873Generation++;
+      try{sf1873Controls?.stop?.();}catch(e){}
+      sf1873Controls=null;
+      try{sf1873Reader?.reset?.();}catch(e){}
+      sf1873Reader=null;
+      if(sf1873Stream){sf1873Stream.getTracks().forEach(t=>t.stop());sf1873Stream=null;}
+      if(sf1873Video){try{sf1873Video.pause();sf1873Video.srcObject=null;sf1873Video.remove();}catch(e){}sf1873Video=null;}
+    }
+    async function sf1873StartFallback(){
+      if(sf1873Starting||barcodeScanLocked)return;
+      sf1873Starting=true;
+      const generation=++sf1873Generation;
+      const status=document.getElementById('barcodeStatus');
+      try{
+        status.textContent='Loading alternate barcode decoder…';
+        await sf1873LoadZxing();
+        if(generation!==sf1873Generation)return;
+        // Stop html5-qrcode before requesting the camera again.
+        if(barcodeScanner){try{await barcodeScanner.stop();}catch(e){}try{await barcodeScanner.clear();}catch(e){}barcodeScanner=null;}
+        if(generation!==sf1873Generation)return;
+        const readerEl=document.getElementById('barcodeReader');
+        readerEl.innerHTML='';
+        const video=document.createElement('video');video.setAttribute('playsinline','');video.setAttribute('autoplay','');video.muted=true;
+        video.style.cssText='width:100%;max-height:360px;object-fit:cover;border-radius:10px;background:#111';
+        readerEl.appendChild(video);sf1873Video=video;
+        const hints=new Map();
+        if(window.ZXing?.DecodeHintType && window.ZXing?.BarcodeFormat){
+          hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E]);
+          hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+        }
+        sf1873Reader=new ZXing.BrowserMultiFormatReader(hints,250);
+        status.textContent='Alternate scanner active. Hold barcode steady in good light.';
+        // ZXing library manages camera and decode loop. No native BarcodeDetector required.
+        await sf1873Reader.decodeFromVideoDevice(undefined,video,async(result,err)=>{
+          if(generation!==sf1873Generation||barcodeScanLocked||!result)return;
+          const code=String(result.getText?.()||result.text||'').trim();
+          if(!/^\d{8,14}$/.test(code))return;
+          barcodeScanLocked=true;lastScannedBarcode=code;
+          document.getElementById('barcodeCodeDisplay').textContent='Barcode: '+code;
+          status.textContent='Barcode found. Looking up nutrition…';
+          await stopBarcodeScanner(false);await lookupBarcode(code);
+        });
+      }catch(e){
+        if(generation===sf1873Generation){console.warn('Alternate barcode scanner:',e);status.textContent='Alternate scanner unavailable: '+(e?.message||'camera/decoder error')+'. Use Enter Barcode below.';}
+      }finally{sf1873Starting=false;}
+    }
     async function startBarcodeScanner() {
       hideManualFoodForm();
       document.getElementById('foodSearchResults').innerHTML = '';
@@ -7789,6 +7881,9 @@ function onRepsEntered(exerciseIndex, repInput) {
       codeDisplay.innerText = '';
       barcodeScanLocked = false;
       lastScannedBarcode = '';
+      await sf1873StopFallback();
+      document.getElementById('sf1873ManualRow').style.display='none';
+      if(sf1873IsIOS()){await sf1873StartFallback();return;}
 
       if (typeof Html5Qrcode === 'undefined') {
         status.innerText = 'The scanner library did not load. You can still search foods or add a barcode manually.';
@@ -7841,6 +7936,7 @@ function onRepsEntered(exerciseIndex, repInput) {
     }
 
     async function stopBarcodeScanner(hidePanel = true) {
+      await sf1873StopFallback();
       if (barcodeScanner) {
         try {
           const state = barcodeScanner.getState ? barcodeScanner.getState() : null;
