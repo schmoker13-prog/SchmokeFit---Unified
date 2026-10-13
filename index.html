@@ -4182,7 +4182,7 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="select-label" style="color:var(--accent-blue);">FOOD LOOKUP</div>
 <div class="nutrition-search-row">
 <input class="custom-select" id="foodSearchInput" placeholder="Search foods or restaurant items..." type="search"/>
-<button class="btn btn-orange" onclick="searchUsdaFoods()" style="flex:0 0 auto; padding:10px 12px;">SEARCH</button>
+<button class="btn btn-orange" onclick="searchUsdaFoods(true)" style="flex:0 0 auto; padding:10px 12px;">SEARCH</button>
 </div>
 <div class="search-results" id="foodSearchResults"></div>
 <div id="sf186Fallback" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--input-border);border-radius:10px;background:#111d2d">
@@ -8443,12 +8443,13 @@ function onRepsEntered(exerciseIndex, repInput) {
       }, 450);
     }
 
-    async function searchUsdaFoods() {
+    async function searchUsdaFoods(includeOpenFoodFacts = false) {
       const input = document.getElementById('foodSearchInput');
       const results = document.getElementById('foodSearchResults');
       const query = input.value.trim();
       sf186UpdateFallback();
       const requestId = ++liveFoodSearchRequestId;
+      currentUsdaSearchFoods = [];
       if (!query) {
         results.innerHTML = '<div class="nutrition-empty">Enter a food to search.</div>';
         return;
@@ -8463,9 +8464,8 @@ function onRepsEntered(exerciseIndex, repInput) {
         if (requestId !== liveFoodSearchRequestId) return;
         const foods = Array.isArray(data.foods) ? data.foods : [];
         if (!foods.length) {
-          results.innerHTML = customHtml + (customHtml ? '' : '<div class="nutrition-empty">No matching foods found.</div>');
-          return;
-        }
+          results.innerHTML = customHtml + (customHtml ? '' : '<div class="nutrition-empty">No matching USDA foods found.</div>');
+        } else {
         results.innerHTML = customHtml + foods.map((food, idx) => {
           const n = extractUsdaMacros(food.foodNutrients || []);
           const desc = food.description || food.lowercaseDescription || 'USDA Food';
@@ -8526,9 +8526,80 @@ function onRepsEntered(exerciseIndex, repInput) {
             </div>
           </div>`;
         }).join('');
+        }
       } catch (err) {
         console.error(err);
+        if (requestId !== liveFoodSearchRequestId) return;
         results.innerHTML = customHtml + '<div class="nutrition-empty">USDA search could not connect. Your saved My Foods are still available above.</div>';
+      }
+      if (requestId !== liveFoodSearchRequestId) return;
+      // OFF is deliberately submit-only: its public search API is rate-limited.
+      if (includeOpenFoodFacts) await sf187SearchOpenFoodFacts(query, requestId);
+      else results.insertAdjacentHTML('beforeend', '<div class="nutrition-empty">For additional packaged foods, press SEARCH to include Open Food Facts.</div>');
+    }
+
+    // V187: public Open Food Facts name search; no credentials or Supabase changes.
+    async function sf187SearchOpenFoodFacts(query, requestId) {
+      const results = document.getElementById('foodSearchResults');
+      if (!results || query.length < 3) return;
+      const section = document.createElement('section');
+      section.id = 'sf187OffResults';
+      section.innerHTML = '<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS · PACKAGED FOODS</div><div class="nutrition-empty">Searching Open Food Facts…</div>';
+      results.appendChild(section);
+      try {
+        const fields = 'code,product_name,product_name_en,brands,serving_size,serving_quantity,nutriments';
+        const url = 'https://world.openfoodfacts.org/cgi/search.pl?search_terms=' + encodeURIComponent(query)
+          + '&search_simple=1&action=process&json=1&page_size=12&fields=' + encodeURIComponent(fields);
+        const response = await fetch(url, {headers:{'Accept':'application/json'}});
+        if (!response.ok) throw new Error('Open Food Facts returned HTTP '+response.status);
+        const data = await response.json();
+        if (requestId !== liveFoodSearchRequestId || !section.isConnected) return;
+        const products = (Array.isArray(data.products) ? data.products : []).filter(p => {
+          const n=p.nutriments||{};
+          return String(p.product_name||p.product_name_en||'').trim() &&
+            [n['energy-kcal_100g'],n.energy_100g,n.proteins_100g,n.carbohydrates_100g,n.fat_100g].some(v=>v!==undefined&&v!==null&&v!=='');
+        }).slice(0,8);
+        if (!products.length) {
+          section.innerHTML = '<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS</div><div class="nutrition-empty">No usable packaged-food results found.</div>';
+          return;
+        }
+        const startIndex=currentUsdaSearchFoods.length;
+        section.innerHTML = '<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS · PACKAGED FOODS</div>' + products.map((p,i)=>{
+          const n=p.nutriments||{};
+          const numeric=v=>v===undefined||v===null||v===''?0:Math.max(0,Number(v)||0);
+          const kcal = n['energy-kcal_100g']!==undefined && n['energy-kcal_100g']!==null
+            ? numeric(n['energy-kcal_100g']) : numeric(n.energy_100g)/4.184;
+          const servingGrams = numeric(p.serving_quantity);
+          const name=String(p.product_name||p.product_name_en||'').trim();
+          const servingText=String(p.serving_size||'').trim() || (servingGrams>0?`${round1(servingGrams)} g`:'');
+          const idx=startIndex+i;
+          currentUsdaSearchFoods[idx]={name,calories:kcal,protein:numeric(n.proteins_100g),carbs:numeric(n.carbohydrates_100g),fat:numeric(n.fat_100g),servingGrams,servingText,portions:[]};
+          const defaultUnit=servingGrams>0?'serving':'g';
+          const defaultAmount=servingGrams>0?1:100;
+          const initialGrams=servingGrams>0?servingGrams:100;
+          const macros=currentUsdaSearchFoods[idx];
+          const scale=initialGrams/100;
+          return `<div class="search-result">
+            <div class="search-result-top"><div>
+              <div class="search-result-name">${escapeHtml(name)}</div>
+              <div class="search-result-meta">${escapeHtml(String(p.brands||'Open Food Facts'))} · Open Food Facts • per 100g: ${Math.round(kcal)} kcal • ${round1(macros.protein)}P • ${round1(macros.carbs)}C • ${round1(macros.fat)}F</div>
+              ${servingGrams>0?`<div class="search-result-meta">Serving: ${escapeHtml(servingText)}</div>`:''}
+              <div class="search-result-meta" id="foodPreview-${idx}" style="margin-top:5px;color:var(--text)"><strong>${escapeHtml(servingGrams>0?servingText:'100 g')}:</strong> ${Math.round(kcal*scale)} kcal • ${round1(macros.protein*scale)}P • ${round1(macros.carbs*scale)}C • ${round1(macros.fat*scale)}F</div>
+            </div></div>
+            <div class="search-result-controls">
+              <input type="number" min="0.01" step="0.01" value="${defaultAmount}" id="foodAmount-${idx}" class="custom-select" aria-label="Amount" oninput="updateUsdaSearchPreview(${idx})">
+              <select id="foodUnit-${idx}" class="custom-select" aria-label="Unit" onchange="updateUsdaSearchPreview(${idx})">
+                ${servingGrams>0?`<option value="serving" selected>${escapeHtml(portionUnitLabel(servingText))}</option>`:''}
+                <option value="g" ${defaultUnit==='g'?'selected':''}>grams</option><option value="oz">ounces</option>
+              </select>
+              <button class="btn btn-blue" style="margin-top:0" onclick="addUsdaFood(${idx})">ADD TO ${nutritionMealName(activeNutritionMeal).toUpperCase()}</button>
+            </div>
+          </div>`;
+        }).join('');
+      } catch(e) {
+        console.warn('Open Food Facts search:',e);
+        if(requestId===liveFoodSearchRequestId && section.isConnected)
+          section.innerHTML='<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS</div><div class="nutrition-empty">Open Food Facts is unavailable right now. USDA and manual food entry still work.</div>';
       }
     }
 
@@ -9388,7 +9459,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         foodSearchInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             clearTimeout(liveFoodSearchTimer);
-            searchUsdaFoods();
+            searchUsdaFoods(true);
           }
         });
       }
