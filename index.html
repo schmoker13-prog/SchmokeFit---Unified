@@ -4971,7 +4971,7 @@ document.addEventListener('keydown', e => {
     let currentMacroPhaseMode = 'cut';
     let currentTrainingFocus = appStorage.getItem('schmokefit_training_focus') || PROGRAM_CONFIG[currentProgram].defaultFocus;
     let programResetPending = appStorage.getItem('schmokefit_cycle_reset_pending') === 'true';
-    const USDA_API_KEY = 'DEMO_KEY'; // Prototype key. Replace with a private backend proxy before public release.
+    // V187.2 USDA API key is stored only in Supabase Edge Function secrets.
     const nutritionMeals = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
     let activeNutritionMeal = 'Breakfast';
     let barcodeScanner = null;
@@ -8423,26 +8423,25 @@ function onRepsEntered(exerciseIndex, repInput) {
       window.open('https://www.google.com/search?q=' + encodeURIComponent(query + ' nutrition calories protein carbs fat'), '_blank', 'noopener,noreferrer');
     }
     function queueLiveFoodSearch() {
+      // V187.2: no network requests while typing.
       clearTimeout(liveFoodSearchTimer);
-      const input = document.getElementById('foodSearchInput');
-      const results = document.getElementById('foodSearchResults');
-      const query = String(input?.value || '').trim();
       sf186UpdateFallback();
-
-      if (query.length < 2) {
-        if (results) {
-          results.innerHTML = query.length
-            ? '<div class="nutrition-empty">Type at least 2 characters to search.</div>'
-            : '';
-        }
-        return;
-      }
-
-      liveFoodSearchTimer = setTimeout(() => {
-        searchUsdaFoods();
-      }, 450);
+      const results=document.getElementById('foodSearchResults');
+      const query=document.getElementById('foodSearchInput')?.value.trim()||'';
+      ++liveFoodSearchRequestId; // invalidate results from a previous query
+      if(results) results.innerHTML=query ? '<div class="nutrition-empty">Press SEARCH or Enter to search USDA and Open Food Facts.</div>' : '';
     }
-
+    async function sf1872UsdaRequest(query) {
+      if(!schmokeAuthClient)throw new Error('Sign in to search USDA.');
+      const {data:sessionData,error:sessionError}=await schmokeAuthClient.auth.getSession();
+      if(sessionError||!sessionData?.session?.access_token)throw new Error('Sign in to search USDA.');
+      const response=await fetch(SCHMOKEFIT_SUPABASE_URL+'/functions/v1/sf-usda-search',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+sessionData.session.access_token,'apikey':SCHMOKEFIT_SUPABASE_KEY},
+        body:JSON.stringify({query})
+      });
+      if(!response.ok){const err=new Error('USDA search request failed');err.status=response.status;throw err;}
+      return response.json();
+    }
     // V187.1: successful search cache (session only); short TTL prevents unnecessary repeat calls.
     const sf1871FoodCache = new Map();
     const sf1871FoodCacheTTL = 15 * 60 * 1000;
@@ -8484,7 +8483,7 @@ function onRepsEntered(exerciseIndex, repInput) {
     function sf1871Retry(source) {
       const query=document.getElementById('foodSearchInput')?.value.trim();
       if(!query)return;
-      if(source==='usda')searchUsdaFoods(true,true);
+      if(source==='usda')searchUsdaFoods(false,true);
       else sf187SearchOpenFoodFacts(query,liveFoodSearchRequestId,true);
     }
     async function searchUsdaFoods(includeOpenFoodFacts = false, retryUsdaOnly = false) {
@@ -8506,8 +8505,10 @@ function onRepsEntered(exerciseIndex, repInput) {
       // Start OFF independently; do not wait for USDA to succeed or time out.
       if(includeOpenFoodFacts && !retryUsdaOnly) sf187SearchOpenFoodFacts(query,requestId);
       try {
-        const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(USDA_API_KEY)}&query=${encodeURIComponent(query)}&pageSize=8`;
-        const data = await sf1871FetchJson('usda',query,url);
+        const cacheKey='usda:'+query.toLocaleLowerCase().trim();
+        const cached=sf1871FoodCache.get(cacheKey);
+        const data=cached && Date.now()-cached.time<sf1871FoodCacheTTL ? cached.data : await sf1872UsdaRequest(query);
+        sf1871FoodCache.set(cacheKey,{time:Date.now(),data});
         if (requestId !== liveFoodSearchRequestId) return;
         const foods = Array.isArray(data.foods) ? data.foods : [];
         if (!foods.length) {
@@ -9503,6 +9504,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         foodSearchInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             clearTimeout(liveFoodSearchTimer);
+            e.preventDefault();
             searchUsdaFoods(true);
           }
         });
@@ -11934,13 +11936,13 @@ function saveCustomFoodEdit(id){
   saveCustomFoodLibrary(lib);
   /* Keep existing logged meals/history unchanged by design. Update only reusable quick-food entries tied by old name is intentionally avoided. */
   renderCustomFoodManager();
-  const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)searchUsdaFoods();
+  const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)queueLiveFoodSearch();
 }
 function deleteCustomFood(id){
   const f=getCustomFoodLibrary().find(x=>x.id===id);if(!f)return;
   if(!confirm(`Delete "${f.name}" from My Foods? Previously logged meals will not be changed.`))return;
   saveCustomFoodLibrary(getCustomFoodLibrary().filter(x=>x.id!==id));renderCustomFoodManager();
-  const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)searchUsdaFoods();
+  const input=document.getElementById('foodSearchInput');if(input?.value.trim().length>=2)queueLiveFoodSearch();
 }
 
 
