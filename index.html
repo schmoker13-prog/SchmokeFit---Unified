@@ -936,11 +936,14 @@
     .meal-nutrition-summary .meal-macro{font-weight:750;}
     .meal-nutrition-summary .meal-sep{opacity:.45;}
 
-    /* QUICK FOODS: RECENT / FREQUENT + FAVORITES */
+    /* V185 QUICK FOODS: RECENT / FREQUENT / FAVORITES */
     .quick-foods-wrap{margin-top:10px;border-top:1px solid var(--input-border);padding-top:10px;}
-    .quick-food-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+    .quick-food-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px;}
     .quick-food-tab{min-height:34px;border:1px solid var(--input-border);border-radius:8px;background:transparent;color:var(--text-muted);font-size:.60rem;font-weight:900;letter-spacing:.03em;cursor:pointer;}
     .quick-food-tab.active{border-color:var(--accent-blue);color:var(--accent-blue);background:rgba(56,189,248,.08);}
+    .quick-food-search{width:100%;box-sizing:border-box;margin:0 0 9px;padding:11px 12px;border:1px solid var(--input-border);border-radius:9px;background:var(--input-bg,#0d1527);color:var(--text);font-size:.75rem;outline:none;}
+    .quick-food-search:focus{border-color:var(--accent-blue);}
+    .quick-food-hint{font-size:.59rem;color:var(--text-muted);margin-top:8px;text-align:center;}
     .quick-food-list{display:grid;gap:6px;}
     .quick-food-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:8px 9px;border:1px solid var(--input-border);border-radius:9px;background:rgba(255,255,255,.025);}
     .quick-food-name{font-size:.70rem;font-weight:850;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -4150,11 +4153,14 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="saved-meals-list" id="savedMealsList"></div>
 </div>
 <div class="quick-foods-wrap">
+<input class="quick-food-search" id="quickFoodSearch" type="search" placeholder="Search your saved foods…" aria-label="Search all saved foods" autocomplete="off" oninput="renderQuickFoods()">
 <div class="quick-food-tabs" role="group" aria-label="Quick foods">
-<button class="quick-food-tab active" id="quickFoodTab-recent" type="button" onclick="setQuickFoodTab('recent')">RECENT / FREQUENT</button>
+<button class="quick-food-tab active" id="quickFoodTab-recent" type="button" onclick="setQuickFoodTab('recent')">RECENT</button>
+<button class="quick-food-tab" id="quickFoodTab-frequent" type="button" onclick="setQuickFoodTab('frequent')">FREQUENT</button>
 <button class="quick-food-tab" id="quickFoodTab-favorites" type="button" onclick="setQuickFoodTab('favorites')">★ FAVORITES</button>
 </div>
 <div class="quick-food-list" id="quickFoodList"></div>
+<div class="quick-food-hint" id="quickFoodHint"></div>
 </div>
 <div class="food-logging-methods" id="foodLoggingMethods">
 <button class="btn btn-dark" type="button" onclick="enterFoodLoggingMode('lookup')">🔎 FOOD LOOKUP</button>
@@ -7276,8 +7282,8 @@ function onRepsEntered(exerciseIndex, repInput) {
     function openFoodSearch(meal) {
       activeNutritionMeal = meal;
       /* Each food-logging session starts compact, even if SHOW ALL was used last time. */
-      quickFoodExpanded.recent = false;
-      quickFoodExpanded.favorites = false;
+      const foodSearch = document.getElementById('quickFoodSearch');
+      if (foodSearch) foodSearch.value = '';
       const panel = document.getElementById('nutritionSearchPanel');
       const slot = document.getElementById(`nutritionSearchSlot-${meal}`);
       document.getElementById('searchMealLabel').innerText = `ADD TO ${nutritionMealName(meal).toUpperCase()}`;
@@ -7340,8 +7346,8 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     async function closeFoodSearch() {
       await stopBarcodeScanner();
-      quickFoodExpanded.recent = false;
-      quickFoodExpanded.favorites = false;
+      const foodSearch = document.getElementById('quickFoodSearch');
+      if (foodSearch) foodSearch.value = '';
       hideManualFoodForm();
       document.getElementById('foodLookupPanel')?.classList.remove('open');
       document.getElementById('nutritionSearchPanel').classList.remove('food-mode-active');
@@ -7478,7 +7484,7 @@ function onRepsEntered(exerciseIndex, repInput) {
 
     const quickFoodLibraryKey = 'schmokefit_quick_food_library';
     let quickFoodTab = 'recent';
-    const quickFoodExpanded = {recent:false, favorites:false};
+    const QUICK_FOOD_NONFAVORITE_LIMIT = 100;
 
     function quickFoodSignature(item) {
       return [String(item?.name || '').trim().toLowerCase(), Math.round((Number(item?.calories)||0)*10)/10, Math.round((Number(item?.protein)||0)*10)/10, Math.round((Number(item?.grams)||0)*10)/10].join('|');
@@ -7489,7 +7495,13 @@ function onRepsEntered(exerciseIndex, repInput) {
         return Array.isArray(data) ? data : [];
       } catch(e) { return []; }
     }
-    function saveQuickFoodLibrary(items) { appStorage.setItem(quickFoodLibraryKey, JSON.stringify(items.slice(0,120))); }
+    function saveQuickFoodLibrary(items) {
+      // V185: preserve every starred food; retain the 100 most recently used non-favorites.
+      const sorted = [...items].sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0));
+      const favorites = sorted.filter(x=>x.favorite);
+      const other = sorted.filter(x=>!x.favorite).slice(0,QUICK_FOOD_NONFAVORITE_LIMIT);
+      appStorage.setItem(quickFoodLibraryKey, JSON.stringify([...favorites,...other].sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0))));
+    }
     function rememberQuickFood(item) {
       if (!item?.name) return;
       const lib = getQuickFoodLibrary();
@@ -7540,36 +7552,45 @@ function onRepsEntered(exerciseIndex, repInput) {
       renderMealSections();
     }
     function setQuickFoodTab(tab) {
-      quickFoodTab = tab === 'favorites' ? 'favorites' : 'recent';
+      quickFoodTab = ['recent','frequent','favorites'].includes(tab) ? tab : 'recent';
       document.querySelectorAll('.quick-food-tab').forEach(btn=>btn.classList.remove('active'));
       document.getElementById(`quickFoodTab-${quickFoodTab}`)?.classList.add('active');
-      renderQuickFoods();
-    }
-    function toggleQuickFoodExpanded() {
-      quickFoodExpanded[quickFoodTab] = !quickFoodExpanded[quickFoodTab];
       renderQuickFoods();
     }
     function renderQuickFoods() {
       const list = document.getElementById('quickFoodList');
       if (!list) return;
+      const hint = document.getElementById('quickFoodHint');
+      const search = (document.getElementById('quickFoodSearch')?.value || '').trim().toLocaleLowerCase();
       let foods = getQuickFoodLibrary();
-      if (quickFoodTab === 'favorites') {
-        foods = foods.filter(x=>x.favorite).sort((a,b)=>(b.lastUsed||0)-(a.lastUsed||0));
+      if (search) {
+        // Search the whole saved library regardless of the selected tab.
+        foods = foods.filter(x=>String(x.name||'').toLocaleLowerCase().includes(search)
+          || String(x.servingText||'').toLocaleLowerCase().includes(search));
+        foods.sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0));
+      } else if (quickFoodTab === 'favorites') {
+        foods = foods.filter(x=>x.favorite).sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0));
+      } else if (quickFoodTab === 'frequent') {
+        foods.sort((a,b)=>(Number(b.count)||0)-(Number(a.count)||0) || (Number(b.lastUsed)||0)-(Number(a.lastUsed)||0));
       } else {
-        foods = foods.sort((a,b)=>((b.count||0)*1000000000000+(b.lastUsed||0))-((a.count||0)*1000000000000+(a.lastUsed||0)));
+        foods.sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0));
       }
-      const totalFoods = foods.length;
-      const isExpanded = quickFoodExpanded[quickFoodTab];
-      const visibleFoods = isExpanded ? foods : foods.slice(0,6);
+      // Keep the picker compact. Search results and favorites scroll inside a bounded list.
+      const visibleFoods = search || quickFoodTab === 'favorites' ? foods : foods.slice(0,6);
+      list.style.maxHeight = search || quickFoodTab === 'favorites' ? '340px' : '';
+      list.style.overflowY = search || quickFoodTab === 'favorites' ? 'auto' : '';
+      if (hint) hint.textContent = search ? `${foods.length} matching saved food${foods.length===1?'':'s'}`
+        : quickFoodTab === 'favorites' ? `${foods.length} starred food${foods.length===1?'':'s'}`
+        : `Showing ${Math.min(6,foods.length)} of ${foods.length} · Search to find more`;
       if (!foods.length) {
-        list.innerHTML = `<div class="nutrition-empty">${quickFoodTab==='favorites' ? 'No favorites yet. Tap ☆ beside a logged food to save it here.' : 'Foods you log will appear here automatically for quick reuse.'}</div>`;
+        list.innerHTML = `<div class="nutrition-empty">${search ? 'No saved foods match your search.' : quickFoodTab==='favorites' ? 'No favorites yet. Tap ☆ beside a logged food to save it here.' : 'Foods you log will appear here automatically for quick reuse.'}</div>`;
         return;
       }
       list.innerHTML = visibleFoods.map(food=>`<div class="quick-food-item">
         <div><div class="quick-food-name">${escapeHtml(food.name)}</div><div class="quick-food-meta">${escapeHtml(formatLoggedFoodAmount(food))} • ${Math.round(food.calories||0)} kcal • ${round1(food.protein||0)}P</div></div>
         <button class="quick-food-star ${food.favorite?'active':''}" type="button" onclick='toggleQuickFoodFavorite(${JSON.stringify(food.signature)})'>${food.favorite?'★':'☆'}</button>
         <button class="quick-food-add" type="button" onclick='addQuickFood(${JSON.stringify(food.signature)})'>+ ADD</button>
-      </div>`).join('') + (totalFoods > 6 ? `<div class="quick-food-toggle-wrap"><button class="quick-food-toggle" type="button" onclick="toggleQuickFoodExpanded()">${isExpanded ? 'SHOW LESS ↑' : `SHOW ALL (${totalFoods}) ↓`}</button></div>` : '');
+      </div>`).join('');
     }
     let quickAddToastTimer = null;
     function showQuickAddConfirmation(foodName, mealName) {
