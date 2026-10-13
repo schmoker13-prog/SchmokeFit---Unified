@@ -8443,30 +8443,77 @@ function onRepsEntered(exerciseIndex, repInput) {
       }, 450);
     }
 
-    async function searchUsdaFoods(includeOpenFoodFacts = false) {
+    // V187.1: successful search cache (session only); short TTL prevents unnecessary repeat calls.
+    const sf1871FoodCache = new Map();
+    const sf1871FoodCacheTTL = 15 * 60 * 1000;
+    function sf1871Error(err) {
+      if (err?.name === 'AbortError') return 'Request timed out';
+      const code = Number(err?.status || 0);
+      if (code === 429) return 'Rate limit reached — please wait before retrying';
+      if (code === 401 || code === 403) return 'API access denied (check API key or quota)';
+      if (code >= 500) return 'Food database server is temporarily unavailable';
+      if (code) return 'Service returned HTTP ' + code;
+      return 'Network or connection error';
+    }
+    async function sf1871FetchJson(source, query, url) {
+      const key=source+':'+query.toLocaleLowerCase().trim();
+      const cached=sf1871FoodCache.get(key);
+      if(cached && Date.now()-cached.time<sf1871FoodCacheTTL) return cached.data;
+      let error;
+      for(let attempt=0;attempt<2;attempt++){
+        const controller=new AbortController();
+        const timeout=setTimeout(()=>controller.abort(),8500);
+        try {
+          const response=await fetch(url,{headers:{Accept:'application/json'},signal:controller.signal});
+          if(!response.ok){
+            const e=new Error('HTTP '+response.status);e.status=response.status;throw e;
+          }
+          const data=await response.json();
+          sf1871FoodCache.set(key,{time:Date.now(),data});
+          if(sf1871FoodCache.size>40)sf1871FoodCache.delete(sf1871FoodCache.keys().next().value);
+          return data;
+        }catch(e){
+          error=e;
+          // Do not retry rate limits, auth errors or other client errors.
+          if(e.status===429 || (e.status>=400&&e.status<500))break;
+          if(attempt===0)await new Promise(resolve=>setTimeout(resolve,650));
+        }finally{clearTimeout(timeout);}
+      }
+      throw error;
+    }
+    function sf1871Retry(source) {
+      const query=document.getElementById('foodSearchInput')?.value.trim();
+      if(!query)return;
+      if(source==='usda')searchUsdaFoods(true,true);
+      else sf187SearchOpenFoodFacts(query,liveFoodSearchRequestId,true);
+    }
+    async function searchUsdaFoods(includeOpenFoodFacts = false, retryUsdaOnly = false) {
       const input = document.getElementById('foodSearchInput');
       const results = document.getElementById('foodSearchResults');
       const query = input.value.trim();
       sf186UpdateFallback();
       const requestId = ++liveFoodSearchRequestId;
-      currentUsdaSearchFoods = [];
+      if (!retryUsdaOnly) currentUsdaSearchFoods = [];
       if (!query) {
         results.innerHTML = '<div class="nutrition-empty">Enter a food to search.</div>';
         return;
       }
       const customHtml = renderCustomFoodSearchResults(query);
-      results.innerHTML = customHtml + '<div class="nutrition-empty" id="usdaSearchStatus">Searching USDA FoodData Central...</div>';
+      if(!retryUsdaOnly) results.innerHTML = customHtml + '<section id="sf1871UsdaSection"><div class="nutrition-empty">Searching USDA FoodData Central...</div></section>';
+      let usdaSection=document.getElementById('sf1871UsdaSection');
+      if(!usdaSection){usdaSection=document.createElement('section');usdaSection.id='sf1871UsdaSection';results.prepend(usdaSection);}
+      usdaSection.innerHTML='<div class="nutrition-empty">Searching USDA FoodData Central...</div>';
+      // Start OFF independently; do not wait for USDA to succeed or time out.
+      if(includeOpenFoodFacts && !retryUsdaOnly) sf187SearchOpenFoodFacts(query,requestId);
       try {
         const url = `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(USDA_API_KEY)}&query=${encodeURIComponent(query)}&pageSize=8`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`USDA request failed (${response.status})`);
-        const data = await response.json();
+        const data = await sf1871FetchJson('usda',query,url);
         if (requestId !== liveFoodSearchRequestId) return;
         const foods = Array.isArray(data.foods) ? data.foods : [];
         if (!foods.length) {
-          results.innerHTML = customHtml + (customHtml ? '' : '<div class="nutrition-empty">No matching USDA foods found.</div>');
+          usdaSection.innerHTML = '<div class="nutrition-empty">No matching USDA foods found.</div>';
         } else {
-        results.innerHTML = customHtml + foods.map((food, idx) => {
+        usdaSection.innerHTML = foods.map((food, idx) => {
           const n = extractUsdaMacros(food.foodNutrients || []);
           const desc = food.description || food.lowercaseDescription || 'USDA Food';
           const brand = food.brandOwner || food.brandName || food.dataType || 'USDA';
@@ -8530,29 +8577,26 @@ function onRepsEntered(exerciseIndex, repInput) {
       } catch (err) {
         console.error(err);
         if (requestId !== liveFoodSearchRequestId) return;
-        results.innerHTML = customHtml + '<div class="nutrition-empty">USDA search could not connect. Your saved My Foods are still available above.</div>';
+        usdaSection.innerHTML = '<div class="nutrition-empty">USDA: '+escapeHtml(sf1871Error(err))+'. <button type="button" class="btn btn-dark" onclick="sf1871Retry(\'usda\')">RETRY USDA</button></div>';
       }
       if (requestId !== liveFoodSearchRequestId) return;
-      // OFF is deliberately submit-only: its public search API is rate-limited.
-      if (includeOpenFoodFacts) await sf187SearchOpenFoodFacts(query, requestId);
-      else results.insertAdjacentHTML('beforeend', '<div class="nutrition-empty">For additional packaged foods, press SEARCH to include Open Food Facts.</div>');
+      // OFF is submit-only; USDA live typing never calls it.
+      if (!includeOpenFoodFacts && !retryUsdaOnly && requestId===liveFoodSearchRequestId)
+        results.insertAdjacentHTML('beforeend','<div class="nutrition-empty">Press SEARCH for additional Open Food Facts results.</div>');
     }
 
     // V187: public Open Food Facts name search; no credentials or Supabase changes.
-    async function sf187SearchOpenFoodFacts(query, requestId) {
+    async function sf187SearchOpenFoodFacts(query, requestId, retry = false) {
       const results = document.getElementById('foodSearchResults');
       if (!results || query.length < 3) return;
-      const section = document.createElement('section');
-      section.id = 'sf187OffResults';
+      let section = document.getElementById('sf187OffResults');
+      if(!section){section=document.createElement('section');section.id='sf187OffResults';results.appendChild(section);}
       section.innerHTML = '<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS · PACKAGED FOODS</div><div class="nutrition-empty">Searching Open Food Facts…</div>';
-      results.appendChild(section);
       try {
         const fields = 'code,product_name,product_name_en,brands,serving_size,serving_quantity,nutriments';
         const url = 'https://world.openfoodfacts.org/cgi/search.pl?search_terms=' + encodeURIComponent(query)
           + '&search_simple=1&action=process&json=1&page_size=12&fields=' + encodeURIComponent(fields);
-        const response = await fetch(url, {headers:{'Accept':'application/json'}});
-        if (!response.ok) throw new Error('Open Food Facts returned HTTP '+response.status);
-        const data = await response.json();
+        const data = await sf1871FetchJson('off',query,url);
         if (requestId !== liveFoodSearchRequestId || !section.isConnected) return;
         const products = (Array.isArray(data.products) ? data.products : []).filter(p => {
           const n=p.nutriments||{};
@@ -8563,7 +8607,7 @@ function onRepsEntered(exerciseIndex, repInput) {
           section.innerHTML = '<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS</div><div class="nutrition-empty">No usable packaged-food results found.</div>';
           return;
         }
-        const startIndex=currentUsdaSearchFoods.length;
+        const startIndex=100; // Reserve 0–7 for USDA, independent of network completion order.
         section.innerHTML = '<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS · PACKAGED FOODS</div>' + products.map((p,i)=>{
           const n=p.nutriments||{};
           const numeric=v=>v===undefined||v===null||v===''?0:Math.max(0,Number(v)||0);
@@ -8599,7 +8643,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       } catch(e) {
         console.warn('Open Food Facts search:',e);
         if(requestId===liveFoodSearchRequestId && section.isConnected)
-          section.innerHTML='<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS</div><div class="nutrition-empty">Open Food Facts is unavailable right now. USDA and manual food entry still work.</div>';
+          section.innerHTML='<div class="select-label" style="margin:12px 0 7px;color:var(--accent-blue)">OPEN FOOD FACTS</div><div class="nutrition-empty">'+escapeHtml(sf1871Error(e))+'. <button type="button" class="btn btn-dark" onclick="sf1871Retry(\'off\')">RETRY OPEN FOOD FACTS</button></div>';
       }
     }
 
