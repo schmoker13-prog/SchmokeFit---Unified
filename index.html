@@ -4171,10 +4171,17 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="food-lookup-panel" id="foodLookupPanel">
 <div class="select-label" style="color:var(--accent-blue);">FOOD LOOKUP</div>
 <div class="nutrition-search-row">
-<input class="custom-select" id="foodSearchInput" placeholder="Search USDA foods..." type="search"/>
+<input class="custom-select" id="foodSearchInput" placeholder="Search foods or restaurant items..." type="search"/>
 <button class="btn btn-orange" onclick="searchUsdaFoods()" style="flex:0 0 auto; padding:10px 12px;">SEARCH</button>
 </div>
 <div class="search-results" id="foodSearchResults"></div>
+<div id="sf186Fallback" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--input-border);border-radius:10px;background:#111d2d">
+  <div style="font-size:.76rem;font-weight:900;color:var(--text);margin-bottom:5px">Can't find it? Create your own.</div>
+  <div id="sf186FallbackLabel" style="font-size:.68rem;color:var(--text-muted);line-height:1.5;margin-bottom:10px"></div>
+  <button class="btn btn-blue" type="button" id="sf186CreateFood" onclick="sf186CreateFromSearch()" style="width:100%;margin-bottom:7px">+ CREATE THIS FOOD</button>
+  <button class="btn btn-dark" type="button" onclick="sf186GoogleSearch()" style="width:100%">🔎 SEARCH NUTRITION ON GOOGLE ↗</button>
+  <div style="font-size:.59rem;color:var(--text-muted);margin-top:8px">Google opens separately for reference; nutrition values are entered and checked by you.</div>
+</div>
 </div>
 <div class="barcode-panel" id="barcodePanel">
 <div class="select-label" style="color:var(--accent-blue);">BARCODE SCANNER</div>
@@ -7317,6 +7324,7 @@ function onRepsEntered(exerciseIndex, repInput) {
 
       if (mode === 'lookup') {
         lookup?.classList.add('open');
+        sf186UpdateFallback();
         setTimeout(() => {
           const input = document.getElementById('foodSearchInput');
           input?.focus();
@@ -7338,6 +7346,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       document.getElementById('foodLookupPanel')?.classList.remove('open');
       document.getElementById('barcodePanel')?.classList.remove('open');
       document.getElementById('foodSearchResults').innerHTML = '';
+      const sf186Fallback = document.getElementById('sf186Fallback');
+      if (sf186Fallback) sf186Fallback.style.display = 'none';
       panel?.classList.remove('food-mode-active');
       if (scrollBack) {
         setTimeout(() => panel?.scrollIntoView({behavior:'smooth', block:'center'}), 50);
@@ -8320,11 +8330,34 @@ function onRepsEntered(exerciseIndex, repInput) {
       preview.innerHTML = `<strong>${escapeHtml(amountLabel)}:</strong> ${Math.round(calories)} kcal • ${round1(protein)}P • ${round1(carbs)}C • ${round1(fat)}F`;
     }
 
+    // V186: external research + prefilled manual food, without scraping Google or guessing macros.
+    function sf186UpdateFallback() {
+      const query = String(document.getElementById('foodSearchInput')?.value || '').trim();
+      const box = document.getElementById('sf186Fallback');
+      if (!box) return;
+      box.style.display = query.length >= 2 ? 'block' : 'none';
+      const label = document.getElementById('sf186FallbackLabel');
+      if (label) label.textContent = query.length >= 2 ? `Not seeing “${query}” in the results? Save it as your own food.` : '';
+    }
+    function sf186CreateFromSearch() {
+      const query = String(document.getElementById('foodSearchInput')?.value || '').trim();
+      if (!query) return;
+      enterFoodLoggingMode('manual').then(() => {
+        const name = document.getElementById('manualFoodName');
+        if (name) { name.value = query; name.focus(); }
+      });
+    }
+    function sf186GoogleSearch() {
+      const query = String(document.getElementById('foodSearchInput')?.value || '').trim();
+      if (!query) return;
+      window.open('https://www.google.com/search?q=' + encodeURIComponent(query + ' nutrition calories protein carbs fat'), '_blank', 'noopener,noreferrer');
+    }
     function queueLiveFoodSearch() {
       clearTimeout(liveFoodSearchTimer);
       const input = document.getElementById('foodSearchInput');
       const results = document.getElementById('foodSearchResults');
       const query = String(input?.value || '').trim();
+      sf186UpdateFallback();
 
       if (query.length < 2) {
         if (results) {
@@ -8344,6 +8377,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       const input = document.getElementById('foodSearchInput');
       const results = document.getElementById('foodSearchResults');
       const query = input.value.trim();
+      sf186UpdateFallback();
       const requestId = ++liveFoodSearchRequestId;
       if (!query) {
         results.innerHTML = '<div class="nutrition-empty">Enter a food to search.</div>';
