@@ -4242,6 +4242,12 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   <input id="sf1910PhotoInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="sf1910ScanPhoto(this)">
  </div>
  <div id="sf1910Diagnostic" role="status" aria-live="polite" style="font-size:.68rem;color:var(--text-muted);margin-top:7px">Camera not started.</div>
+ <details id="sf1911Details" style="margin-top:9px;border:1px solid #526075;border-radius:8px;padding:9px;background:#0b1726;color:#e5edf8">
+  <summary style="cursor:pointer;font-size:.75rem;font-weight:800">iPHONE SCANNER DIAGNOSTICS</summary>
+  <div style="font-size:.66rem;margin:7px 0">Run either scanner or scan a photo, then copy this report and share it for troubleshooting. No barcode images are included.</div>
+  <pre id="sf1911Log" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-size:.65rem;line-height:1.45;margin:6px 0"></pre>
+  <button class="btn btn-dark" type="button" onclick="sf1911CopyReport()" style="width:100%">COPY DIAGNOSTIC REPORT</button>
+ </details>
  <div id="sf1873ManualRow" style="display:none;margin-top:9px;gap:8px">
   <input id="sf1873ManualInput" type="text" inputmode="numeric" autocomplete="off" maxlength="14" placeholder="UPC / EAN digits" aria-label="Barcode digits" style="min-width:0;flex:1;padding:10px;border-radius:8px;background:#111d2d;color:white;border:1px solid #51647a">
   <button class="btn btn-blue" type="button" onclick="sf1873SubmitBarcode()">LOOK UP</button>
@@ -7887,6 +7893,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         status.textContent='Loading alternate barcode decoder…';
         sf1909ScannerButtons('alternate');
         await sf1873LoadZxing();
+        sf1911Log('Alternate ZXing library loaded');
         if(generation!==sf1873Generation)return;
         // Stop html5-qrcode before requesting the camera again.
         if(barcodeScanner){try{await barcodeScanner.stop();}catch(e){}try{await barcodeScanner.clear();}catch(e){}barcodeScanner=null;}
@@ -7911,13 +7918,55 @@ function onRepsEntered(exerciseIndex, repInput) {
           if(!/^\d{8,14}$/.test(code))return;
           await sf1910Found(code);
         };
+        sf1911Log('Alternate decoder start requested');
         await sf1873Reader.decodeFromVideoDevice(undefined,video,onDecode);
+        sf1911WatchVideo(video,'Alternate');
         sf1910Diagnostic('Alternate camera active · decoder searching for UPC/EAN barcode');
         if(generation!==sf1873Generation){try{sf1873Controls?.stop?.();}catch(e){}return;}
       }catch(e){
-        if(generation===sf1873Generation){sf1910Diagnostic('Alternate decoder error: '+(e?.message||'unknown'));console.warn('Alternate barcode scanner:',e);status.textContent='Alternate scanner unavailable: '+(e?.message||'camera/decoder error')+'. Try the standard scanner or enter the barcode.';sf1909ScannerButtons('alternate');}
+        if(generation===sf1873Generation){sf1911Log('Alternate error: '+(e?.stack||e?.message||'unknown'));sf1910Diagnostic('Alternate decoder error: '+(e?.message||'unknown'));console.warn('Alternate barcode scanner:',e);status.textContent='Alternate scanner unavailable: '+(e?.message||'camera/decoder error')+'. Try the standard scanner or enter the barcode.';sf1909ScannerButtons('alternate');}
       }finally{sf1873Starting=false;}
     }
+    // V190.11: opt-in troubleshooting log, without image contents or personal information.
+    let sf1911Events=[];
+    let sf1911Watch=null;
+    function sf1911Log(event){
+      const stamp=new Date().toLocaleTimeString();
+      sf1911Events.push(stamp+' · '+String(event));
+      if(sf1911Events.length>45)sf1911Events.shift();
+      const el=document.getElementById('sf1911Log');
+      if(el)el.textContent=sf1911Events.join('\n');
+    }
+    function sf1911Environment(){
+      sf1911Log('Version 190.11; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
+      sf1911Log('Web APIs: camera='+!!navigator.mediaDevices?.getUserMedia+'; BarcodeDetector='+!!window.BarcodeDetector+'; canvas='+!!document.createElement('canvas').getContext);
+      sf1911Log('Libraries: html5-qrcode='+!!window.Html5Qrcode+'; ZXing='+!!window.ZXing?.BrowserMultiFormatReader);
+    }
+    function sf1911WatchVideo(video,engine){
+      clearInterval(sf1911Watch);
+      let previous=-1, count=0;
+      sf1911Watch=setInterval(()=>{
+        if(!video?.isConnected){clearInterval(sf1911Watch);sf1911Watch=null;return;}
+        const frames=video.webkitDecodedFrameCount ?? video.getVideoPlaybackQuality?.().totalVideoFrames ?? 'unknown';
+        const track=video.srcObject?.getVideoTracks?.()[0];
+        if(count++<8 || (typeof frames==='number'&&frames===previous)){
+          sf1911Log(engine+' video: '+video.videoWidth+'x'+video.videoHeight+', readyState='+video.readyState+', paused='+video.paused+', frames='+frames+', track='+(track?.readyState||'unknown'));
+        }
+        previous=frames;
+        if(count>=8){clearInterval(sf1911Watch);sf1911Watch=null;}
+      },1500);
+    }
+    function sf1911CopyReport(){
+      const report='SchmokeFit barcode diagnostics\n'+sf1911Events.join('\n');
+      if(navigator.clipboard?.writeText){navigator.clipboard.writeText(report).then(()=>sf1910Diagnostic('Diagnostic report copied.')).catch(()=>sf1911CopyFallback(report));}
+      else sf1911CopyFallback(report);
+    }
+    function sf1911CopyFallback(report){
+      const area=document.createElement('textarea');area.value=report;area.style.cssText='position:fixed;left:8px;top:8px;width:80%;height:110px;z-index:999999';document.body.appendChild(area);area.select();
+      try{document.execCommand('copy');sf1910Diagnostic('Diagnostic report copied.');area.remove();}catch(e){sf1910Diagnostic('Select and copy the diagnostic text.');}
+    }
+    window.addEventListener('error',e=>{if(document.getElementById('barcodePanel')?.classList.contains('open'))sf1911Log('JS error: '+(e.message||'unknown'));});
+    window.addEventListener('unhandledrejection',e=>{if(document.getElementById('barcodePanel')?.classList.contains('open'))sf1911Log('Promise rejection: '+(e.reason?.message||String(e.reason)));});
     // V190.10: independent still-image fallback. Decodes locally; only barcode digits
     // go through the existing food lookup. Keeps live camera engines unchanged.
     function sf1910Diagnostic(message){
@@ -7928,6 +7977,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       barcodeScanLocked=true;lastScannedBarcode=String(code);
       document.getElementById('barcodeCodeDisplay').textContent='Barcode: '+code;
       document.getElementById('barcodeStatus').textContent='Barcode detected. Looking up nutrition…';
+      sf1911Log('Barcode detected ('+String(code).length+' digits)');
       sf1910Diagnostic('Barcode detected: '+code);
       await stopBarcodeScanner(false);await lookupBarcode(String(code));
     }
@@ -7935,6 +7985,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       const file=input?.files?.[0];if(!file)return;
       input.value='';
       const status=document.getElementById('barcodeStatus');
+      sf1911Environment();
+      sf1911Log('Photo selected: type='+(file.type||'unknown')+', size='+file.size+' bytes');
       sf1910Diagnostic('Reading photo · decoding barcode…');
       status.textContent='Reading barcode from photo…';
       let temp=null;
@@ -7945,25 +7997,50 @@ function onRepsEntered(exerciseIndex, repInput) {
         document.getElementById('barcodeReader').innerHTML='';
         temp=URL.createObjectURL(file);
         let code='';
-        // ZXing supports decoding an image without needing a camera stream.
+        // First decode the original photo. Then decode resized/rotated canvas variants,
+        // which avoids oversized iPhone HEIC/JPEG photos overwhelming the decoder.
+        const errors=[];
         try{
           await sf1873LoadZxing();
+          sf1911Log('Photo ZXing loaded');
           const hints=new Map();
           if(window.ZXing?.DecodeHintType&&window.ZXing?.BarcodeFormat){
             hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[ZXing.BarcodeFormat.EAN_13,ZXing.BarcodeFormat.EAN_8,ZXing.BarcodeFormat.UPC_A,ZXing.BarcodeFormat.UPC_E,ZXing.BarcodeFormat.CODE_128]);
             hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
           }
           const reader=new ZXing.BrowserMultiFormatReader(hints);
-          try{const result=await reader.decodeFromImageUrl(temp);code=String(result?.getText?.()||result?.text||'');}
-          finally{try{reader.reset();}catch(e){}}
-        }catch(e){console.info('Photo ZXing decode:',e?.message||e);}
+          try{
+            try{const result=await reader.decodeFromImageUrl(temp);code=String(result?.getText?.()||result?.text||'');}
+            catch(e){errors.push('Original: '+(e?.message||e));}
+            if(!/^\d{8,14}$/.test(code)){
+              const img=await new Promise((resolve,reject)=>{
+                const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Browser could not open photo format'));el.src=temp;
+              });
+              sf1911Log('Photo image: '+img.naturalWidth+'x'+img.naturalHeight);
+              for(const angle of [0,90,270,180]){
+                if(/^\d{8,14}$/.test(code))break;
+                const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+                const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+                const canvas=document.createElement('canvas');
+                canvas.width=angle%180?h:w;canvas.height=angle%180?w:h;
+                const ctx=canvas.getContext('2d',{willReadFrequently:true});
+                ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(angle*Math.PI/180);ctx.drawImage(img,-w/2,-h/2,w,h);
+                try{const result=await reader.decodeFromImageUrl(canvas.toDataURL('image/jpeg',.92));code=String(result?.getText?.()||result?.text||'');}
+                catch(e){errors.push('Rotated '+angle+': '+(e?.message||e));}
+              }
+            }
+          }finally{try{reader.reset();}catch(e){}}
+        }catch(e){errors.push('ZXing: '+(e?.message||e));}
         if(!/^\d{8,14}$/.test(code)){
-          // Independent second pass with the existing standard scanner library.
-          if(typeof Html5Qrcode==='undefined')throw new Error('Photo decoder unavailable');
-          const scanner=new Html5Qrcode('barcodeReader',{verbose:false});
-          try{code=String(await scanner.scanFile(file,false)||'');}
-          finally{try{await scanner.clear();}catch(e){}}
+          if(typeof Html5Qrcode==='undefined')errors.push('html5-qrcode unavailable');
+          else{
+            const scanner=new Html5Qrcode('barcodeReader',{verbose:false});
+            try{code=String(await scanner.scanFile(file,false)||'');}
+            catch(e){errors.push('html5-qrcode: '+(e?.message||e));}
+            finally{try{await scanner.clear();}catch(e){}}
+          }
         }
+        sf1911Log('Photo decode passes: '+(errors.length?errors.join(' | ').slice(0,1000):'success'));
         if(!/^\d{8,14}$/.test(code))throw new Error('No UPC/EAN barcode detected');
         await sf1910Found(code);
       }catch(e){
@@ -7985,6 +8062,8 @@ function onRepsEntered(exerciseIndex, repInput) {
       lastScannedBarcode = '';
       await sf1873StopFallback();
       sf1909ScannerButtons('standard');
+      sf1911Environment();
+      sf1911Log('Standard scanner requested');
       sf1910Diagnostic('Starting standard camera…');
       document.getElementById('sf1873ManualRow').style.display='none';
       if(sf1873IsIOS() && !forceStandard){await sf1873StartFallback();return;}
@@ -8034,14 +8113,18 @@ function onRepsEntered(exerciseIndex, repInput) {
 
         status.innerText = 'Camera ready. Center the UPC/EAN barcode inside the scanner.';
         sf1910Diagnostic('Standard camera active · decoder searching for UPC/EAN barcode');
+        sf1911Log('Standard scanner started');
+        const liveVideo=document.querySelector('#barcodeReader video');if(liveVideo)sf1911WatchVideo(liveVideo,'Standard');
       } catch (err) {
         console.error('Barcode scanner error:', err);
         status.innerText = 'Camera could not start. Check browser camera permission, or use manual food entry.';
+        sf1911Log('Standard error: '+(err?.stack||err?.message||'unknown'));
         sf1910Diagnostic('Standard camera error: '+(err?.message||'unknown'));
       }
     }
 
     async function stopBarcodeScanner(hidePanel = true) {
+      if(sf1911Watch){clearInterval(sf1911Watch);sf1911Watch=null;}
       await sf1873StopFallback();
       if (barcodeScanner) {
         try {
