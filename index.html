@@ -3857,6 +3857,12 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   </button>
 
 
+  <button id="sf189TodayCard" class="sf189-today card" type="button" onclick="sf189Open()" aria-label="View achievements">
+    <div class="sf189-row"><span class="sf189-kicker">🏆 ACHIEVEMENTS</span><span class="sf189-more">VIEW ALL ›</span></div>
+    <div class="sf189-row sf189-detail" style="display:none"><span class="sf189-emblem">★</span><span class="sf189-copy"><strong id="sf189NextName">First Rep</strong><small id="sf189NextCount">0 of 1 lifetime workouts</small><span class="sf189-track"><span id="sf189Fill"></span></span></span></div>
+    <div id="sf1902Preview" class="sf1902-preview"></div><div class="sf189-program" id="sf189ProgramNote">Current 18-week program: 0 / 54 workouts</div><div id="sf189Earned" class="sf189-earned" hidden></div>
+  </button>
+
   <div class="today-bodyweight-card card">
     <div class="today-card-row">
       <div>
@@ -15743,6 +15749,172 @@ if(!state.first&&!window.confirm('Switch from your current program to '+names[st
 const selected=state.program;document.getElementById('sfquizOverlay')?.classList.remove('open');if(typeof window.selectUnifiedProgram==='function')window.selectUnifiedProgram(selected);else {console.error('Program selection is unavailable');alert('Unable to select a program. Please try again.');return;}
 try{localStorage.setItem('schmokefit_v188_onboarding_complete','true');}catch(e){}
 };
+})();
+</script>
+<style id="sf189Styles">
+.sf189-today{display:block;width:100%;text-align:left;color:inherit;cursor:pointer;border:1px solid rgba(135,160,190,.25);padding:15px;border-radius:14px;background:var(--card-bg,#17212d);margin:10px 0;font:inherit}.sf189-row{display:flex;justify-content:space-between;align-items:center;gap:12px}.sf189-kicker{font-size:12px;font-weight:800;letter-spacing:.08em}.sf189-more{font-size:11px;color:#7fb7f5;font-weight:700}.sf189-detail{justify-content:flex-start;margin-top:12px}.sf189-emblem{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:rgba(245,183,64,.12);color:#f5b740;font-size:25px;flex-shrink:0}.sf189-copy{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}.sf189-copy strong{font-size:15px}.sf189-copy small,.sf189-program{font-size:12px;color:#a9b5c6}.sf189-track{height:6px;background:rgba(135,160,190,.18);border-radius:99px;overflow:hidden}.sf189-track span{display:block;height:100%;background:#399af3;border-radius:99px;width:0}.sf189-program{margin-top:10px}.sf189-overlay{display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.76);align-items:center;justify-content:center;padding:15px}.sf189-overlay.open{display:flex}.sf189-modal{width:min(450px,100%);max-height:85vh;overflow:auto;border-radius:17px;background:#17212e;color:#f5f7fa;padding:20px;border:1px solid #435367}.sf189-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.sf189-modal-head h2{font-size:20px;margin:0}.sf189-close{border:0;background:transparent;color:#eee;font-size:26px;cursor:pointer}.sf189-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.sf189-award{padding:12px;border:1px solid #45556a;border-radius:12px;text-align:center;display:flex;flex-direction:column;gap:5px}.sf189-award.locked{opacity:.45;filter:grayscale(1)}.sf189-award .symbol{font-size:25px;color:#f4c76b}.sf189-award strong{font-size:12px}.sf189-award small{font-size:11px;color:#c3cbd7}.sf189-section{font-size:13px;letter-spacing:.08em;color:#8cb9ef;margin:16px 0 9px}.sf189-earned{margin-top:10px;padding:9px 11px;border-radius:9px;border:1px solid rgba(245,183,64,.5);background:rgba(245,183,64,.10);color:#ffdc8b;font-size:12px;font-weight:700}.sf189-toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:100001;background:#1d3047;color:white;border:1px solid #6b9de1;border-radius:12px;padding:12px 18px;box-shadow:0 6px 24px #0009;text-align:center;max-width:90vw;font-size:13px}
+</style>
+<div class="sf189-overlay" id="sf189Overlay" onclick="if(event.target===this)sf189Close()" role="dialog" aria-modal="true" aria-label="Achievements"><div class="sf189-modal"><div class="sf189-modal-head"><h2>🏆 Your Achievements</h2><button class="sf189-close" onclick="sf189Close()" aria-label="Close">×</button></div><div id="sf189ModalBody"></div></div></div>
+<script id="sf1904AchievementQueue">
+/* V190.4: one-at-a-time achievement toasts shared by workout and nutrition/PR hooks. */
+(function(){
+ 'use strict';
+ const waiting=[];
+ const recent=new Map();
+ let active=false;
+ function next(){
+  if(active||!waiting.length)return;
+  active=true;
+  const name=waiting.shift();
+  const el=document.createElement('div');
+  el.className='sf189-toast';
+  el.setAttribute('role','status');
+  el.textContent='🏆 Achievement Unlocked — '+name;
+  document.body.appendChild(el);
+  setTimeout(()=>{
+   el.remove();
+   active=false;
+   setTimeout(next,250);
+  },4200);
+ }
+ window.sfAchievementToastQueue=function(names){
+  const now=Date.now();
+  for(const raw of String(names||'').split(' • ')){
+   const name=raw.trim();
+   if(!name)continue;
+   // Both existing award detectors may observe the same workout save.
+   if(now-(recent.get(name)||0)<5000)continue;
+   recent.set(name,now);
+   waiting.push(name);
+  }
+  if(waiting.length)next();
+ };
+})();
+</script>
+<script id="sf189Script">
+/* V189: derive badges from existing workout history; no new storage keys, no backup changes. */
+(function(){
+ const tiers=[{n:1,name:'First Rep',icon:'✦'},{n:10,name:'Double Digits',icon:'◆'},{n:25,name:'Committed',icon:'⚡'},{n:50,name:'Half Century',icon:'★'},{n:100,name:'Century Club',icon:'🏆'},{n:250,name:'Iron Legacy',icon:'♛'}];
+ const stages=[{n:12,name:'First Month',icon:'◈'},{n:27,name:'Halfway There',icon:'✧'},{n:54,name:'The Finisher',icon:'🏅'}];
+ function records(){try{const a=JSON.parse(appStorage.getItem('schmokefit_history')||'[]');return Array.isArray(a)?a.filter(x=>x&&x.type==='WORKOUT'):[]}catch(e){return []}}
+ function key(x){const cycle=Number(x.workoutCycle)||1;const week=Number(x.workoutWeek)||(typeof inferWorkoutWeek==='function'?inferWorkoutWeek(x):0);const day=String(x.workoutDay||(typeof inferWorkoutDay==='function'?inferWorkoutDay(x):'')).toLowerCase();return week&&day?`${cycle}:${week}:${day}`:String(x.entryId||`${x.date||''}:${x.title||''}`)}
+ function unique(a){const seen=new Set();return a.filter(x=>{const k=key(x);if(seen.has(k))return false;seen.add(k);return true})}
+ function stats(){const all=unique(records());const cycle=Number(typeof currentWorkoutCycle!=='undefined'?currentWorkoutCycle:1);const current=all.filter(x=>(Number(x.workoutCycle)||1)===cycle);return {total:all.length,cycle:current.length,cycleId:cycle}}
+ function award(a,value){return `<div class="sf189-award ${value>=a.n?'':'locked'}"><span class="symbol">${a.icon}</span><strong>${a.name}</strong><small>${Math.min(value,a.n)} / ${a.n} workouts${value>=a.n?' · Unlocked':''}</small></div>`}
+ window.sf189Open=function(){try{sessionStorage.removeItem('sf189_pending_award')}catch(e){};const banner=document.getElementById('sf189Earned');if(banner)banner.hidden=true;const s=stats();document.getElementById('sf189ModalBody').innerHTML=`<p style="font-size:12px;color:#b9c5d4">${s.total} lifetime workouts • ${s.cycle} in current cycle</p><h3 class="sf189-section">LIFETIME MILESTONES</h3><div class="sf189-grid">${tiers.map(a=>award(a,s.total)).join('')}</div><h3 class="sf189-section">CURRENT 18-WEEK CYCLE</h3><div class="sf189-grid">${stages.map(a=>award(a,s.cycle)).join('')}</div><p style="font-size:11px;color:#a9b5c6;margin-top:16px">Achievements are calculated from saved scheduled workout history. Existing records count automatically.</p>`;document.getElementById('sf189Overlay').classList.add('open')};
+ window.sf189Close=function(){document.getElementById('sf189Overlay').classList.remove('open')};
+ window.sf189Render=function(){const el=document.getElementById('sf189NextName');if(!el)return;const s=stats();const next=tiers.find(a=>s.total<a.n);el.textContent=next?next.name:'Iron Legacy ✓';document.getElementById('sf189NextCount').textContent=next?`${s.total} of ${next.n} lifetime workouts`:`${s.total} lifetime workouts`;document.getElementById('sf189Fill').style.width=next?`${Math.min(100,100*s.total/next.n)}%`:'100%';document.getElementById('sf189ProgramNote').textContent=`Current 18-week cycle: ${s.cycle} / 54 workouts`;const banner=document.getElementById('sf189Earned');if(banner){let pending='';try{pending=sessionStorage.getItem('sf189_pending_award')||''}catch(e){}banner.hidden=!pending;banner.textContent=pending?'🏆 Achievement unlocked: '+pending+' — tap to view!':''}};
+ function toast(name){window.sfAchievementToastQueue(name)}
+ if(typeof renderTodayDashboard==='function'){const prior=renderTodayDashboard;renderTodayDashboard=function(){const result=prior.apply(this,arguments);sf189Render();return result}}
+ // Listen at the storage write itself: the workout save function is a lexical
+ // binding and cannot reliably be intercepted by assigning to window.saveWorkoutLog.
+ // This also catches saves performed through different workout editor paths.
+ if(typeof appStorage!=='undefined' && typeof appStorage.setItem==='function'){
+   const originalSet=appStorage.setItem;
+   appStorage.setItem=function(storageKey,value){
+     if(storageKey!=='schmokefit_history')return originalSet.apply(this,arguments);
+     const before=stats();
+     const result=originalSet.apply(this,arguments);
+     const after=stats();
+     if(after.total>before.total || after.cycle>before.cycle){
+       const earned=tiers.filter(a=>before.total<a.n&&after.total>=a.n)
+         .concat(stages.filter(a=>before.cycle<a.n&&after.cycle>=a.n));
+       if(earned.length){
+         const names=earned.map(a=>a.name).join(' • ');
+         try{sessionStorage.setItem('sf189_pending_award',((sessionStorage.getItem('sf189_pending_award')||'').split(' • ').filter(Boolean).concat(names.split(' • ')).filter((v,i,a)=>a.indexOf(v)===i)).join(' • '))}catch(e){}
+         setTimeout(()=>toast(names),300);
+       }
+     }
+     sf189Render();
+     return result;
+   };
+ }
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(sf189Render,350));
+})();
+</script>
+<style id="sf190Styles">
+.sf190-subnote{font-size:11px;color:#aebacc;margin:6px 0 10px;line-height:1.4}.sf190-award{position:relative}.sf190-award .sf190-times{font-size:11px;font-weight:800;color:#f6d28a}.sf190-award small{line-height:1.4}.sf190-award.locked .sf190-times{color:#c3cbd7}.sf190-progress{font-size:11px;color:#a9b5c6;margin:8px 0 0}
+</style>
+<style id="sf1902Styles">.sf1902-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.sf1902-item{min-width:0;border:1px solid rgba(135,160,190,.22);border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;gap:5px}.sf1902-label{font-size:9px;letter-spacing:.07em;color:#8cb9ef;font-weight:800}.sf1902-title{font-size:12px;font-weight:750;line-height:1.2;min-height:28px}.sf1902-numbers{font-size:12px;color:#cbd7e5}.sf1902-track{height:5px;background:#354252;border-radius:99px;overflow:hidden;margin-top:auto}.sf1902-track span{height:100%;background:#399af3;display:block;border-radius:99px}@media(max-width:360px){.sf1902-preview{gap:5px}.sf1902-item{padding:8px 6px}.sf1902-title{font-size:11px}}</style>
+<script id="sf190Script">
+/* V190.2: derived, repeatable achievements; no new persistent data or backup changes. */
+(function(){
+ 'use strict';
+ const defs=[
+  {id:'perfect',name:'Perfect Week',icon:'📅',description:'All 3 scheduled workouts in a program week',unit:'weeks',n:1,repeat:true,group:'CONSISTENCY'},
+  {id:'roll',name:'On a Roll',icon:'🔥',description:'3 consecutive perfect program weeks',unit:'weeks',n:3,repeat:true,group:'CONSISTENCY'},
+  {id:'club',name:'The 18-Week Club',icon:'👑',description:'All 54 scheduled workouts in a single cycle',unit:'workouts',n:54,repeat:true,group:'CONSISTENCY'},
+  {id:'fuel',name:'First Fuel',icon:'🍎',description:'Log food for the first time',unit:'days',n:1,repeat:false,group:'NUTRITION'},
+  {id:'protein',name:'Protein Pro',icon:'🥩',description:'7 consecutive green protein days',unit:'days',n:7,repeat:true,group:'NUTRITION'},
+  {id:'calorie',name:'Dialed In',icon:'🎯',description:'5 consecutive green calorie days',unit:'days',n:5,repeat:true,group:'NUTRITION'},
+  {id:'both',name:'Locked In',icon:'🏅',description:'7 consecutive days with both targets green',unit:'days',n:7,repeat:true,group:'NUTRITION'},
+  {id:'firstpr',name:'Stronger Than Yesterday',icon:'💪',description:'Record your first improved exercise/set PR',unit:'PRs',n:1,repeat:false,group:'PERSONAL RECORDS'},
+  {id:'prs',name:'Record Breaker',icon:'⚡',description:'Record 10 improved exercise/set PRs',unit:'PRs',n:10,repeat:false,group:'PERSONAL RECORDS'}
+ ];
+ function history(){try{const a=JSON.parse(appStorage.getItem('schmokefit_history')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+ function workouts(){const seen=new Set();return history().filter(x=>{if(!x||x.type!=='WORKOUT')return false;const c=Number(x.workoutCycle)||1,w=Number(x.workoutWeek)||(typeof inferWorkoutWeek==='function'?Number(inferWorkoutWeek(x)):0),d=String(x.workoutDay||(typeof inferWorkoutDay==='function'?inferWorkoutDay(x):'')).toLowerCase();const k=w&&d?`${c}:${w}:${d}`:String(x.entryId||`${x.date}:${x.title}`);if(seen.has(k))return false;seen.add(k);return true})}
+ function program(){const a=workouts(),byCycle=new Map();for(const x of a){const c=Number(x.workoutCycle)||1,w=Number(x.workoutWeek)||(typeof inferWorkoutWeek==='function'?Number(inferWorkoutWeek(x)):0),d=String(x.workoutDay||(typeof inferWorkoutDay==='function'?inferWorkoutDay(x):'')).toLowerCase();if(!w||w<1||w>18||!d)continue;if(!byCycle.has(c))byCycle.set(c,new Map());const m=byCycle.get(c);if(!m.has(w))m.set(w,new Set());m.get(w).add(d)}let perfect=0,roll=0,club=0,currentPerfect=0,currentRoll=0;const active=Number(typeof currentWorkoutCycle!=='undefined'?currentWorkoutCycle:1);for(const [c,weeks] of byCycle){let run=0;for(let w=1;w<=18;w++){if((weeks.get(w)?.size||0)>=3){perfect++;run++;if(run%3===0)roll++}else run=0}if(Array.from({length:18},(_,i)=>i+1).every(w=>(weeks.get(w)?.size||0)>=3))club++;if(c===active){currentPerfect=Array.from(weeks.values()).filter(set=>set.size>=3).length;currentRoll=run}}return {perfect,roll,club,currentPerfect,currentRoll,cycleCount:a.filter(x=>(Number(x.workoutCycle)||1)===active).length,activeWeekProgress:(()=>{const ws=byCycle.get(active);if(!ws)return 0;const incomplete=Array.from(ws.entries()).filter(([w,days])=>days.size<3).sort((a,b)=>b[0]-a[0]);return incomplete.length?incomplete[0][1].size:0})()}}
+ function nutrition(){const today=localDateStamp(new Date()),prefix='schmokefit_nutrition_',dateRe=/^\d{4}-\d{2}-\d{2}$/;const stamps=[];for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(prefix)){const stamp=k.slice(prefix.length);if(dateRe.test(stamp)&&stamp<=today)stamps.push(stamp)}}stamps.sort();const flags=new Map();let foodDays=0;for(const stamp of stamps){const log=getNutritionLogForDate(stamp);const hasFood=Object.values(log||{}).some(a=>Array.isArray(a)&&a.length);if(!hasFood)continue;foodDays++;const totals=nutritionTotalsFromLog(log);/* Same dated goals and exact green thresholds as the Nutrition/Progress UI. */const goals=nutritionGraphGoalsForDate(stamp);flags.set(stamp,{p:nutritionBarStatus(Number(totals.protein)||0,Number(goals.protein)||0,'protein')==='status-green',c:nutritionBarStatus(Number(totals.calories)||0,Number(goals.calories)||0,'calories')==='status-green'})}
+  const result={fuel:foodDays?1:0,protein:0,calorie:0,both:0,proteinProgress:0,calorieProgress:0,bothProgress:0};let rp=0,rc=0,rb=0;/* Today is provisional: don't award a day before it ends. */const dates=Array.from(flags.keys()).filter(x=>x<today).sort();let prev='';for(const stamp of dates){if(prev&&addDaysToStamp(prev,1)!==stamp)rp=rc=rb=0;const f=flags.get(stamp);rp=f.p?rp+1:0;rc=f.c?rc+1:0;rb=f.p&&f.c?rb+1:0;if(rp&&rp%7===0)result.protein++;if(rc&&rc%5===0)result.calorie++;if(rb&&rb%7===0)result.both++;prev=stamp}/* An unlogged past day also breaks consecutive calendar-day streaks. */if(prev&&addDaysToStamp(prev,1)!==today)rp=rc=rb=0;result.proteinProgress=rp%7;result.calorieProgress=rc%5;result.bothProgress=rb%7;return result}
+ function prs(){/* Use the same weight-first, reps-second comparison as getAllTimeExerciseSetBest/checkSetPR. Count improvements, not first baselines. */const a=workouts().slice().reverse();const best=new Map();let count=0;for(const log of a){if(!log.structuredData||typeof log.structuredData!=='object')continue;for(const [exercise,sets] of Object.entries(log.structuredData)){if(!sets||typeof sets!=='object')continue;for(const [setId,v] of Object.entries(sets)){if(!/^set\d+$/.test(setId)||!v)continue;const ws=String(v.w??'').trim(),rs=String(v.r??'').trim();if(!ws||!rs)continue;const w=Number(ws),r=Number(rs);if(!Number.isFinite(w)||!Number.isFinite(r))continue;const k=exercise+'|'+setId,old=best.get(k);if(old&&(w>old.w||(w===old.w&&r>old.r)))count++;if(!old||w>old.w||(w===old.w&&r>old.r))best.set(k,{w,r})}}}return count}
+ function snapshot(){const p=program(),n=nutrition(),pr=prs();return {perfect:p.perfect,roll:p.roll,club:p.club,fuel:n.fuel,protein:n.protein,calorie:n.calorie,both:n.both,firstpr:pr?1:0,prs:pr,progress:{perfect:p.activeWeekProgress,roll:p.currentRoll%3,club:p.cycleCount,fuel:n.fuel,protein:n.proteinProgress,calorie:n.calorieProgress,both:n.bothProgress,firstpr:Math.min(1,pr),prs:pr}}}
+ function card(d,s){
+  const count=s[d.id]||0;
+  const earned=d.repeat?count>0:count>=d.n;
+  let prog=s.progress[d.id]||0;
+  if(d.id==='perfect')prog=0; /* A week counts only after all three scheduled workouts are complete. */
+  if(d.repeat)prog=Math.min(d.n,Math.max(0,prog));
+  const unit=d.unit;
+  let detail='';
+  if(d.repeat){
+   detail=earned?`${prog} / ${d.n} ${unit} toward next`:`${prog} / ${d.n} ${unit}`;
+  }else{
+   detail=`${Math.min(d.n,count)} / ${d.n} ${unit}${earned?' · Unlocked':''}`;
+  }
+  return `<div class="sf189-award sf190-award ${earned?'':'locked'}"><span class="symbol">${d.icon}</span><strong>${d.name}</strong>${d.repeat&&earned?`<span class="sf190-times">×${count}</span>`:''}<small>${detail} · ${d.description}</small></div>`;
+ }
+
+ const oldOpen=window.sf189Open;window.sf189Open=function(){oldOpen();const body=document.getElementById('sf189ModalBody');if(!body)return;const s=snapshot();for(const group of ['CONSISTENCY','NUTRITION','PERSONAL RECORDS']){const title=document.createElement('h3');title.className='sf189-section';title.textContent=group;body.appendChild(title);const grid=document.createElement('div');grid.className='sf189-grid';grid.innerHTML=defs.filter(x=>x.group===group).map(x=>card(x,s)).join('');body.appendChild(grid)}const note=document.createElement('p');note.className='sf190-subnote';note.textContent='Nutrition days count after the calendar day ends. Green thresholds include planned refeed targets. Repeatable awards retain their earned counts; cycle streaks restart each 18-week cycle.';body.appendChild(note)};
+ let last=null,initialized=false,pendingTimer=0;
+ function check(){try{const next=snapshot();if(initialized&&last){const earned=defs.filter(d=>d.repeat?(next[d.id]||0)>(last[d.id]||0):((last[d.id]||0)<d.n&&(next[d.id]||0)>=d.n));if(earned.length){const names=earned.map(d=>d.name).join(' • ');let existing='';try{existing=sessionStorage.getItem('sf189_pending_award')||'';sessionStorage.setItem('sf189_pending_award',existing?existing+' • '+names:names)}catch(e){}if(typeof sf189Render==='function')sf189Render();window.sfAchievementToastQueue(names)}}last=next;initialized=true}catch(e){console.warn('SchmokeFit achievement refresh',e)}}
+ /* Coalesce multi-key nutrition saves; also checks when returning to Today. */
+ const original=appStorage.setItem;appStorage.setItem=function(k,v){const result=original.apply(this,arguments);if(k==='schmokefit_history'||(typeof k==='string'&&(k.startsWith('schmokefit_nutrition_')||k.startsWith('schmokefit_refeed_')))){clearTimeout(pendingTimer);pendingTimer=setTimeout(check,400)}return result};
+ /* V190.2: three compact, category-aware upcoming milestones on Today. */
+ function renderTodayPreview(){
+  const host=document.getElementById('sf1902Preview');if(!host)return;
+  const s=snapshot(),p=program(),total=workouts().length;
+  const candidates=[];
+  const add=(label,name,progress,max)=>{
+   if(!(max>0)||!Number.isFinite(progress))return;
+   const value=Math.max(0,Math.min(max,progress));
+   if(value>=max)return; // Only upcoming awards; completed milestones live in the collection.
+   candidates.push({label,name,progress:value,max,ratio:value/max,remaining:max-value});
+  };
+  const lifetime=[{name:'First Rep',n:1},{name:'Double Digits',n:10},{name:'Committed',n:25},{name:'Half Century',n:50},{name:'Century Club',n:100},{name:'Iron Legacy',n:250}];
+  const nextLifetime=lifetime.find(x=>total<x.n);
+  if(nextLifetime)add('LIFETIME',nextLifetime.name,total,nextLifetime.n);
+  const cycleCount=p.cycleCount||0;
+  const nextCycle=[{name:'First Month',n:12},{name:'Halfway There',n:27},{name:'The Finisher',n:54}].find(x=>cycleCount<x.n);
+  if(nextCycle)add('PROGRAM',nextCycle.name,cycleCount,nextCycle.n);
+  // Weekly card shows workout progress; the collection still counts only finished perfect weeks.
+  add('CONSISTENCY','Perfect Week',p.activeWeekProgress||0,3);
+  add('CONSISTENCY','On a Roll',s.progress.roll||0,3);
+  add('NUTRITION','Protein Pro',s.progress.protein||0,7);
+  add('NUTRITION','Dialed In',s.progress.calorie||0,5);
+  add('NUTRITION','Locked In',s.progress.both||0,7);
+  if(!s.firstpr)add('PERSONAL RECORDS','Stronger Than Yesterday',0,1);
+  if((s.prs||0)<10)add('PERSONAL RECORDS','Record Breaker',s.prs||0,10);
+  // Closest to completion first. When possible, show different categories for variety.
+  candidates.sort((a,b)=>b.ratio-a.ratio||a.remaining-b.remaining||a.name.localeCompare(b.name));
+  const picks=[];
+  for(const c of candidates){if(!picks.some(x=>x.label===c.label)){picks.push(c);if(picks.length===3)break}}
+  for(const c of candidates){if(picks.length===3)break;if(!picks.includes(c))picks.push(c)}
+  host.innerHTML=picks.map(x=>`<div class="sf1902-item"><span class="sf1902-label">${x.label}</span><span class="sf1902-title">${x.name}</span><span class="sf1902-numbers">${x.progress}/${x.max}</span><span class="sf1902-track"><span style="width:${Math.round(100*x.ratio)}%"></span></span></div>`).join('');
+ }
+ const previousRender=window.sf189Render;if(typeof previousRender==='function'){window.sf189Render=function(){const result=previousRender.apply(this,arguments);renderTodayPreview();clearTimeout(pendingTimer);pendingTimer=setTimeout(check,400);return result}}
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(renderTodayPreview,800));
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(check,600));
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
 })();
 </script>
 </body>
