@@ -7916,7 +7916,7 @@ function onRepsEntered(exerciseIndex, repInput) {
           if(generation!==sf1873Generation||barcodeScanLocked||!result)return;
           const code=String(result.getText?.()||result.text||'').trim();
           if(!/^\d{8,14}$/.test(code))return;
-          await sf1910Found(code);
+          await sf1912HandleDecode(code,String(result.getBarcodeFormat?.()||''),'Alternate');
         };
         sf1911Log('Alternate decoder start requested');
         await sf1873Reader.decodeFromVideoDevice(undefined,video,onDecode);
@@ -7938,7 +7938,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       if(el)el.textContent=sf1911Events.join('\n');
     }
     function sf1911Environment(){
-      sf1911Log('Version 190.11; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
+      sf1911Log('Version 190.12; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
       sf1911Log('Web APIs: camera='+!!navigator.mediaDevices?.getUserMedia+'; BarcodeDetector='+!!window.BarcodeDetector+'; canvas='+!!document.createElement('canvas').getContext);
       sf1911Log('Libraries: html5-qrcode='+!!window.Html5Qrcode+'; ZXing='+!!window.ZXing?.BrowserMultiFormatReader);
     }
@@ -7972,14 +7972,61 @@ function onRepsEntered(exerciseIndex, repInput) {
     function sf1910Diagnostic(message){
       const el=document.getElementById('sf1910Diagnostic');if(el)el.textContent=message;
     }
+    // V190.12: UPC/EAN validation and repeated-read confirmation on iOS.
+    let sf1912Candidate='',sf1912CandidateAt=0,sf1912CandidateCount=0;
+    function sf1912CheckDigit(body){
+      let sum=0;for(let i=body.length-1,weight=3;i>=0;i--,weight=weight===3?1:3)sum+=Number(body[i])*weight;
+      return String((10-sum%10)%10);
+    }
+    function sf1912ExpandUPCE(code){
+      if(!/^\d{8}$/.test(code))return null;
+      const n=code[0],d=code.slice(1,7),last=d[5];let base;
+      if('012'.includes(last))base=n+d.slice(0,2)+last+'0000'+d.slice(2,5);
+      else if(last==='3')base=n+d.slice(0,3)+'00000'+d.slice(3,5);
+      else if(last==='4')base=n+d.slice(0,4)+'00000'+d[4];
+      else base=n+d.slice(0,5)+'0000'+last;
+      return base+code[7];
+    }
+    function sf1912NormalizeBarcode(value,format){
+      const raw=String(value||'').replace(/[\s-]/g,'');
+      if(!/^\d+$/.test(raw))return {valid:false,reason:'Non-numeric barcode'};
+      const fmt=String(format||'').toUpperCase();
+      let code=raw;
+      if(raw.length===8){
+        if(fmt.includes('UPC_E')||fmt.includes('UPC-E'))code=sf1912ExpandUPCE(raw);
+        else if(!fmt||fmt.includes('EAN_8')||fmt.includes('EAN-8'))code=raw;
+        else return {valid:false,reason:'Unexpected 8-digit '+fmt};
+      }
+      if(raw.length===13 && raw[0]==='0' && (!fmt||fmt.includes('EAN')))code=raw.slice(1);
+      if(!code||![8,12,13,14].includes(code.length))return {valid:false,reason:'Unsupported length '+raw.length};
+      if(sf1912CheckDigit(code.slice(0,-1))!==code.slice(-1))return {valid:false,reason:'Checksum failed ('+raw.length+' digits)'};
+      return {valid:true,code,raw,format:fmt||'unknown'};
+    }
+    async function sf1912HandleDecode(value,format,engine){
+      if(barcodeScanLocked)return;
+      const parsed=sf1912NormalizeBarcode(value,format);
+      if(!parsed.valid){sf1911Log(engine+' rejected: '+parsed.reason);return;}
+      const now=Date.now();
+      if(sf1873IsIOS() && engine!=='Photo'){
+        if(sf1912Candidate===parsed.code&&now-sf1912CandidateAt<5000)sf1912CandidateCount++;
+        else {sf1912Candidate=parsed.code;sf1912CandidateCount=1;}
+        sf1912CandidateAt=now;
+        if(sf1912CandidateCount<2){sf1911Log(engine+' candidate '+parsed.raw+' ('+parsed.format+'), awaiting confirmation');return;}
+      }
+      sf1911Log(engine+' confirmed '+parsed.code+' ('+parsed.format+')');
+      await sf1910Found(parsed.code);
+    }
     async function sf1910Found(code){
       if(barcodeScanLocked||!/^\d{8,14}$/.test(String(code||'')))return;
       barcodeScanLocked=true;lastScannedBarcode=String(code);
       document.getElementById('barcodeCodeDisplay').textContent='Barcode: '+code;
       document.getElementById('barcodeStatus').textContent='Barcode detected. Looking up nutrition…';
-      sf1911Log('Barcode detected ('+String(code).length+' digits)');
+      sf1911Log('Barcode accepted: '+code+' ('+String(code).length+' digits)');
       sf1910Diagnostic('Barcode detected: '+code);
-      await stopBarcodeScanner(false);await lookupBarcode(String(code));
+      sf1911Log('Stopping camera for lookup');
+      await stopBarcodeScanner(true);
+      sf1911Log('Camera stopped; lookup requested for '+code);
+      try{await lookupBarcode(String(code));sf1911Log('Lookup finished for '+code);}catch(e){sf1911Log('Lookup failed: '+(e?.message||e));throw e;}
     }
     async function sf1910ScanPhoto(input){
       const file=input?.files?.[0];if(!file)return;
@@ -8042,7 +8089,8 @@ function onRepsEntered(exerciseIndex, repInput) {
         }
         sf1911Log('Photo decode passes: '+(errors.length?errors.join(' | ').slice(0,1000):'success'));
         if(!/^\d{8,14}$/.test(code))throw new Error('No UPC/EAN barcode detected');
-        await sf1910Found(code);
+        await sf1912HandleDecode(code, '', 'Photo');
+        if(!barcodeScanLocked)throw new Error('Barcode requires another matching scan to confirm');
       }catch(e){
         console.warn('Photo barcode scan:',e);
         status.textContent='Could not read barcode from photo. Try a closer, well-lit photo with the entire barcode visible, or enter the digits.';
@@ -8059,6 +8107,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       panel.classList.add('open');
       codeDisplay.innerText = '';
       barcodeScanLocked = false;
+      sf1912Candidate='';sf1912CandidateCount=0;
       lastScannedBarcode = '';
       await sf1873StopFallback();
       sf1909ScannerButtons('standard');
@@ -8100,13 +8149,7 @@ function onRepsEntered(exerciseIndex, repInput) {
             const barcode = String(decodedText || '').trim();
             if (!barcode || barcodeScanLocked) return;
 
-            barcodeScanLocked = true;
-            lastScannedBarcode = barcode;
-            codeDisplay.innerText = `Barcode: ${barcode}`;
-            status.innerText = 'Barcode found. Looking up nutrition…';
-
-            await stopBarcodeScanner(false);
-            await lookupBarcode(barcode);
+            await sf1912HandleDecode(barcode, '', 'Standard');
           },
           () => {}
         );
@@ -8257,10 +8300,12 @@ function onRepsEntered(exerciseIndex, repInput) {
     async function lookupBarcode(barcode) {
       const results = document.getElementById('foodSearchResults');
       const saved = getSavedBarcodeFoods();
+      sf1911Log('Food lookup started for '+barcode);
 
       if (saved[barcode]) {
         const cached = saved[barcode];
         if (!isLegacyCorruptedBarcodeFood(cached)) {
+          sf1911Log('Food lookup: device cache hit');
           results.innerHTML = renderBarcodeFoodResult(cached, barcode, 'Saved on this device');
           document.getElementById('barcodeStatus').innerText = 'Found a saved food for this barcode.';
           showBarcodeResultArea();
@@ -8279,11 +8324,14 @@ function onRepsEntered(exerciseIndex, repInput) {
           'nutriments','image_front_small_url'
         ].join(',');
         const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=${encodeURIComponent(fields)}`;
+        sf1911Log('Food lookup: requesting Open Food Facts');
         const response = await fetch(url);
+        sf1911Log('Food lookup HTTP '+response.status);
         if (!response.ok) throw new Error(`Barcode lookup failed (${response.status})`);
         const data = await response.json();
 
         if (!data || Number(data.status) !== 1 || !data.product) {
+          sf1911Log('Food lookup: product not found');
           showManualFoodForm(barcode);
           const manualStatus = document.getElementById('barcodeStatus');
           if (manualStatus) manualStatus.innerText = 'Barcode not found. Add the nutrition manually once and SchmokeFit can remember it.';
@@ -8314,10 +8362,12 @@ function onRepsEntered(exerciseIndex, repInput) {
           return;
         }
 
+        sf1911Log('Food lookup: product found '+String(food.name).slice(0,80));
         saveBarcodeFood(barcode, {...food, canonicalServing:true, savedSchemaVersion:2});
         results.innerHTML = renderBarcodeFoodResult(food, barcode, 'Open Food Facts');
         showBarcodeResultArea();
       } catch (err) {
+        sf1911Log('Food lookup error: '+(err?.message||err));
         console.error('Open Food Facts lookup error:', err);
         showManualFoodForm(barcode);
         setTimeout(() => document.getElementById('manualFoodPanel')?.scrollIntoView({behavior:'smooth', block:'center'}), 80);
