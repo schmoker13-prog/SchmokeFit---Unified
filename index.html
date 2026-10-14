@@ -7868,6 +7868,47 @@ function onRepsEntered(exerciseIndex, repInput) {
       document.getElementById('barcodeCodeDisplay').textContent='Barcode: '+code;
       await stopBarcodeScanner(false);await lookupBarcode(code);
     }
+    // V190.14: iOS WebKit can retain a camera track after a decoder is reset.
+    // Serialize cleanup, and release the underlying MediaStream before reopening.
+    let sf1914CleanupPromise=Promise.resolve();
+    let sf1914PhotoBusy=false;
+    function sf1914VideoTracks(label){
+      if(!sf1873IsIOS())return;
+      const videos=[...document.querySelectorAll('#barcodeReader video')];
+      if(sf1873Video&&!videos.includes(sf1873Video))videos.push(sf1873Video);
+      for(const video of videos){
+        const stream=video.srcObject;
+        if(stream?.getTracks){
+          const tracks=stream.getTracks();
+          sf1911Log('V190.14 '+label+': releasing '+tracks.length+' video track(s): '+tracks.map(t=>t.readyState).join(','));
+          for(const track of tracks){try{track.stop();}catch(e){sf1911Log('Track stop: '+(e?.message||e));}}
+        }
+        try{video.pause();}catch(e){}
+        try{video.srcObject=null;}catch(e){}
+        try{video.removeAttribute('src');video.load();}catch(e){}
+      }
+    }
+    async function sf1914Cleanup(label){
+      if(!sf1873IsIOS())return;
+      const job=async()=>{
+        sf1911Log('V190.14 cleanup begin: '+label);
+        if(sf1911Watch){clearInterval(sf1911Watch);sf1911Watch=null;}
+        await sf1873StopFallback();
+        if(barcodeScanner){
+          const scanner=barcodeScanner;barcodeScanner=null;
+          try{await scanner.stop();}catch(e){sf1911Log('V190.14 standard stop: '+(e?.message||e));}
+          try{await scanner.clear();}catch(e){sf1911Log('V190.14 standard clear: '+(e?.message||e));}
+        }
+        sf1914VideoTracks(label);
+        const reader=document.getElementById('barcodeReader');
+        if(reader)reader.replaceChildren();
+        // Let WebKit settle its previous camera release before a new getUserMedia.
+        await new Promise(resolve=>setTimeout(resolve,220));
+        sf1911Log('V190.14 cleanup complete: '+label);
+      };
+      sf1914CleanupPromise=sf1914CleanupPromise.catch(()=>{}).then(job);
+      return sf1914CleanupPromise;
+    }
     async function sf1873StopFallback(){
       sf1873Generation++;
       try{sf1873Controls?.stop?.();}catch(e){}
@@ -7941,7 +7982,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       if(el)el.textContent=sf1911Events.join('\n');
     }
     function sf1911Environment(){
-      sf1911Log('Version 190.13; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
+      sf1911Log('Version 190.14; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
       sf1911Log('Web APIs: camera='+!!navigator.mediaDevices?.getUserMedia+'; BarcodeDetector='+!!window.BarcodeDetector+'; canvas='+!!document.createElement('canvas').getContext);
       sf1911Log('Libraries: html5-qrcode='+!!window.Html5Qrcode+'; ZXing='+!!window.ZXing?.BrowserMultiFormatReader);
     }
@@ -7977,7 +8018,7 @@ function onRepsEntered(exerciseIndex, repInput) {
     }
     // V190.12: UPC/EAN validation and repeated-read confirmation on iOS.
     let sf1912Candidate='',sf1912CandidateAt=0,sf1912CandidateCount=0;
-    // V190.13: count decoder callbacks without flooding the diagnostic report.
+    // V190.14: count decoder callbacks without flooding the diagnostic report.
     const sf1913Stats={Standard:{attempts:0,raw:0,rejected:0,confirmed:0},Alternate:{attempts:0,raw:0,rejected:0,confirmed:0}};
     function sf1913Reset(engine){sf1913Stats[engine]={attempts:0,raw:0,rejected:0,confirmed:0};}
     function sf1913Pulse(engine,kind){
@@ -8062,11 +8103,15 @@ function onRepsEntered(exerciseIndex, repInput) {
       sf1910Diagnostic('Reading photo · decoding barcode…');
       status.textContent='Reading barcode from photo…';
       let temp=null;
+      sf1914PhotoBusy=true;
       try{
-        // Stop live video to free resources on iOS; preserve scanner navigation.
-        await sf1873StopFallback();
-        if(barcodeScanner){try{await barcodeScanner.stop();}catch(e){}try{await barcodeScanner.clear();}catch(e){}barcodeScanner=null;}
-        document.getElementById('barcodeReader').innerHTML='';
+        // Photo decoding must not share a live camera session on iOS.
+        if(sf1873IsIOS())await sf1914Cleanup('before photo');
+        else{
+          await sf1873StopFallback();
+          if(barcodeScanner){try{await barcodeScanner.stop();}catch(e){}try{await barcodeScanner.clear();}catch(e){}barcodeScanner=null;}
+          document.getElementById('barcodeReader').innerHTML='';
+        }
         temp=URL.createObjectURL(file);
         let code='';
         // First decode the original photo. Then decode resized/rotated canvas variants,
@@ -8120,7 +8165,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         console.warn('Photo barcode scan:',e);
         status.textContent='Could not read barcode from photo. Try a closer, well-lit photo with the entire barcode visible, or enter the digits.';
         sf1910Diagnostic('Photo decode unsuccessful: '+(e?.message||'barcode not found'));
-      }finally{if(temp)URL.revokeObjectURL(temp);}
+      }finally{if(temp)URL.revokeObjectURL(temp);sf1914PhotoBusy=false;sf1911Log('V190.14 photo processing complete');}
     }
     async function startBarcodeScanner(forceStandard = false) {
       hideManualFoodForm();
@@ -8134,7 +8179,10 @@ function onRepsEntered(exerciseIndex, repInput) {
       barcodeScanLocked = false;
       sf1912Candidate='';sf1912CandidateCount=0;
       lastScannedBarcode = '';
-      await sf1873StopFallback();
+      if(sf1873IsIOS()){
+        if(sf1914PhotoBusy){status.textContent='Finishing photo scan. Please try opening the camera again in a moment.';sf1911Log('V190.14 camera start deferred: photo processing');return;}
+        await sf1914Cleanup('before camera open');
+      }else await sf1873StopFallback();
       sf1909ScannerButtons('standard');
       sf1911Environment();
       sf1913Reset('Standard');sf1911Log('Standard scanner requested');
@@ -8192,6 +8240,11 @@ function onRepsEntered(exerciseIndex, repInput) {
     }
 
     async function stopBarcodeScanner(hidePanel = true) {
+      if(sf1873IsIOS()){
+        await sf1914Cleanup('stop scanner');
+        if(hidePanel){sf1909ScannerButtons('standard');document.getElementById('barcodePanel')?.classList.remove('open');}
+        return;
+      }
       if(sf1911Watch){clearInterval(sf1911Watch);sf1911Watch=null;}
       await sf1873StopFallback();
       if (barcodeScanner) {
