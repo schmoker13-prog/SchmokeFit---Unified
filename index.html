@@ -15837,27 +15837,70 @@ try{localStorage.setItem('schmokefit_v188_onboarding_complete','true');}catch(e)
 </style>
 <style id="sf1902Styles">.sf1902-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.sf1902-item{min-width:0;border:1px solid rgba(135,160,190,.22);border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;gap:5px}.sf1902-label{font-size:9px;letter-spacing:.07em;color:#8cb9ef;font-weight:800}.sf1902-title{font-size:12px;font-weight:750;line-height:1.2;min-height:28px}.sf1902-numbers{font-size:12px;color:#cbd7e5}.sf1902-track{height:5px;background:#354252;border-radius:99px;overflow:hidden;margin-top:auto}.sf1902-track span{height:100%;background:#399af3;display:block;border-radius:99px}@media(max-width:360px){.sf1902-preview{gap:5px}.sf1902-item{padding:8px 6px}.sf1902-title{font-size:11px}}</style>
 <script id="sf190Script">
-/* V190.5: nutrition achievement date discovery aligned with unified graph storage. */
+/* V190.8: lifetime PR tiers, exercise-specific improvement awards, and cycle Halfway Hero. */
 (function(){
  'use strict';
  const defs=[
   {id:'perfect',name:'Perfect Week',icon:'📅',description:'All 3 scheduled workouts in a program week',unit:'weeks',n:1,repeat:true,group:'CONSISTENCY'},
   {id:'roll',name:'On a Roll',icon:'🔥',description:'3 consecutive perfect program weeks',unit:'weeks',n:3,repeat:true,group:'CONSISTENCY'},
+  {id:'halfhero',name:'Halfway Hero',icon:'🛡️',description:'Complete all 3 workouts in each of the first 9 program weeks',unit:'weeks',n:9,repeat:true,group:'CONSISTENCY'},
   {id:'club',name:'The 18-Week Club',icon:'👑',description:'All 54 scheduled workouts in a single cycle',unit:'workouts',n:54,repeat:true,group:'CONSISTENCY'},
   {id:'fuel',name:'First Fuel',icon:'🍎',description:'Log food for the first time',unit:'days',n:1,repeat:false,group:'NUTRITION'},
-  {id:'protein',name:'Protein Pro',icon:'🥩',description:'7 consecutive green protein days',unit:'days',n:7,repeat:true,group:'NUTRITION'},
+  {id:'protein',name:'Protein Pro',icon:'🥩',description:'5 consecutive green protein days',unit:'days',n:5,repeat:true,group:'NUTRITION'},
   {id:'calorie',name:'Dialed In',icon:'🎯',description:'5 consecutive green calorie days',unit:'days',n:5,repeat:true,group:'NUTRITION'},
   {id:'both',name:'Locked In',icon:'🏅',description:'7 consecutive days with both targets green',unit:'days',n:7,repeat:true,group:'NUTRITION'},
   {id:'firstpr',name:'Stronger Than Yesterday',icon:'💪',description:'Record your first improved exercise/set PR',unit:'PRs',n:1,repeat:false,group:'PERSONAL RECORDS'},
-  {id:'prs',name:'Record Breaker',icon:'⚡',description:'Record 10 improved exercise/set PRs',unit:'PRs',n:10,repeat:false,group:'PERSONAL RECORDS'}
+  {id:'prs',name:'Record Breaker',icon:'⚡',description:'Record 10 improved exercise/set PRs',unit:'PRs',n:10,repeat:false,group:'PERSONAL RECORDS'},
+  {id:'pr15',name:'Momentum',icon:'🔥',description:'Record 15 improved exercise/set PRs',unit:'PRs',n:15,repeat:false,group:'PERSONAL RECORDS'},
+  {id:'pr20',name:'Raising the Bar',icon:'🏆',description:'Record 20 improved exercise/set PRs',unit:'PRs',n:20,repeat:false,group:'PERSONAL RECORDS'},
+  {id:'pr3exercise',name:'Dialed Strength',icon:'🎯',description:'Set 3 improved PRs on the same exercise',unit:'PRs on one exercise',n:3,repeat:false,group:'PERSONAL RECORDS'},
+  {id:'pr5exercise',name:'Master of the Movement',icon:'👑',description:'Set 5 improved PRs on the same exercise',unit:'PRs on one exercise',n:5,repeat:false,group:'PERSONAL RECORDS'}
  ];
  function history(){try{const a=JSON.parse(appStorage.getItem('schmokefit_history')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
  function workouts(){const seen=new Set();return history().filter(x=>{if(!x||x.type!=='WORKOUT')return false;const c=Number(x.workoutCycle)||1,w=Number(x.workoutWeek)||(typeof inferWorkoutWeek==='function'?Number(inferWorkoutWeek(x)):0),d=String(x.workoutDay||(typeof inferWorkoutDay==='function'?inferWorkoutDay(x):'')).toLowerCase();const k=w&&d?`${c}:${w}:${d}`:String(x.entryId||`${x.date}:${x.title}`);if(seen.has(k))return false;seen.add(k);return true})}
- function program(){const a=workouts(),byCycle=new Map();for(const x of a){const c=Number(x.workoutCycle)||1,w=Number(x.workoutWeek)||(typeof inferWorkoutWeek==='function'?Number(inferWorkoutWeek(x)):0),d=String(x.workoutDay||(typeof inferWorkoutDay==='function'?inferWorkoutDay(x):'')).toLowerCase();if(!w||w<1||w>18||!d)continue;if(!byCycle.has(c))byCycle.set(c,new Map());const m=byCycle.get(c);if(!m.has(w))m.set(w,new Set());m.get(w).add(d)}let perfect=0,roll=0,club=0,currentPerfect=0,currentRoll=0;const active=Number(typeof currentWorkoutCycle!=='undefined'?currentWorkoutCycle:1);for(const [c,weeks] of byCycle){let run=0;for(let w=1;w<=18;w++){if((weeks.get(w)?.size||0)>=3){perfect++;run++;if(run%3===0)roll++}else run=0}if(Array.from({length:18},(_,i)=>i+1).every(w=>(weeks.get(w)?.size||0)>=3))club++;if(c===active){currentPerfect=Array.from(weeks.values()).filter(set=>set.size>=3).length;currentRoll=run}}return {perfect,roll,club,currentPerfect,currentRoll,cycleCount:a.filter(x=>(Number(x.workoutCycle)||1)===active).length,activeWeekProgress:(()=>{const ws=byCycle.get(active);if(!ws)return 0;const incomplete=Array.from(ws.entries()).filter(([w,days])=>days.size<3).sort((a,b)=>b[0]-a[0]);return incomplete.length?incomplete[0][1].size:0})()}}
+ function program(){const a=workouts(),byCycle=new Map();for(const x of a){const c=Number(x.workoutCycle)||1,w=Number(x.workoutWeek)||(typeof inferWorkoutWeek==='function'?Number(inferWorkoutWeek(x)):0),d=String(x.workoutDay||(typeof inferWorkoutDay==='function'?inferWorkoutDay(x):'')).toLowerCase();if(!w||w<1||w>18||!d)continue;if(!byCycle.has(c))byCycle.set(c,new Map());const m=byCycle.get(c);if(!m.has(w))m.set(w,new Set());m.get(w).add(d)}let perfect=0,roll=0,club=0,halfhero=0,currentHalfhero=0,currentPerfect=0,currentRoll=0;const active=Number(typeof currentWorkoutCycle!=='undefined'?currentWorkoutCycle:1);for(const [c,weeks] of byCycle){let run=0;for(let w=1;w<=18;w++){if((weeks.get(w)?.size||0)>=3){perfect++;run++;if(run%3===0)roll++}else run=0}if(Array.from({length:18},(_,i)=>i+1).every(w=>(weeks.get(w)?.size||0)>=3))club++;if(Array.from({length:9},(_,i)=>i+1).every(w=>(weeks.get(w)?.size||0)>=3))halfhero++;if(c===active){
+   currentHalfhero=Array.from({length:9},(_,i)=>i+1).filter(w=>(weeks.get(w)?.size||0)>=3).length;
+   currentPerfect=Array.from(weeks.values()).filter(set=>set.size>=3).length;
+   /* Only completed consecutive weeks immediately preceding the active program week
+      count toward the next On a Roll. Do not use `run` after iterating to week 18:
+      future empty weeks reset it to zero. */
+   const activeWeek=Math.min(18,Math.max(1,Number(appStorage.getItem('schmokefit_week'))||1));
+   let completedRun=0;
+   for(let prior=activeWeek-1;prior>=1;prior--){
+    if((weeks.get(prior)?.size||0)<3)break;
+    completedRun++;
+   }
+   /* Week 18 can remain selected after its third workout. */
+   if(activeWeek===18&&(weeks.get(18)?.size||0)>=3){
+    completedRun=0;
+    for(let prior=18;prior>=1;prior--){
+     if((weeks.get(prior)?.size||0)<3)break;
+     completedRun++;
+    }
+   }
+   currentRoll=completedRun;
+  }}return {perfect,roll,club,halfhero,currentHalfhero, currentPerfect,currentRoll,cycleCount:a.filter(x=>(Number(x.workoutCycle)||1)===active).length,activeWeekProgress:(()=>{const ws=byCycle.get(active);if(!ws)return 0;const incomplete=Array.from(ws.entries()).filter(([w,days])=>days.size<3).sort((a,b)=>b[0]-a[0]);return incomplete.length?incomplete[0][1].size:0})()}}
  function nutrition(){const today=localDateStamp(new Date()),dateRe=/^\d{4}-\d{2}-\d{2}$/;const stamps=[];const seenDates=new Set();/* appStorage.key() lists physical localStorage keys, but getItem() routes nutrition to schmokefit_unified_nutrition_*. Match the actual graph storage namespace. */for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(typeof k!=='string')continue;const m=/^schmokefit_unified_nutrition_(\d{4}-\d{2}-\d{2})$/.exec(k);if(!m)continue;const stamp=m[1];if(dateRe.test(stamp)&&stamp<=today&&!seenDates.has(stamp)){seenDates.add(stamp);stamps.push(stamp)}}stamps.sort();const flags=new Map();let foodDays=0;for(const stamp of stamps){const log=getNutritionLogForDate(stamp);const hasFood=Object.values(log||{}).some(a=>Array.isArray(a)&&a.length);if(!hasFood)continue;foodDays++;const totals=nutritionTotalsFromLog(log);/* Same dated goals and exact green thresholds as the Nutrition/Progress UI. */const goals=nutritionGraphGoalsForDate(stamp);flags.set(stamp,{p:nutritionBarStatus(Number(totals.protein)||0,Number(goals.protein)||0,'protein')==='status-green',c:nutritionBarStatus(Number(totals.calories)||0,Number(goals.calories)||0,'calories')==='status-green'})}
-  const result={fuel:foodDays?1:0,protein:0,calorie:0,both:0,proteinProgress:0,calorieProgress:0,bothProgress:0};let rp=0,rc=0,rb=0;/* Today is provisional: don't award a day before it ends. */const dates=Array.from(flags.keys()).filter(x=>x<today).sort();let prev='';for(const stamp of dates){if(prev&&addDaysToStamp(prev,1)!==stamp)rp=rc=rb=0;const f=flags.get(stamp);rp=f.p?rp+1:0;rc=f.c?rc+1:0;rb=f.p&&f.c?rb+1:0;if(rp&&rp%7===0)result.protein++;if(rc&&rc%5===0)result.calorie++;if(rb&&rb%7===0)result.both++;prev=stamp}/* An unlogged past day also breaks consecutive calendar-day streaks. */if(prev&&addDaysToStamp(prev,1)!==today)rp=rc=rb=0;result.proteinProgress=rp%7;result.calorieProgress=rc%5;result.bothProgress=rb%7;return result}
- function prs(){/* Use the same weight-first, reps-second comparison as getAllTimeExerciseSetBest/checkSetPR. Count improvements, not first baselines. */const a=workouts().slice().reverse();const best=new Map();let count=0;for(const log of a){if(!log.structuredData||typeof log.structuredData!=='object')continue;for(const [exercise,sets] of Object.entries(log.structuredData)){if(!sets||typeof sets!=='object')continue;for(const [setId,v] of Object.entries(sets)){if(!/^set\d+$/.test(setId)||!v)continue;const ws=String(v.w??'').trim(),rs=String(v.r??'').trim();if(!ws||!rs)continue;const w=Number(ws),r=Number(rs);if(!Number.isFinite(w)||!Number.isFinite(r))continue;const k=exercise+'|'+setId,old=best.get(k);if(old&&(w>old.w||(w===old.w&&r>old.r)))count++;if(!old||w>old.w||(w===old.w&&r>old.r))best.set(k,{w,r})}}}return count}
- function snapshot(){const p=program(),n=nutrition(),pr=prs();return {perfect:p.perfect,roll:p.roll,club:p.club,fuel:n.fuel,protein:n.protein,calorie:n.calorie,both:n.both,firstpr:pr?1:0,prs:pr,progress:{perfect:p.activeWeekProgress,roll:p.currentRoll%3,club:p.cycleCount,fuel:n.fuel,protein:n.proteinProgress,calorie:n.calorieProgress,both:n.bothProgress,firstpr:Math.min(1,pr),prs:pr}}}
+  const result={fuel:foodDays?1:0,protein:0,calorie:0,both:0,proteinProgress:0,calorieProgress:0,bothProgress:0};let rp=0,rc=0,rb=0;/* Today is provisional: don't award a day before it ends. */const dates=Array.from(flags.keys()).filter(x=>x<today).sort();let prev='';for(const stamp of dates){if(prev&&addDaysToStamp(prev,1)!==stamp)rp=rc=rb=0;const f=flags.get(stamp);rp=f.p?rp+1:0;rc=f.c?rc+1:0;rb=f.p&&f.c?rb+1:0;if(rp&&rp%5===0)result.protein++;if(rc&&rc%5===0)result.calorie++;if(rb&&rb%7===0)result.both++;prev=stamp}/* An unlogged past day also breaks consecutive calendar-day streaks. */if(prev&&addDaysToStamp(prev,1)!==today)rp=rc=rb=0;result.proteinProgress=rp%5;result.calorieProgress=rc%5;result.bothProgress=rb%7;return result}
+ function prs(){/* Existing PR definition: weight-first, reps-second, same exercise + set slot.
+    Iterate chronological workout history; count each improved set PR once, and also
+    count those improvements by exercise (across all set slots and program cycles). */
+  const a=workouts().slice().reverse(),best=new Map(),byExercise=new Map();let count=0;
+  for(const log of a){if(!log.structuredData||typeof log.structuredData!=='object')continue;
+   for(const [exercise,sets] of Object.entries(log.structuredData)){if(!sets||typeof sets!=='object')continue;
+    for(const [setId,v] of Object.entries(sets)){if(!/^set\d+$/.test(setId)||!v)continue;
+     const ws=String(v.w??'').trim(),rs=String(v.r??'').trim();if(!ws||!rs)continue;
+     const w=Number(ws),r=Number(rs);if(!Number.isFinite(w)||!Number.isFinite(r))continue;
+     const k=exercise+'|'+setId,old=best.get(k),improved=!!old&&(w>old.w||(w===old.w&&r>old.r));
+     if(improved){count++;byExercise.set(exercise,(byExercise.get(exercise)||0)+1)}
+     if(!old||improved)best.set(k,{w,r});
+    }
+   }
+  }
+  return {count,maxExercise:Math.max(0,...byExercise.values())};
+ }
+ function snapshot(){const p=program(),n=nutrition(),pr=prs();return {perfect:p.perfect,roll:p.roll,club:p.club,halfhero:p.halfhero,fuel:n.fuel,protein:n.protein,calorie:n.calorie,both:n.both,firstpr:pr.count?1:0,prs:pr.count,pr15:pr.count,pr20:pr.count,pr3exercise:pr.maxExercise,pr5exercise:pr.maxExercise,progress:{perfect:p.activeWeekProgress,roll:p.currentRoll%3,club:p.cycleCount,halfhero:p.currentHalfhero===9?0:p.currentHalfhero,fuel:n.fuel,protein:n.proteinProgress,calorie:n.calorieProgress,both:n.bothProgress,firstpr:Math.min(1,pr.count),prs:pr.count,pr15:pr.count,pr20:pr.count,pr3exercise:pr.maxExercise,pr5exercise:pr.maxExercise}}}
+
  function card(d,s){
   const count=s[d.id]||0;
   const earned=d.repeat?count>0:count>=d.n;
@@ -15899,11 +15942,16 @@ try{localStorage.setItem('schmokefit_v188_onboarding_complete','true');}catch(e)
   // Weekly card shows workout progress; the collection still counts only finished perfect weeks.
   add('CONSISTENCY','Perfect Week',p.activeWeekProgress||0,3);
   add('CONSISTENCY','On a Roll',s.progress.roll||0,3);
-  add('NUTRITION','Protein Pro',s.progress.protein||0,7);
+  if(!s.halfhero)add('CONSISTENCY','Halfway Hero',s.progress.halfhero||0,9);
+  add('NUTRITION','Protein Pro',s.progress.protein||0,5);
   add('NUTRITION','Dialed In',s.progress.calorie||0,5);
   add('NUTRITION','Locked In',s.progress.both||0,7);
   if(!s.firstpr)add('PERSONAL RECORDS','Stronger Than Yesterday',0,1);
   if((s.prs||0)<10)add('PERSONAL RECORDS','Record Breaker',s.prs||0,10);
+  else if((s.prs||0)<15)add('PERSONAL RECORDS','Momentum',s.prs||0,15);
+  else if((s.prs||0)<20)add('PERSONAL RECORDS','Raising the Bar',s.prs||0,20);
+  if((s.pr3exercise||0)<3)add('PERSONAL RECORDS','Dialed Strength',s.pr3exercise||0,3);
+  else if((s.pr5exercise||0)<5)add('PERSONAL RECORDS','Master of the Movement',s.pr5exercise||0,5);
   // Closest to completion first. When possible, show different categories for variety.
   candidates.sort((a,b)=>b.ratio-a.ratio||a.remaining-b.remaining||a.name.localeCompare(b.name));
   const picks=[];
