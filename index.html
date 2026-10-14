@@ -4233,7 +4233,8 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="barcode-code" id="barcodeCodeDisplay"></div>
 <div id="sf1873ScannerTools" style="margin-top:10px">
  <div style="display:flex;gap:8px;flex-wrap:wrap">
-  <button class="btn btn-dark" type="button" onclick="sf1873StartFallback()" style="flex:1">TRY ALTERNATE SCANNER</button>
+  <button class="btn btn-dark" type="button" id="sf1909AlternateBtn" onclick="sf1873StartFallback()" style="flex:1">TRY ALTERNATE SCANNER</button>
+  <button class="btn btn-dark" type="button" id="sf1909PrimaryBtn" onclick="startBarcodeScanner(true)" style="flex:1;display:none">SWITCH TO STANDARD SCANNER</button>
   <button class="btn btn-dark" type="button" onclick="sf1873ManualBarcode()" style="flex:1">ENTER BARCODE</button>
  </div>
  <div id="sf1873ManualRow" style="display:none;margin-top:9px;gap:8px">
@@ -7865,6 +7866,13 @@ function onRepsEntered(exerciseIndex, repInput) {
       if(sf1873Stream){sf1873Stream.getTracks().forEach(t=>t.stop());sf1873Stream=null;}
       if(sf1873Video){try{sf1873Video.pause();sf1873Video.srcObject=null;sf1873Video.remove();}catch(e){}sf1873Video=null;}
     }
+    // V190.9: both scanner engines remain selectable; avoid trapping iOS users in fallback mode.
+    function sf1909ScannerButtons(mode){
+      const primary=document.getElementById('sf1909PrimaryBtn');
+      const alternate=document.getElementById('sf1909AlternateBtn');
+      if(primary)primary.style.display=mode==='alternate'?'':'none';
+      if(alternate)alternate.style.display=mode==='alternate'?'none':'';
+    }
     async function sf1873StartFallback(){
       if(sf1873Starting||barcodeScanLocked)return;
       sf1873Starting=true;
@@ -7872,6 +7880,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       const status=document.getElementById('barcodeStatus');
       try{
         status.textContent='Loading alternate barcode decoder…';
+        sf1909ScannerButtons('alternate');
         await sf1873LoadZxing();
         if(generation!==sf1873Generation)return;
         // Stop html5-qrcode before requesting the camera again.
@@ -7889,8 +7898,9 @@ function onRepsEntered(exerciseIndex, repInput) {
         }
         sf1873Reader=new ZXing.BrowserMultiFormatReader(hints,250);
         status.textContent='Alternate scanner active. Hold barcode steady in good light.';
-        // ZXing library manages camera and decode loop. No native BarcodeDetector required.
-        await sf1873Reader.decodeFromVideoDevice(undefined,video,async(result,err)=>{
+        // Explicitly request the rear camera on iOS. Default device selection can choose
+        // an unsuitable front/ultra-wide lens even when the preview appears normal.
+        const onDecode=async(result,err)=>{
           if(generation!==sf1873Generation||barcodeScanLocked||!result)return;
           const code=String(result.getText?.()||result.text||'').trim();
           if(!/^\d{8,14}$/.test(code))return;
@@ -7898,12 +7908,23 @@ function onRepsEntered(exerciseIndex, repInput) {
           document.getElementById('barcodeCodeDisplay').textContent='Barcode: '+code;
           status.textContent='Barcode found. Looking up nutrition…';
           await stopBarcodeScanner(false);await lookupBarcode(code);
-        });
+        };
+        if(typeof sf1873Reader.decodeFromConstraints==='function'){
+          sf1873Controls=await sf1873Reader.decodeFromConstraints(
+            {audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}},
+            video,onDecode);
+        }else{
+          const devices=await ZXing.BrowserCodeReader.listVideoInputDevices();
+          const rear=devices.filter(d=>/back|rear|environment/i.test(d.label||''));
+          const selected=(rear.length?rear[rear.length-1]:devices[devices.length-1]);
+          sf1873Controls=await sf1873Reader.decodeFromVideoDevice(selected?.deviceId,video,onDecode);
+        }
+        if(generation!==sf1873Generation){try{sf1873Controls?.stop?.();}catch(e){}return;}
       }catch(e){
-        if(generation===sf1873Generation){console.warn('Alternate barcode scanner:',e);status.textContent='Alternate scanner unavailable: '+(e?.message||'camera/decoder error')+'. Use Enter Barcode below.';}
+        if(generation===sf1873Generation){console.warn('Alternate barcode scanner:',e);status.textContent='Alternate scanner unavailable: '+(e?.message||'camera/decoder error')+'. Try the standard scanner or enter the barcode.';sf1909ScannerButtons('alternate');}
       }finally{sf1873Starting=false;}
     }
-    async function startBarcodeScanner() {
+    async function startBarcodeScanner(forceStandard = false) {
       hideManualFoodForm();
       document.getElementById('foodSearchResults').innerHTML = '';
       const panel = document.getElementById('barcodePanel');
@@ -7915,8 +7936,9 @@ function onRepsEntered(exerciseIndex, repInput) {
       barcodeScanLocked = false;
       lastScannedBarcode = '';
       await sf1873StopFallback();
+      sf1909ScannerButtons('standard');
       document.getElementById('sf1873ManualRow').style.display='none';
-      if(sf1873IsIOS()){await sf1873StartFallback();return;}
+      if(sf1873IsIOS() && !forceStandard){await sf1873StartFallback();return;}
 
       if (typeof Html5Qrcode === 'undefined') {
         status.innerText = 'The scanner library did not load. You can still search foods or add a barcode manually.';
@@ -7982,6 +8004,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       }
 
       if (hidePanel) {
+        sf1909ScannerButtons('standard');
         document.getElementById('barcodePanel')?.classList.remove('open');
       }
     }
