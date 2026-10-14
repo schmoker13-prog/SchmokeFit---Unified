@@ -7913,14 +7913,17 @@ function onRepsEntered(exerciseIndex, repInput) {
         // V190.10: restore V190.8's working alternate-camera selection on Android.
         // BrowserMultiFormatReader selects the device itself; no incompatible constraints path.
         const onDecode=async(result,err)=>{
-          if(generation!==sf1873Generation||barcodeScanLocked||!result)return;
+          if(generation!==sf1873Generation||barcodeScanLocked)return;
+          sf1913Pulse('Alternate','attempts');
+          if(!result)return;
           const code=String(result.getText?.()||result.text||'').trim();
-          if(!/^\d{8,14}$/.test(code))return;
+          sf1913Pulse('Alternate','raw');
           await sf1912HandleDecode(code,String(result.getBarcodeFormat?.()||''),'Alternate');
         };
-        sf1911Log('Alternate decoder start requested');
+        sf1913Reset('Alternate');sf1911Log('Alternate decoder start requested');
         await sf1873Reader.decodeFromVideoDevice(undefined,video,onDecode);
         sf1911WatchVideo(video,'Alternate');
+        await sf1913ImproveTrack(video,'Alternate');
         sf1910Diagnostic('Alternate camera active · decoder searching for UPC/EAN barcode');
         if(generation!==sf1873Generation){try{sf1873Controls?.stop?.();}catch(e){}return;}
       }catch(e){
@@ -7938,7 +7941,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       if(el)el.textContent=sf1911Events.join('\n');
     }
     function sf1911Environment(){
-      sf1911Log('Version 190.12; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
+      sf1911Log('Version 190.13; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
       sf1911Log('Web APIs: camera='+!!navigator.mediaDevices?.getUserMedia+'; BarcodeDetector='+!!window.BarcodeDetector+'; canvas='+!!document.createElement('canvas').getContext);
       sf1911Log('Libraries: html5-qrcode='+!!window.Html5Qrcode+'; ZXing='+!!window.ZXing?.BrowserMultiFormatReader);
     }
@@ -7950,7 +7953,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         const frames=video.webkitDecodedFrameCount ?? video.getVideoPlaybackQuality?.().totalVideoFrames ?? 'unknown';
         const track=video.srcObject?.getVideoTracks?.()[0];
         if(count++<8 || (typeof frames==='number'&&frames===previous)){
-          sf1911Log(engine+' video: '+video.videoWidth+'x'+video.videoHeight+', readyState='+video.readyState+', paused='+video.paused+', frames='+frames+', track='+(track?.readyState||'unknown'));
+          sf1911Log(engine+' video: '+video.videoWidth+'x'+video.videoHeight+', readyState='+video.readyState+', paused='+video.paused+', frames='+frames+', track='+(track?.readyState||'unknown')+' (frame counter may be unsupported on iOS)');
         }
         previous=frames;
         if(count>=8){clearInterval(sf1911Watch);sf1911Watch=null;}
@@ -7974,6 +7977,28 @@ function onRepsEntered(exerciseIndex, repInput) {
     }
     // V190.12: UPC/EAN validation and repeated-read confirmation on iOS.
     let sf1912Candidate='',sf1912CandidateAt=0,sf1912CandidateCount=0;
+    // V190.13: count decoder callbacks without flooding the diagnostic report.
+    const sf1913Stats={Standard:{attempts:0,raw:0,rejected:0,confirmed:0},Alternate:{attempts:0,raw:0,rejected:0,confirmed:0}};
+    function sf1913Reset(engine){sf1913Stats[engine]={attempts:0,raw:0,rejected:0,confirmed:0};}
+    function sf1913Pulse(engine,kind){
+      const st=sf1913Stats[engine];if(!st)return;
+      st[kind]++;
+      if(kind==='attempts'&&(st.attempts===1||st.attempts%50===0))sf1911Log(engine+' decode callbacks: '+st.attempts+'; raw='+st.raw+'; rejected='+st.rejected+'; confirmed='+st.confirmed);
+    }
+    async function sf1913ImproveTrack(video,engine){
+      const track=video?.srcObject?.getVideoTracks?.()[0];
+      if(!track){sf1911Log(engine+' camera track unavailable for resolution request');return;}
+      const before=track.getSettings?.()||{};
+      sf1911Log(engine+' actual camera settings: '+(before.width||video.videoWidth||'?')+'x'+(before.height||video.videoHeight||'?')+', facing='+(before.facingMode||'unknown'));
+      if(!sf1873IsIOS())return; // Android camera pipeline remains unchanged.
+      try{
+        const caps=track.getCapabilities?.()||{};
+        sf1911Log(engine+' camera capabilities: width='+(caps.width?.min||'?')+'-'+(caps.width?.max||'?')+', height='+(caps.height?.min||'?')+'-'+(caps.height?.max||'?'));
+        await track.applyConstraints({width:{ideal:1280},height:{ideal:720}});
+        const after=track.getSettings?.()||{};
+        sf1911Log(engine+' after HD request: '+(after.width||video.videoWidth||'?')+'x'+(after.height||video.videoHeight||'?'));
+      }catch(e){sf1911Log(engine+' HD request not supported: '+(e?.message||e));}
+    }
     function sf1912CheckDigit(body){
       let sum=0;for(let i=body.length-1,weight=3;i>=0;i--,weight=weight===3?1:3)sum+=Number(body[i])*weight;
       return String((10-sum%10)%10);
@@ -8005,7 +8030,7 @@ function onRepsEntered(exerciseIndex, repInput) {
     async function sf1912HandleDecode(value,format,engine){
       if(barcodeScanLocked)return;
       const parsed=sf1912NormalizeBarcode(value,format);
-      if(!parsed.valid){sf1911Log(engine+' rejected: '+parsed.reason);return;}
+      if(!parsed.valid){sf1913Pulse(engine,'rejected');sf1911Log(engine+' rejected raw='+JSON.stringify(String(value))+' format='+String(format||'unknown')+': '+parsed.reason);return;}
       const now=Date.now();
       if(sf1873IsIOS() && engine!=='Photo'){
         if(sf1912Candidate===parsed.code&&now-sf1912CandidateAt<5000)sf1912CandidateCount++;
@@ -8013,7 +8038,7 @@ function onRepsEntered(exerciseIndex, repInput) {
         sf1912CandidateAt=now;
         if(sf1912CandidateCount<2){sf1911Log(engine+' candidate '+parsed.raw+' ('+parsed.format+'), awaiting confirmation');return;}
       }
-      sf1911Log(engine+' confirmed '+parsed.code+' ('+parsed.format+')');
+      sf1913Pulse(engine,'confirmed');sf1911Log(engine+' confirmed '+parsed.code+' ('+parsed.format+')');
       await sf1910Found(parsed.code);
     }
     async function sf1910Found(code){
@@ -8112,7 +8137,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       await sf1873StopFallback();
       sf1909ScannerButtons('standard');
       sf1911Environment();
-      sf1911Log('Standard scanner requested');
+      sf1913Reset('Standard');sf1911Log('Standard scanner requested');
       sf1910Diagnostic('Starting standard camera…');
       document.getElementById('sf1873ManualRow').style.display='none';
       if(sf1873IsIOS() && !forceStandard){await sf1873StartFallback();return;}
@@ -8144,20 +8169,20 @@ function onRepsEntered(exerciseIndex, repInput) {
 
         await barcodeScanner.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 260, height: 130 }, aspectRatio: 1.5 },
+          { fps: 10, qrbox: { width: 260, height: 130 }, aspectRatio: 1.5, ...(sf1873IsIOS()?{videoConstraints:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}}:{}) },
           async (decodedText) => {
             const barcode = String(decodedText || '').trim();
             if (!barcode || barcodeScanLocked) return;
-
+            sf1913Pulse('Standard','raw');
             await sf1912HandleDecode(barcode, '', 'Standard');
           },
-          () => {}
+          () => {sf1913Pulse('Standard','attempts');}
         );
 
         status.innerText = 'Camera ready. Center the UPC/EAN barcode inside the scanner.';
         sf1910Diagnostic('Standard camera active · decoder searching for UPC/EAN barcode');
         sf1911Log('Standard scanner started');
-        const liveVideo=document.querySelector('#barcodeReader video');if(liveVideo)sf1911WatchVideo(liveVideo,'Standard');
+        const liveVideo=document.querySelector('#barcodeReader video');if(liveVideo){sf1911WatchVideo(liveVideo,'Standard');await sf1913ImproveTrack(liveVideo,'Standard');}
       } catch (err) {
         console.error('Barcode scanner error:', err);
         status.innerText = 'Camera could not start. Check browser camera permission, or use manual food entry.';
