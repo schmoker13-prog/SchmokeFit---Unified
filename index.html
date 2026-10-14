@@ -7982,7 +7982,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       if(el)el.textContent=sf1911Events.join('\n');
     }
     function sf1911Environment(){
-      sf1911Log('Version 190.14; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
+      sf1911Log('Version 190.15; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
       sf1911Log('Web APIs: camera='+!!navigator.mediaDevices?.getUserMedia+'; BarcodeDetector='+!!window.BarcodeDetector+'; canvas='+!!document.createElement('canvas').getContext);
       sf1911Log('Libraries: html5-qrcode='+!!window.Html5Qrcode+'; ZXing='+!!window.ZXing?.BrowserMultiFormatReader);
     }
@@ -11325,7 +11325,10 @@ function onRepsEntered(exerciseIndex, repInput) {
         type: 'WORKOUT',
         title: `Cycle ${currentWorkoutCycle} • Week ${week} - ${customDayName}: ${getWorkoutProgramNames()[day]}`,
         details: summary,
-        structuredData
+        structuredData,
+        // Snapshot this completed session's exact exercise layout independently
+        // of the template used for upcoming weeks.
+        exerciseRoutine: JSON.parse(JSON.stringify(Array.isArray(activeExercises) ? activeExercises : []))
       };
 
       if (existingIndex >= 0) history[existingIndex] = entry;
@@ -13646,10 +13649,16 @@ function saveExtraCardioActivity(){
  const ll=window.loadSelectedWorkoutRoutine;
  if(typeof ll==='function')window.loadSelectedWorkoutRoutine=function(){
    const x=ll.apply(this,arguments);
+   const existing=arguments[1];
+   const historicalRoutine=existing && Array.isArray(existing.exerciseRoutine) ? existing.exerciseRoutine : null;
    const thisRoutine=savedThisWorkoutRoutine();
    const futureRoutine=savedFutureRoutine();
    const future=savedFutureOrder();
-   if(Array.isArray(thisRoutine)){
+   if(Array.isArray(historicalRoutine)){
+     // Completed workout history is immutable with respect to later template edits.
+     // Editing and saving this workout updates its own snapshot.
+     activeExercises=JSON.parse(JSON.stringify(historicalRoutine));
+   }else if(Array.isArray(thisRoutine)){
      // A day-specific save overrides the reusable future template for this one workout.
      activeExercises=JSON.parse(JSON.stringify(thisRoutine));
    }else if(Array.isArray(futureRoutine)){
