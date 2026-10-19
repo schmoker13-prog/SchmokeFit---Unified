@@ -2348,6 +2348,11 @@
 .meal-shortcuts{border:1px solid #263244;background:rgba(255,255,255,.02);border-radius:10px;padding:9px;margin-bottom:10px;}
 .meal-shortcuts-title{font-size:.58rem;font-weight:900;letter-spacing:.08em;color:var(--text-muted);margin-bottom:7px;}
 .meal-shortcut-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.yesterday-meal-preview{padding:9px 11px;margin-top:3px;border:1px solid var(--input-border);border-radius:9px;background:rgba(20,31,48,.65);font-size:.73rem;line-height:1.5;color:var(--text);}
+.yesterday-meal-preview .ymp-title{font-size:.66rem;font-weight:800;letter-spacing:.04em;color:var(--muted);margin-bottom:3px;}
+.yesterday-meal-preview .ymp-foods{font-weight:650;overflow-wrap:anywhere;}
+.yesterday-meal-preview .ymp-meta{color:var(--muted);margin-top:3px;font-size:.68rem;}
+.meal-shortcut-btn:disabled{opacity:.48;cursor:not-allowed;}
 .meal-shortcut-btn{border:1px solid var(--input-border);background:#111827;color:var(--text);border-radius:8px;padding:8px 7px;font-size:.62rem;font-weight:800;cursor:pointer;}
 .saved-meals-list{display:grid;gap:5px;margin-top:7px;}
 .saved-meal-row{display:grid;grid-template-columns:1fr auto auto;gap:5px;align-items:center;border-top:1px solid #202b3b;padding-top:6px;}
@@ -4190,7 +4195,8 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
 <div class="meal-shortcuts" id="mealShortcuts">
 <div class="meal-shortcuts-title">MEAL SHORTCUTS</div>
 <div class="meal-shortcut-actions">
-<button class="meal-shortcut-btn" type="button" onclick="copyPreviousDayMeal()">↶ COPY YESTERDAY'S MEAL</button>
+<button class="meal-shortcut-btn" id="copyYesterdayMealBtn" type="button" onclick="copyPreviousDayMeal()">↶ COPY YESTERDAY'S MEAL</button>
+<div class="yesterday-meal-preview" id="yesterdayMealPreview" aria-live="polite"></div>
 <button class="meal-shortcut-btn" type="button" onclick="openSaveMealModal()">＋ SAVE CURRENT MEAL</button>
 </div>
 <div class="saved-meals-list" id="savedMealsList"></div>
@@ -7509,6 +7515,7 @@ function onRepsEntered(exerciseIndex, repInput) {
     function renderMealShortcuts() {
       const list = document.getElementById('savedMealsList');
       if (!list) return;
+      renderYesterdayMealPreview();
       const meals = getSavedMeals();
       if (!meals.length) {
         list.innerHTML = '<div class="nutrition-empty" style="padding:6px 0 0;">No saved meals yet.</div>';
@@ -7545,6 +7552,29 @@ function onRepsEntered(exerciseIndex, repInput) {
       const d = dateFromLocalStamp(stamp || localDateStamp(new Date()));
       d.setDate(d.getDate()-1);
       return localDateStamp(d);
+    }
+    function renderYesterdayMealPreview() {
+      const preview = document.getElementById('yesterdayMealPreview');
+      const button = document.getElementById('copyYesterdayMealBtn');
+      if (!preview || !button) return;
+      if (!activeNutritionMeal) { preview.textContent = ''; button.disabled = true; return; }
+      const stamp = previousDateStamp(selectedNutritionDateStamp);
+      const source = getNutritionLogForDate(stamp);
+      const items = Array.isArray(source?.[activeNutritionMeal]) ? source[activeNutritionMeal] : [];
+      const mealName = nutritionMealName(activeNutritionMeal);
+      const dayLabel = dateFromLocalStamp(stamp).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      button.disabled = !items.length;
+      if (!items.length) {
+        preview.innerHTML = `<div class="ymp-title">${escapeHtml(dayLabel)} · YESTERDAY'S ${escapeHtml(mealName.toUpperCase())}</div><div class="ymp-meta">No ${escapeHtml(mealName.toLowerCase())} logged yesterday.</div>`;
+        return;
+      }
+      const names = items.slice(0,3).map(item=>escapeHtml(item.name||'Unnamed food'));
+      const remaining = items.length-3;
+      const totalCalories = items.reduce((n,item)=>n+(Number(item.calories)||0),0);
+      const totalProtein = items.reduce((n,item)=>n+(Number(item.protein)||0),0);
+      preview.innerHTML = `<div class="ymp-title">${escapeHtml(dayLabel)} · YESTERDAY'S ${escapeHtml(mealName.toUpperCase())}</div>
+        <div class="ymp-foods">${names.join(', ')}${remaining>0?` <span style="color:var(--muted)">+${remaining} more</span>`:''}</div>
+        <div class="ymp-meta">${items.length} food${items.length===1?'':'s'} · ${Math.round(totalCalories)} calories · ${Math.round(totalProtein)}g protein</div>`;
     }
     function copyPreviousDayMeal() {
       if (!activeNutritionMeal) return;
@@ -7982,7 +8012,7 @@ function onRepsEntered(exerciseIndex, repInput) {
       if(el)el.textContent=sf1911Events.join('\n');
     }
     function sf1911Environment(){
-      sf1911Log('Version 190.15; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
+      sf1911Log('Version 190.16; iOS='+sf1873IsIOS()+'; secure='+window.isSecureContext);
       sf1911Log('Web APIs: camera='+!!navigator.mediaDevices?.getUserMedia+'; BarcodeDetector='+!!window.BarcodeDetector+'; canvas='+!!document.createElement('canvas').getContext);
       sf1911Log('Libraries: html5-qrcode='+!!window.Html5Qrcode+'; ZXing='+!!window.ZXing?.BrowserMultiFormatReader);
     }
