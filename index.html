@@ -16306,27 +16306,83 @@ try{localStorage.setItem('schmokefit_v188_onboarding_complete','true');}catch(e)
 <div id="sfMembershipOverlay" class="sf-member-overlay" role="dialog" aria-modal="true" aria-labelledby="sfMembershipTitle" onclick="if(event.target===this)sfMembershipClose()">
   <div class="sf-member-card">
     <h2 id="sfMembershipTitle">SCHMOKEFIT MEMBERSHIP</h2>
-    <p><strong>Founding member program — coming soon</strong></p>
-    <p>We are preparing membership options. Existing users will continue to have access while we securely establish founding-member eligibility.</p>
-    <p>No subscription or payment is required at this time. Your workout, nutrition, and backup features are unchanged.</p>
+    <p id="sfMembershipStatus" role="status" aria-live="polite"><strong>Checking membership…</strong></p>
+    <p id="sfMembershipDetail">Loading your account status securely.</p>
+    <p id="sfMembershipDates"></p>
+    <p>No payment is required at this time. Membership status is informational; all existing features remain available.</p>
     <p id="sfMembershipVersion"></p>
+    <button type="button" onclick="sfMembershipRefresh()">REFRESH STATUS</button>
     <button type="button" onclick="sfMembershipClose()">CLOSE</button>
   </div>
 </div>
 <script>
 (function(){
   'use strict';
-  const APP_VERSION='2.0.1';
+  const APP_VERSION='2.0.2';
   window.SCHMOKEFIT_APP_VERSION=APP_VERSION;
   const label=document.getElementById('sfAppVersionLabel');
   if(label)label.textContent='SCHMOKEFIT · V'+APP_VERSION;
   const modalVersion=document.getElementById('sfMembershipVersion');
   if(modalVersion)modalVersion.textContent='App version '+APP_VERSION;
+  const status=document.getElementById('sfMembershipStatus');
+  const detail=document.getElementById('sfMembershipDetail');
+  const dates=document.getElementById('sfMembershipDates');
+  let requestId=0;
+  function show(title,description,extra=''){
+    status.textContent=title;
+    detail.textContent=description;
+    dates.textContent=extra;
+  }
+  function dateLabel(value){
+    const time=Date.parse(value);
+    return Number.isFinite(time)?new Date(time).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Date unavailable';
+  }
+  window.sfMembershipRefresh=async function(){
+    const current=++requestId;
+    show('Checking membership…','Loading your account status securely.');
+    try{
+      if(!schmokeAuthClient)throw new Error('Supabase is unavailable. Sign in and retry.');
+      const {data:identity,error:authError}=await schmokeAuthClient.auth.getUser();
+      if(current!==requestId)return;
+      if(authError||!identity?.user)throw new Error('Please sign in again and retry.');
+      const userId=identity.user.id;
+      const {data:member,error}=await schmokeAuthClient.from('schmokefit_memberships')
+        .select('user_id,access_type,trial_ends_at,access_expires_at')
+        .eq('user_id',userId).maybeSingle();
+      if(current!==requestId)return;
+      if(error)throw new Error('Membership lookup failed. Check your connection and retry.');
+      if(!member){show('Membership not found','No membership record was found for this account. Contact support if this persists.');return;}
+      if(member.user_id!==userId)throw new Error('Membership account mismatch.');
+      switch(member.access_type){
+        case 'founding_member':
+          show('♛ Founding Member','Your account has lifetime complimentary access as an original SchmokeFit member.','No expiration.');break;
+        case 'lifetime_complimentary':
+          show('Lifetime Complimentary','Your account has been granted lifetime complimentary access.','No expiration.');break;
+        case 'trial':{
+          const ends=Date.parse(member.trial_ends_at);
+          if(!Number.isFinite(ends))throw new Error('Trial expiration date is unavailable.');
+          const days=Math.max(0,Math.ceil((ends-Date.now())/86400000));
+          show(days?'Free Trial':'Trial Ended',days?days+' day'+(days===1?'':'s')+' remaining in your 14-day trial.':'Your trial period has ended. App access is not restricted at this time.','Trial ends: '+dateLabel(member.trial_ends_at));
+          break;
+        }
+        case 'paid':{
+          const ends=member.access_expires_at?Date.parse(member.access_expires_at):null;
+          if(ends!==null&&!Number.isFinite(ends))throw new Error('Paid access date is unavailable.');
+          show(ends!==null&&ends<=Date.now()?'Paid Membership Expired':'Paid Member','Your account is marked as a paid membership.',ends===null?'No expiration recorded.':'Recorded access ends: '+dateLabel(member.access_expires_at));break;
+        }
+        default:show('Membership status unavailable','The server returned an unrecognized membership type.');
+      }
+    }catch(e){if(current===requestId)show('Unable to load membership',e?.message||'Please retry.');}
+  };
   window.sfMembershipOpen=function(){
     if(typeof window.closeAccountMenu==='function')window.closeAccountMenu();
     document.getElementById('sfMembershipOverlay')?.classList.add('sf-open');
+    window.sfMembershipRefresh();
   };
-  window.sfMembershipClose=function(){document.getElementById('sfMembershipOverlay')?.classList.remove('sf-open')};
+  window.sfMembershipClose=function(){
+    ++requestId;
+    document.getElementById('sfMembershipOverlay')?.classList.remove('sf-open');
+  };
   document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sfMembershipClose()});
 })();
 </script>
