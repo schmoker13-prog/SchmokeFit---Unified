@@ -3762,6 +3762,8 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
     <button class="account-menu-item" type="button" onclick="closeAccountMenu(); switchTab('introTab', null); window.scrollTo({top:0,behavior:'smooth'});">▶ INTRO / APP TOUR</button>
     <button class="account-menu-item" type="button" onclick="closeAccountMenu(); switchTab('tipsTab', null); window.scrollTo({top:0,behavior:'smooth'});">💡 TIPS &amp; GUIDE</button>
     <button class="account-menu-item" type="button" onclick="openBackupPanel()">⚙ DATA &amp; BACKUP</button>
+    <button class="account-menu-item" type="button" onclick="sfMembershipOpen()">♛ MEMBERSHIP</button>
+    <div class="sf-version-label" id="sfAppVersionLabel"></div>
     <div class="account-menu-divider account-menu-divider-spaced"></div>
     <button class="account-menu-item danger" type="button" onclick="handleLogout()">LOG OUT</button>
   </div>
@@ -16287,6 +16289,42 @@ try{localStorage.setItem('schmokefit_v188_onboarding_complete','true');}catch(e)
  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderTodayPreview,800));
  document.addEventListener('DOMContentLoaded',()=>setTimeout(check,600));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
+})();
+</script>
+
+<style>
+.sf-version-label{padding:10px 16px 12px;color:#8d9ca8;font-size:11px;letter-spacing:1.1px;text-align:center}
+.sf-member-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2147483000;display:none;align-items:center;justify-content:center;padding:20px}
+.sf-member-overlay.sf-open{display:flex}
+.sf-member-card{background:#16202a;border:1px solid #405062;border-radius:16px;max-width:430px;width:100%;padding:24px;color:#f1f5f9;box-shadow:0 20px 60px #0009}
+.sf-member-card h2{margin:0 0 12px;font-size:23px}.sf-member-card p{line-height:1.55;color:#c3cbd5;font-size:14px}
+.sf-member-card button{background:#273b4d;color:#fff;border:1px solid #52687b;border-radius:9px;padding:12px 18px;cursor:pointer;width:100%;margin-top:14px}
+</style>
+<div id="sfMembershipOverlay" class="sf-member-overlay" role="dialog" aria-modal="true" aria-labelledby="sfMembershipTitle" onclick="if(event.target===this)sfMembershipClose()">
+  <div class="sf-member-card">
+    <h2 id="sfMembershipTitle">SCHMOKEFIT MEMBERSHIP</h2>
+    <p><strong>Founding member program — coming soon</strong></p>
+    <p>We are preparing membership options. Existing users will continue to have access while we securely establish founding-member eligibility.</p>
+    <p>No subscription or payment is required at this time. Your workout, nutrition, and backup features are unchanged.</p>
+    <p id="sfMembershipVersion"></p>
+    <button type="button" onclick="sfMembershipClose()">CLOSE</button>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  const APP_VERSION='2.0.0';
+  window.SCHMOKEFIT_APP_VERSION=APP_VERSION;
+  const label=document.getElementById('sfAppVersionLabel');
+  if(label)label.textContent='SCHMOKEFIT · V'+APP_VERSION;
+  const modalVersion=document.getElementById('sfMembershipVersion');
+  if(modalVersion)modalVersion.textContent='App version '+APP_VERSION;
+  window.sfMembershipOpen=function(){
+    if(typeof window.closeAccountMenu==='function')window.closeAccountMenu();
+    document.getElementById('sfMembershipOverlay')?.classList.add('sf-open');
+  };
+  window.sfMembershipClose=function(){document.getElementById('sfMembershipOverlay')?.classList.remove('sf-open')};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sfMembershipClose()});
 })();
 </script>
 </body>
