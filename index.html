@@ -3773,18 +3773,21 @@ body.program-athlete .completion-check{border-color:rgba(57,211,83,.72);backgrou
   <div class="backup-sheet-card">
     <button class="backup-sheet-close" type="button" onclick="closeBackupPanel()">×</button>
     <div class="info-subtitle" style="padding-right:46px">DATA &amp; BACKUP</div>
-    <div class="account-tools-copy">Save a backup before changing phones, browsers, or clearing site data.</div>
-    <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ EXPORT BACKUP</button>
-    <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE BACKUP</button>
+    <div class="account-tools-copy">Choose a local backup file or a cloud backup below before changing phones, browsers, or clearing site data.</div>
+    <div class="info-subtitle" style="margin-top:16px">LOCAL FILE BACKUP</div>
+    <div class="account-tools-copy">Download a backup file to your device, or restore one you previously saved.</div>
+    <button class="btn btn-dark account-tool-btn" type="button" onclick="exportSchmokeFitBackup()">⬇ DOWNLOAD BACKUP FILE</button>
+    <button class="btn btn-dark account-tool-btn" type="button" onclick="document.getElementById('schmokeFitBackupInput').click()">⬆ RESTORE FROM FILE</button>
     <div style="border-top:1px solid #35414d;margin:18px 0 12px"></div>
-    <div class="info-subtitle">CLOUD BACKUP · V184</div>
+    <div class="info-subtitle">CLOUD BACKUP</div>
+    <div class="account-tools-copy">Account-linked cloud backups stored in Supabase.</div>
     <div id="sfPrimaryStatus" role="status" style="font-size:13px;color:#e2edf7;margin:12px 0">Checking device…</div>
     <div id="sf184DeviceType" class="account-tools-copy">Device type: checking…</div>
     <div id="sf184Auto" class="account-tools-copy" style="margin:9px 0">Checking weekly backup schedule…</div>
     <div id="sf184Times" class="account-tools-copy" style="margin:9px 0;line-height:1.8">Checking saved backups…</div>
     <div id="sfCloudStatus" role="status" aria-live="polite" style="font-size:12px;color:#b9c8d6;margin:12px 0">Ready.</div>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ BACK UP NOW</button>
-    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sf184OpenRestore()">⬇ RESTORE CLOUD BACKUP</button>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudUpload" onclick="sfCloudUploadBackup()">☁ BACK UP TO CLOUD</button>
+    <button class="btn btn-dark account-tool-btn" type="button" id="sfCloudRestore" onclick="sf184OpenRestore()">⬇ RESTORE FROM CLOUD</button>
     <details style="margin-top:14px;border-top:1px solid #35414d;padding-top:12px">
       <summary style="color:#e2edf7;font-weight:700;cursor:pointer">⚙ DEVICE SETTINGS</summary>
       <div class="account-tools-copy" style="margin:12px 0">Rename this device for easier identification. Only the primary device makes automatic weekly backups while the app is open and signed in. Changing primary status never moves or restores fitness data.</div>
@@ -16313,7 +16316,7 @@ try{localStorage.setItem('schmokefit_v188_onboarding_complete','true');}catch(e)
 <script>
 (function(){
   'use strict';
-  const APP_VERSION='2.0.0';
+  const APP_VERSION='2.0.1';
   window.SCHMOKEFIT_APP_VERSION=APP_VERSION;
   const label=document.getElementById('sfAppVersionLabel');
   if(label)label.textContent='SCHMOKEFIT · V'+APP_VERSION;
